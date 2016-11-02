@@ -542,8 +542,8 @@ class AnalysisManager(threading.Thread):
             self.rt_table = None
 
         if self.route == "inetsim":
-            rooter("inetsim_enable", self.machine.ip, self.cfg.routing.inetsim_server,
-                str(self.cfg.resultserver.port))
+            rooter("inetsim_enable", self.machine.ip, str(self.cfg.routing.inetsim_server),
+                str(self.cfg.routing.inetsim_dnsport), str(self.cfg.resultserver.port))
 
         if self.route == "tor":
             rooter("tor_enable", self.machine.ip, str(self.cfg.resultserver.port),
@@ -569,7 +569,7 @@ class AnalysisManager(threading.Thread):
 
         if self.route == "inetsim":
           rooter("inetsim_disable", self.machine.ip, self.cfg.routing.inetsim_server,
-                str(self.cfg.resultserver.port))
+                str(self.cfg.routing.inetsim_dnsport), str(self.cfg.resultserver.port))
 
         if self.route == "tor":
             rooter("tor_disable", self.machine.ip, str(self.cfg.resultserver.port),

@@ -757,7 +757,9 @@ def init_routing():
 
 
     # Check if inetsim interface exists, if yes then enable nat, if interface is not the same as tor
-    if cuckoo.routing.inetsim_interface and cuckoo.routing.inetsim_interface !=  cuckoo.routing.tor_interface:
+    #if cuckoo.routing.inetsim_interface and cuckoo.routing.inetsim_interface !=  cuckoo.routing.tor_interface:
+    # Check if inetsim interface exists, if yes then enable nat
+    if cuckoo.routing.inetsim_interface:
         if not rooter("nic_available", cuckoo.routing.tor_interface):
             raise CuckooStartupError(
                 "The network interface that has been configured as tor "

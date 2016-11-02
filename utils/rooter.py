@@ -119,7 +119,7 @@ def srcroute_disable(rt_table, ipaddr):
     run(settings.ip, "rule", "del", "from", ipaddr, "table", rt_table)
     run(settings.ip, "route", "flush", "cache")
 
-def inetsim_enable(ipaddr, inetsim_ip, resultserver_port, interface):
+def inetsim_enable(ipaddr, inetsim_ip, dns_port, resultserver_port):
    """Enable hijacking of all traffic and send it to InetSIM."""
    run(settings.iptables, "-t", "nat", "-I", "PREROUTING", "--source", ipaddr,
        "-p", "tcp", "--syn", "!", "--dport", resultserver_port, "-j", "DNAT",
@@ -130,12 +130,12 @@ def inetsim_enable(ipaddr, inetsim_ip, resultserver_port, interface):
        "INVALID", "-j", "DROP")
    run(settings.iptables, "-t", "nat", "-A", "PREROUTING", "-p",
        "tcp", "--dport", "53", "--source", ipaddr, "-j", "DNAT",
-       "--to-destination", "{}:53".format(inetsim_ip))
+       "--to-destination", "{}:{}".format(inetsim_ip, dns_port))
    run(settings.iptables, "-t", "nat", "-A", "PREROUTING", "-p",
        "udp", "--dport", "53", "--source", ipaddr, "-j", "DNAT",
-       "--to-destination", "{}:53".format(inetsim_ip))
+       "--to-destination", "{}:{}".format(inetsim_ip, dns_port))
 
-def inetsim_disable(ipaddr, inetsim_ip, resultserver_port):
+def inetsim_disable(ipaddr, inetsim_ip, dns_port, resultserver_port):
    """Enable hijacking of all traffic and send it to InetSIM."""
    run(settings.iptables, "-D", "PREROUTING", "-t", "nat", "--source", ipaddr,
        "-p", "tcp", "--syn", "!", "--dport", resultserver_port, "-j", "DNAT",
@@ -146,10 +146,10 @@ def inetsim_disable(ipaddr, inetsim_ip, resultserver_port):
        "INVALID", "-j", "DROP")
    run(settings.iptables, "-D", "PREROUTING", "-t", "nat", "-p", "tcp",
        "--dport", "53", "--source", ipaddr, "-j", "DNAT", "--to-destination",
-       "{}:53".format(inetsim_ip))
+       "{}:{}".format(inetsim_ip, dns_port))
    run(settings.iptables, "-D", "PREROUTING", "-t", "nat", "-p", "udp",
        "--dport", "53", "--source", ipaddr, "-j", "DNAT", "--to-destination",
-       "{}:53".format(inetsim_ip))
+       "{}:{}".format(inetsim_ip, dns_port))
 
 def tor_enable(ipaddr, resultserver_port, dns_port, proxy_port):
    """Enable hijacking of all traffic and send it to TOR."""
