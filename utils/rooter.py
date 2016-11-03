@@ -14,6 +14,9 @@ import stat
 import subprocess
 import sys
 
+log = logging.getLogger("cuckoo-rooter")
+log.setLevel(logging.INFO)
+
 def run(*args):
     """Wrapper to Popen."""
     p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -121,6 +124,7 @@ def srcroute_disable(rt_table, ipaddr):
 
 def inetsim_enable(ipaddr, inetsim_ip, dns_port, resultserver_port):
    """Enable hijacking of all traffic and send it to InetSIM."""
+   log.info("Enabling inetsim route.")
    run(settings.iptables, "-t", "nat", "-I", "PREROUTING", "--source", ipaddr,
        "-p", "tcp", "--syn", "!", "--dport", resultserver_port, "-j", "DNAT",
        "--to-destination", "{}".format(inetsim_ip))
@@ -134,9 +138,14 @@ def inetsim_enable(ipaddr, inetsim_ip, dns_port, resultserver_port):
    run(settings.iptables, "-t", "nat", "-A", "PREROUTING", "-p",
        "udp", "--dport", "53", "--source", ipaddr, "-j", "DNAT",
        "--to-destination", "{}:{}".format(inetsim_ip, dns_port))
+   if settings.verbose:
+       run(settings.iptables, "-t", "nat", "-v", "-L", "PREROUTING", "-n",
+           "--line-number") 
+      
 
 def inetsim_disable(ipaddr, inetsim_ip, dns_port, resultserver_port):
-   """Enable hijacking of all traffic and send it to InetSIM."""
+   """Disable hijacking of all traffic and send it to InetSIM."""
+   log.info("Disabling inetsim route.")
    run(settings.iptables, "-D", "PREROUTING", "-t", "nat", "--source", ipaddr,
        "-p", "tcp", "--syn", "!", "--dport", resultserver_port, "-j", "DNAT",
        "--to-destination", "{}".format(inetsim_ip))
@@ -150,6 +159,9 @@ def inetsim_disable(ipaddr, inetsim_ip, dns_port, resultserver_port):
    run(settings.iptables, "-D", "PREROUTING", "-t", "nat", "-p", "udp",
        "--dport", "53", "--source", ipaddr, "-j", "DNAT", "--to-destination",
        "{}:{}".format(inetsim_ip, dns_port))
+   if settings.verbose:
+       run(settings.iptables, "-t", "nat", "-v", "-L", "PREROUTING", "-n",
+           "--line-number") 
 
 def tor_enable(ipaddr, resultserver_port, dns_port, proxy_port):
    """Enable hijacking of all traffic and send it to TOR."""
@@ -221,8 +233,8 @@ if __name__ == "__main__":
                         help="Enable verbose logging")
     settings = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO)
-    log = logging.getLogger("cuckoo-rooter")
+    if settings.verbose:
+        log.setLevel(logging.DEBUG)
 
     if not settings.service or not os.path.exists(settings.service):
         sys.exit(
