@@ -512,6 +512,9 @@ class AnalysisManager(threading.Thread):
         if self.route == "none":
             self.interface = None
             self.rt_table = None
+        if self.route == "None":
+            self.interface = None
+            self.rt_table = None
         elif self.route == "inetsim":
             self.interface = self.cfg.routing.inetsim_interface
         elif self.route == "tor":

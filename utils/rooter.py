@@ -14,8 +14,9 @@ import stat
 import subprocess
 import sys
 
+
+logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("cuckoo-rooter")
-log.setLevel(logging.INFO)
 
 def run(*args):
     """Wrapper to Popen."""
@@ -139,10 +140,11 @@ def inetsim_enable(ipaddr, inetsim_ip, dns_port, resultserver_port):
        "udp", "--dport", "53", "--source", ipaddr, "-j", "DNAT",
        "--to-destination", "{}:{}".format(inetsim_ip, dns_port))
    if settings.verbose:
-       run(settings.iptables, "-t", "nat", "-v", "-L", "PREROUTING", "-n",
+       (sto, ste) =run(settings.iptables, "-t", "nat", "-v", "-L", "PREROUTING", "-n",
            "--line-number") 
+       print sto
+       print ste
       
-
 def inetsim_disable(ipaddr, inetsim_ip, dns_port, resultserver_port):
    """Disable hijacking of all traffic and send it to InetSIM."""
    log.info("Disabling inetsim route.")
@@ -160,11 +162,14 @@ def inetsim_disable(ipaddr, inetsim_ip, dns_port, resultserver_port):
        "--dport", "53", "--source", ipaddr, "-j", "DNAT", "--to-destination",
        "{}:{}".format(inetsim_ip, dns_port))
    if settings.verbose:
-       run(settings.iptables, "-t", "nat", "-v", "-L", "PREROUTING", "-n",
+       (sto, ste) = run(settings.iptables, "-t", "nat", "-v", "-L", "PREROUTING", "-n",
            "--line-number") 
+       print sto
+       print ste
 
 def tor_enable(ipaddr, resultserver_port, dns_port, proxy_port):
    """Enable hijacking of all traffic and send it to TOR."""
+   log.info("Enabling tor route.")
    run(settings.iptables, "-t", "nat", "-I", "PREROUTING", "--source", ipaddr,
        "-p", "tcp", "--syn", "!", "--dport", resultserver_port, "-j", "REDIRECT",
        "--to-ports", proxy_port)
@@ -178,9 +183,15 @@ def tor_enable(ipaddr, resultserver_port, dns_port, proxy_port):
    run(settings.iptables, "-t", "nat", "-A", "PREROUTING", "-p", "udp",
        "--dport", "53", "--source", ipaddr, "-j", "REDIRECT", "--to-ports",
        dns_port)
+   if settings.verbose:
+       (sto, ste) = run(settings.iptables, "-t", "nat", "-v", "-L", "PREROUTING", "-n",
+           "--line-number") 
+       print sto
+       print ste
 
 def tor_disable(ipaddr, resultserver_port, dns_port, proxy_port):
    """Enable hijacking of all traffic and send it to TOR."""
+   log.info("Disabling tor route.")
    run(settings.iptables, "-t", "nat", "-D", "PREROUTING", "--source", ipaddr,
        "-p", "tcp", "--syn", "!", "--dport", resultserver_port, "-j", "REDIRECT",
        "--to-ports", proxy_port)
@@ -194,6 +205,11 @@ def tor_disable(ipaddr, resultserver_port, dns_port, proxy_port):
    run(settings.iptables, "-t", "nat", "-D", "PREROUTING", "-p", "udp",
        "--dport", "53", "--source", ipaddr, "-j", "REDIRECT", "--to-ports",
        dns_port)
+   if settings.verbose:
+       (sto, ste) = run(settings.iptables, "-t", "nat", "-v", "-L", "PREROUTING", "-n",
+           "--line-number") 
+       print sto
+       print ste
 
 handlers = {
     "nic_available": nic_available,
