@@ -77,7 +77,7 @@ if GATEWAYS:
  
 
 # Enabled/Disable Zer0m0n tickbox on the submission page
-OPT_ZER0M0N = False
+OPT_ZER0M0N = True
 
 # To disable comment support, change the below to False
 COMMENTS = True
