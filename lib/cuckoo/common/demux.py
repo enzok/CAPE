@@ -340,7 +340,7 @@ def demux_sample(filename, package, options):
         return [ filename ]
 
     # don't try to extract from Java archives or executables
-    if "Java Jar" in magic:
+    if "Java Jar" in magic or "Java archive" in magic:
         return [ filename ]
     if "PE32" in magic or "MS-DOS executable" in magic:
         return [ filename ]

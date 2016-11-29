@@ -1492,7 +1492,7 @@ class Static(Processing):
                 static = PDF(self.file_path).run()
             elif package in ("doc", "ppt", "xls"):
                 static = Office(self.file_path).run()
-            elif "Java Jar" in thetype or self.task["target"].endswith(".jar"):
+            elif "Java Jar" in thetype or or "Java archive" in thetype or self.task["target"].endswith(".jar"):
                 decomp_jar = self.options.get("procyon_path", None)
                 if decomp_jar and not os.path.exists(decomp_jar):
                     log.error("procyon_path specified in processing.conf but the file does not exist.")
