@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 import gzip
 import tarfile
+import logging
 from bz2 import BZ2File
 from zipfile import ZipFile
 
@@ -21,6 +22,8 @@ from lib.cuckoo.common.objects import File
 from lib.cuckoo.common.email_utils import find_attachments_in_email
 from lib.cuckoo.common.office.msgextract import Message
 from lib.cuckoo.common.exceptions import CuckooDemuxError
+
+log = logging.getLogger(__name__)
 
 demux_extensions_list = [
         "", ".exe", ".dll", ".com", ".jar", ".pdf", ".msi", ".bin", ".scr", ".zip", ".tar", ".gz", ".tgz", ".rar", ".htm", ".html", ".hta",
@@ -122,6 +125,7 @@ def demux_zip(filename, options):
                         retlist.append(archive.extract(extfile, path=tmp_dir, pwd=password))
                     except:
                         retlist.append(archive.extract(extfile, path=tmp_dir))
+                    log.debug("Extracting from zip - {}/{}".format(tmp_dir, extfile))
     except:
         pass
 
@@ -330,8 +334,10 @@ def demux_sample(filename, package, options):
                     pass
         if password:
             return demux_office(filename, password)
+            log.debug("Extracting from Office doc - {}, password={}".format(filename, password))
         else:
             return [filename]
+            log.debug("Extracting from Office doc - {}".format(filename))
 
     # if a package was specified, then don't do anything special
     # this will allow for the ZIP package to be used to analyze binaries with included DLL dependencies
@@ -345,6 +351,7 @@ def demux_sample(filename, package, options):
     if "PE32" in magic or "MS-DOS executable" in magic:
         return [ filename ]
 
+    log.debug("File will to be extraced - {}".format(filename))
     retlist = demux_zip(filename, options)
     if not retlist:
         retlist = demux_rar(filename, options)
@@ -378,5 +385,6 @@ def demux_sample(filename, package, options):
 
     if not retlist:
         retlist.append(filename)
+        log.debug("Not an archive file - {}".format(filename))
 
     return retlist
