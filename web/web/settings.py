@@ -255,7 +255,7 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'verbose',
-            'filename': '/var/log/cuckoo_web.log',
+            'filename': '/opt/cuckoo/log/cuckoo_web.log',
             'maxBytes': 1024 * 1024 * 16,  # 16 mb
         }
     },
