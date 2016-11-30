@@ -1037,6 +1037,7 @@ class Database(object):
         """
         task_ids = []
         # extract files from the (potential) ZIP
+        log.debug("demux_sample_and_add_to_db")
         extracted_files = demux_sample(file_path, package, options)
         # create tasks for each file in the ZIP
         for file in extracted_files:

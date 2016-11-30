@@ -232,6 +232,14 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s %(levelname)s [%(name)s:%(lineno)s] %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        }
+    },
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
@@ -242,6 +250,13 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'cuckoo_web': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'verbose',
+            'filename': '/var/log/cuckoo_web.log',
+            'maxBytes': 1024 * 1024 * 16,  # 16 mb
         }
     },
     'loggers': {
@@ -249,6 +264,16 @@ LOGGING = {
             'handlers': ['mail_admins'],
             'level': 'ERROR',
             'propagate': True,
+        },
+        'django': {
+            'level': 'DEBUG',
+            'handlers': ['cuckoo_web'],
+            'propagate': False,
+        },
+        'gunicorn': {
+            'level': 'DEBUG',
+            'handlers': ['cuckoo_web'],
+            'propagate': False,
         },
     }
 }
