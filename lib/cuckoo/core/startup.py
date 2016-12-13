@@ -689,13 +689,15 @@ def init_routing():
 
             # Disable & enable NAT on this network interface. Disable it just
             # in case we still had the same rule from a previous run.
-            rooter("disable_nat", entry.interface)
-            rooter("enable_nat", entry.interface)
 
-            # Populate routing table with entries from main routing table.
-            if cuckoo.routing.auto_rt:
-                rooter("flush_rttable", entry.rt_table)
-                rooter("init_rttable", entry.rt_table, entry.interface)
+            if vpns:
+                rooter("disable_nat", entry.interface)
+                rooter("enable_nat", entry.interface)
+
+                # Populate routing table with entries from main routing table.
+                if cuckoo.routing.auto_rt:
+                    rooter("flush_rttable", entry.rt_table)
+                    rooter("init_rttable", entry.rt_table, entry.interface)
 
     # Check whether the default VPN exists if specified.
     if cuckoo.routing.route not in ("none", "internet"):

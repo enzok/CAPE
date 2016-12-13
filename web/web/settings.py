@@ -252,7 +252,7 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler'
         },
         'cuckoo_web': {
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'verbose',
             'filename': '/opt/cuckoo/log/cuckoo_web.log',
@@ -266,12 +266,12 @@ LOGGING = {
             'propagate': True,
         },
         'django': {
-            'level': 'ERROR',
+            'level': 'INFO',
             'handlers': ['cuckoo_web'],
             'propagate': False,
         },
         'gunicorn': {
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'handlers': ['cuckoo_web'],
             'propagate': False,
         },

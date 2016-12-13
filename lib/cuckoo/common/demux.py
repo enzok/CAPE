@@ -351,7 +351,7 @@ def demux_sample(filename, package, options):
     if "PE32" in magic or "MS-DOS executable" in magic:
         return [ filename ]
 
-    log.debug("File will to be extraced - {}".format(filename))
+    log.debug("File will to be extracted - {}".format(filename))
     retlist = demux_zip(filename, options)
     if not retlist:
         retlist = demux_rar(filename, options)
@@ -365,6 +365,7 @@ def demux_sample(filename, package, options):
     if retlist:
         newretlist = []
         for item in retlist:
+            log.debug("Nested file will to be extracted - {}".format(item))
             zipext = demux_zip(item, options)
             if zipext:
                 newretlist.extend(zipext)

@@ -174,7 +174,6 @@ def index(request):
 
                     for entry in task_machines:
                         try:
-                            print "Calling demux_sample_and_add_to_db"
                             task_ids_new = db.demux_sample_and_add_to_db(file_path=path, package=package, timeout=timeout, options=options, priority=priority,
                                     machine=entry, custom=custom, memory=memory, enforce_timeout=enforce_timeout, tags=tags, clock=clock)
                             task_ids.extend(task_ids_new)
