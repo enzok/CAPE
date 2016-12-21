@@ -672,32 +672,29 @@ def init_routing():
                 )
 
             entry = vpn.get(name)
-            add = 1
-            if not rooter("nic_available", entry.interface):
+            #add = 1
+            #if not rooter("nic_available", entry.interface):
                 #raise CuckooStartupError(
                 #   "The network interface that has been configured for "
                 #    "VPN %s is not available." % entry.name
                 #)
-                add = 0
+            #    add = 0
             if not rooter("rt_available", entry.rt_table):
                 raise CuckooStartupError(
                     "The routing table that has been configured for "
                     "VPN %s is not available." % entry.name
                 )
-            if add:
-                vpns[entry.name] = entry
+            vpns[entry.name] = entry
 
             # Disable & enable NAT on this network interface. Disable it just
             # in case we still had the same rule from a previous run.
+            rooter("disable_nat", entry.interface)
+            rooter("enable_nat", entry.interface)
 
-            if vpns:
-                rooter("disable_nat", entry.interface)
-                rooter("enable_nat", entry.interface)
-
-                # Populate routing table with entries from main routing table.
-                if cuckoo.routing.auto_rt:
-                    rooter("flush_rttable", entry.rt_table)
-                    rooter("init_rttable", entry.rt_table, entry.interface)
+            # Populate routing table with entries from main routing table.
+            if cuckoo.routing.auto_rt:
+                rooter("flush_rttable", entry.rt_table)
+                rooter("init_rttable", entry.rt_table, entry.interface)
 
     # Check whether the default VPN exists if specified.
     if cuckoo.routing.route not in ("none", "internet"):

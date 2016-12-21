@@ -27,20 +27,6 @@ class Zip(Package):
     PATHS = [
              ("SystemRoot", "system32", "cmd.exe"),
              ("SystemRoot", "system32", "wscript.exe"),
-             ("ProgramFiles", "Microsoft Office", "WINWORD.EXE"),
-             ("ProgramFiles", "Microsoft Office", "Office*", "WINWORD.EXE"),
-             ("ProgramFiles", "Microsoft Office*", "root", "Office*", "WINWORD.EXE"),
-             ("ProgramFiles", "Microsoft Office", "WORDVIEW.EXE"),
-             ("ProgramFiles", "Microsoft Office", "EXCEL.EXE"),
-             ("ProgramFiles", "Microsoft Office", "Office*", "EXCEL.EXE"),
-             ("ProgramFiles", "Microsoft Office*", "root", "Office*", "EXCEL.EXE"),
-             ("ProgramFiles", "Microsoft Office", "MSPUB.EXE"),
-             ("ProgramFiles", "Microsoft Office", "Office*", "MSPUB.EXE"),
-             ("ProgramFiles", "Microsoft Office*", "root", "Office*", "MSPUB.EXE"),
-             ("ProgramFiles", "Microsoft Office", "MSPUB.EXE"),
-             ("ProgramFiles", "Microsoft Office", "POWERPNT.EXE"),
-             ("ProgramFiles", "Microsoft Office", "Office*", "POWERPNT.EXE"),
-             ("ProgramFiles", "Microsoft Office*", "root", "Office*", "POWERPNT.EXE"),
             ]
 
     def filtered_namelist(self, archive):
@@ -186,15 +172,37 @@ class Zip(Package):
             wscript_args = "\"{0}\"".format(file_path)
             return self.execute(wscript, wscript_args, file_path)
         elif file_name.lower().endswith(".doc"):
+            PATHS = [
+                     ("ProgramFiles", "Microsoft Office", "WINWORD.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "Office*", "WINWORD.EXE"),
+                     ("ProgramFiles", "Microsoft Office*", "root", "Office*", "WINWORD.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "WORDVIEW.EXE"),
+                    ]
             word = self.get_path_glob("Microsoft Office Word")
             return self.execute(word, "\"%s\" /q" % file_path, file_path)
         elif file_name.lower().endswith(".xls"):
+            PATHS = [
+                     ("ProgramFiles", "Microsoft Office", "EXCEL.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "Office*", "EXCEL.EXE"),
+                     ("ProgramFiles", "Microsoft Office*", "root", "Office*", "EXCEL.EXE"),
+                    ]
             excel = self.get_path_glob("Microsoft Office Excel")
             return self.execute(excel, "\"%s\" /e" % file_path, file_path)
         elif file_name.lower().endswith(".ppt"):
+            PATHS = [
+                     ("ProgramFiles", "Microsoft Office", "POWERPNT.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "Office*", "POWERPNT.EXE"),
+                     ("ProgramFiles", "Microsoft Office*", "root", "Office*", "POWERPNT.EXE"),
+                    ]
             powerpoint = self.get_path_glob("Microsoft Office PowerPoint")
             return self.execute(powerpoint, "/s \"%s\"" % file_path, file_path)
         elif file_name.lower().endswith(".pub"):
+            PATHS = [
+                     ("ProgramFiles", "Microsoft Office", "MSPUB.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "Office*", "MSPUB.EXE"),
+                     ("ProgramFiles", "Microsoft Office*", "root", "Office*", "MSPUB.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "MSPUB.EXE"),
+                    ]
             self.set_keys()
             publisher = self.get_path_glob("Microsoft Office Publisher")
             return self.execute(publisher, "/o \"%s\"" % file_path, file_path)

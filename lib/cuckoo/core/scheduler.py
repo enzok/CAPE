@@ -509,10 +509,7 @@ class AnalysisManager(threading.Thread):
                     self.route = value
                     break
 
-        if self.route == "none":
-            self.interface = None
-            self.rt_table = None
-        if self.route == "None":
+        if self.route == "none" or self.route == "None":
             self.interface = None
             self.rt_table = None
         elif self.route == "inetsim":
@@ -523,6 +520,17 @@ class AnalysisManager(threading.Thread):
             self.interface = self.cfg.routing.internet
             self.rt_table = self.cfg.routing.rt_table
         elif self.route in vpns:
+            #startup the configured vpn
+            rooter("vpn_enable", self.route)
+            timeout = 0
+            while timeout < 10:
+                if not rooter("nic_available", self.interface):
+                    time.sleep(1)
+                    timeout += 1
+                    log.debug("Waiting for VPN interface '%s' to be enabled.",
+                              self.interface)
+                else:
+                    log.info("Enabled VPN interface '%s'", self.interface)
             self.interface = vpns[self.route].interface
             self.rt_table = vpns[self.route].rt_table
         else:
@@ -566,6 +574,9 @@ class AnalysisManager(threading.Thread):
         if self.interface:
             rooter("forward_disable", self.machine.interface,
                    self.interface, self.machine.ip)
+
+        if self.route in vpns:
+            rooter("vpn_disable", self.route)
 
         if self.rt_table:
             rooter("srcroute_disable", self.rt_table, self.machine.ip)
