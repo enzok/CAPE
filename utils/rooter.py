@@ -15,7 +15,8 @@ import subprocess
 import sys
 
 
-logging.basicConfig(level=logging.INFO)
+formatter = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
+logging.basicConfig(level=logging.INFO, format=formatter)
 log = logging.getLogger("cuckoo-rooter")
 
 def run(*args):
