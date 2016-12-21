@@ -533,6 +533,7 @@ class AnalysisManager(threading.Thread):
                               self.interface)
                 else:
                     log.info("Enabled VPN interface '%s'", self.interface)
+                    break
         else:
             log.warning("Unknown network routing destination specified, "
                         "ignoring routing for this analysis: %r", self.route)
