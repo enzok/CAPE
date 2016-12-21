@@ -575,6 +575,7 @@ class AnalysisManager(threading.Thread):
         if self.interface:
             rooter("forward_disable", self.machine.interface,
                    self.interface, self.machine.ip)
+            log.info("Disabled VPN interface '%s'", self.interface)
 
         if self.route in vpns:
             rooter("vpn_disable", self.route)

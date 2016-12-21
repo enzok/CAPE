@@ -45,23 +45,23 @@ def rt_available(rt_table):
     except subprocess.CalledProcessError:
         return False
 
-def vpn_status():
+def vpn_status(name):
     """Gets current VPN status."""
     ret = {}
-    for line in run(settings.service, "openvpn", "status")[0].split("\n"):
-        x = re.search("'(?P<vpn>\\w+)'\\ is\\ (?P<running>not)?", line)
-        if x:
-            ret[x.group("vpn")] = x.group("running") != "not"
+    for line in run(settings.systemctl, "status", "openvpn@{}.service".format(name))[0].split("\n"):
+        if "running" in line:
+            ret[name] = "running"
+            break
 
     return ret
 
 def vpn_enable(name):
     """Start a VPN."""
-    run(settings.service, "openvpn", "start", name)
+    run(settings.systemctl, "start", "openvpn@{}.service".format(name))
 
 def vpn_disable(name):
     """Stop a running VPN."""
-    run(settings.service, "openvpn", "stop", name)
+    run(settings.systemctl, "stop", "openvpn@{}.service".format(name))
 
 def forward_drop():
     """Disable any and all forwarding unless explicitly said so."""
@@ -241,8 +241,8 @@ if __name__ == "__main__":
                         help="Unix socket group")
     parser.add_argument("--ifconfig", default="/sbin/ifconfig",
                         help="Path to ifconfig")
-    parser.add_argument("--service", default="/usr/sbin/service",
-                        help="Service wrapper script for invoking OpenVPN")
+    parser.add_argument("--systemctl", default="/bin/systemctl",
+                        help="Systemctl wrapper script for invoking OpenVPN")
     parser.add_argument("--iptables", default="/sbin/iptables",
                         help="Path to iptables")
     parser.add_argument("--ip", default="/sbin/ip", help="Path to ip")
@@ -253,11 +253,11 @@ if __name__ == "__main__":
     if settings.verbose:
         log.setLevel(logging.DEBUG)
 
-    if not settings.service or not os.path.exists(settings.service):
+    if not settings.systemctl or not os.path.exists(settings.systemctl):
         sys.exit(
-            "The service binary is not available, please configure it!\n"
-            "Note that on CentOS you should provide --service /sbin/service, "
-            "rather than using the Ubuntu/Debian default /usr/sbin/service."
+            "The systemctl binary is not available, please configure it!\n"
+            "Note that on CentOS you should provide --systemctl /bin/systemctl, "
+            "rather than using the Ubuntu/Debian default /bin/systemctl."
         )
 
     if not settings.ifconfig or not os.path.exists(settings.ifconfig):

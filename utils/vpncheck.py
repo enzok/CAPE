@@ -27,6 +27,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("server", nargs="?", default="/tmp/cuckoo-rooter", help="Unix socket path of the server")
     parser.add_argument("client", nargs="?", default="/tmp/cuckoo-vpncheck", help="Unix socket path of this client")
+    parser.add_argument("name", required=True, help="VPN name")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging")
     args = parser.parse_args()
 
@@ -37,7 +38,7 @@ if __name__ == "__main__":
     init_routing()
 
     error = 0
-    for vpn, status in rooter("vpn_status").items():
+    for vpn, status in rooter("vpn_status", "args.name").items():
         if vpn not in vpns:
             print "Not a configured VPN", vpn
             continue
