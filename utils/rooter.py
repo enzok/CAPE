@@ -99,10 +99,10 @@ def flush_rttable(rt_table):
 def forward_enable(src, dst, ipaddr):
     """Enable forwarding a specific IP address from one interface into
     another."""
-    run(settings.iptables, "-A", "FORWARD", "-i", src, "-o", dst,
+    run(settings.iptables, "-I", "1", "FORWARD", "-i", src, "-o", dst,
         "--source", ipaddr, "-j", "ACCEPT")
 
-    run(settings.iptables, "-A", "FORWARD", "-i", dst, "-o", src,
+    run(settings.iptables, "-I", "2", "FORWARD", "-i", dst, "-o", src,
         "--destination", ipaddr, "-j", "ACCEPT")
 
 def forward_disable(src, dst, ipaddr):
@@ -130,9 +130,9 @@ def inetsim_enable(ipaddr, inetsim_ip, dns_port, resultserver_port):
    run(settings.iptables, "-t", "nat", "-I", "PREROUTING", "--source", ipaddr,
        "-p", "tcp", "--syn", "!", "--dport", resultserver_port, "-j", "DNAT",
        "--to-destination", "{}".format(inetsim_ip))
-   run(settings.iptables, "-A", "OUTPUT", "-m", "conntrack", "--ctstate",
+   run(settings.iptables, "-I", "1", "OUTPUT", "-m", "conntrack", "--ctstate",
        "INVALID", "-j", "DROP")
-   run(settings.iptables, "-A", "OUTPUT", "-m", "state", "--state",
+   run(settings.iptables, "-I", "2", "OUTPUT", "-m", "state", "--state",
        "INVALID", "-j", "DROP")
    run(settings.iptables, "-t", "nat", "-A", "PREROUTING", "-p",
        "tcp", "--dport", "53", "--source", ipaddr, "-j", "DNAT",
@@ -174,9 +174,9 @@ def tor_enable(ipaddr, resultserver_port, dns_port, proxy_port):
    run(settings.iptables, "-t", "nat", "-I", "PREROUTING", "--source", ipaddr,
        "-p", "tcp", "--syn", "!", "--dport", resultserver_port, "-j", "REDIRECT",
        "--to-ports", proxy_port)
-   run(settings.iptables, "-I", "OUTPUT", "-m", "conntrack", "--ctstate",
+   run(settings.iptables, "-I", "1", "OUTPUT", "-m", "conntrack", "--ctstate",
        "INVALID", "-j", "DROP")
-   run(settings.iptables, "-I", "OUTPUT", "-m", "state", "--state",
+   run(settings.iptables, "-I", "2", "OUTPUT", "-m", "state", "--state",
        "INVALID", "-j", "DROP")
    run(settings.iptables, "-t", "nat", "-A", "PREROUTING", "-p", "tcp",
         "--dport", "53", "--source", ipaddr, "-j", "REDIRECT",
