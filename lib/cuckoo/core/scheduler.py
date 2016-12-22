@@ -577,11 +577,12 @@ class AnalysisManager(threading.Thread):
                    self.interface, self.machine.ip)
             log.info("Disabled VPN interface '%s'", self.interface)
 
-        if self.route in vpns:
-            rooter("vpn_disable", self.route)
-
         if self.rt_table:
             rooter("srcroute_disable", self.rt_table, self.machine.ip)
+
+        if self.route in vpns:
+            rooter("vpn_disable", self.route)
+            time.sleep(1)
 
         if self.route == "inetsim":
           rooter("inetsim_disable", self.machine.ip, self.cfg.routing.inetsim_server,
