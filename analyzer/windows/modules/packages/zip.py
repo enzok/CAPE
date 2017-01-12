@@ -171,7 +171,7 @@ class Zip(Package):
             wscript = self.get_path_app_in_path("wscript.exe")
             wscript_args = "\"{0}\"".format(file_path)
             return self.execute(wscript, wscript_args, file_path)
-        elif file_name.lower().endswith(".doc") or file_name.lower().endswith(".docx"):
+        elif file_name.lower().endswith(('.doc','docx', 'docm')):
             PATHS = [
                      ("ProgramFiles", "Microsoft Office", "WINWORD.EXE"),
                      ("ProgramFiles", "Microsoft Office", "Office*", "WINWORD.EXE"),
@@ -180,7 +180,7 @@ class Zip(Package):
                     ]
             word = self.get_path_glob("Microsoft Office Word")
             return self.execute(word, "\"%s\" /q" % file_path, file_path)
-        elif file_name.lower().endswith(".xls") or file_name.lower().endswith(".xlsx"):
+        elif file_name.lower().endswith(('.xls', 'xlsx', 'xlsb', 'xlsm')):
             PATHS = [
                      ("ProgramFiles", "Microsoft Office", "EXCEL.EXE"),
                      ("ProgramFiles", "Microsoft Office", "Office*", "EXCEL.EXE"),
@@ -188,7 +188,7 @@ class Zip(Package):
                     ]
             excel = self.get_path_glob("Microsoft Office Excel")
             return self.execute(excel, "\"%s\" /e" % file_path, file_path)
-        elif file_name.lower().endswith(".ppt") or file_name.lower().endswith(".pptx"):
+        elif file_name.lower().endswith(('.ppt', 'pptx', 'pptm')):
             PATHS = [
                      ("ProgramFiles", "Microsoft Office", "POWERPNT.EXE"),
                      ("ProgramFiles", "Microsoft Office", "Office*", "POWERPNT.EXE"),
@@ -196,7 +196,7 @@ class Zip(Package):
                     ]
             powerpoint = self.get_path_glob("Microsoft Office PowerPoint")
             return self.execute(powerpoint, "/s \"%s\"" % file_path, file_path)
-        elif file_name.lower().endswith(".pub") or file_name.lower().endswith(".pubx"):
+        elif file_name.lower().endswith('.pub'):
             PATHS = [
                      ("ProgramFiles", "Microsoft Office", "MSPUB.EXE"),
                      ("ProgramFiles", "Microsoft Office", "Office*", "MSPUB.EXE"),
