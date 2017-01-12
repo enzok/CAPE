@@ -6,7 +6,7 @@
 import argparse
 import grp
 import json
-import logging
+import logging.handlers
 import os.path
 import re
 import socket
@@ -15,9 +15,14 @@ import subprocess
 import sys
 
 
-formatter = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
-logging.basicConfig(level=logging.INFO, format=formatter)
 log = logging.getLogger("cuckoo-rooter")
+formatter = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
+ch = logging.StreamHandler()
+ch.setFormatter(formatter)
+log.addHandler(ch)
+
+log.setLevel(logging.INFO)
+
 
 def run(*args):
     """Wrapper to Popen."""
