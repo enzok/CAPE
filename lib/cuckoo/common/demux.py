@@ -369,7 +369,7 @@ def demux_sample(filename, package, options):
             magic = File(filename).get_type()
 
             # if file is an Office doc
-            if "Microsoft" in magic or "Composite Document File" in magic or "CDFV2 Encrypted" in magic:
+            if "Microsoft" in magic or "Composite Document File" in magic:
                 log.debug("Extracted Office document - {}".format(item))
                 newretlist.extend(item)
                 continue
