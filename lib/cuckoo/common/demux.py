@@ -365,8 +365,17 @@ def demux_sample(filename, package, options):
     if retlist:
         newretlist = []
         for item in retlist:
-            log.debug("Nested file will to be extracted - {}".format(item))
-            zipext = demux_zip(item, options)
+
+            magic = File(filename).get_type()
+
+            # if file is an Office doc
+            if "Microsoft" in magic or "Composite Document File" in magic or "CDFV2 Encrypted" in magic:
+                log.debug("Extracted Office document - {}".format(item))
+                newretlist.extend(item)
+                continue
+            else:
+                log.debug("Nested file will to be extracted - {}".format(item))
+                zipext = demux_zip(item, options)
             if zipext:
                 newretlist.extend(zipext)
             else:
