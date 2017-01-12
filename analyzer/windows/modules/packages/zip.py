@@ -196,7 +196,7 @@ class Zip(Package):
                     ]
             powerpoint = self.get_path_glob("Microsoft Office PowerPoint")
             return self.execute(powerpoint, "/s \"%s\"" % file_path, file_path)
-        elif file_name.lower().endswith(".pub") or file_name.lower().endswith(".pubx":
+        elif file_name.lower().endswith(".pub") or file_name.lower().endswith(".pubx"):
             PATHS = [
                      ("ProgramFiles", "Microsoft Office", "MSPUB.EXE"),
                      ("ProgramFiles", "Microsoft Office", "Office*", "MSPUB.EXE"),
