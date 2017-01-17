@@ -10,6 +10,7 @@ import tarfile
 import logging
 from bz2 import BZ2File
 from zipfile import ZipFile
+from sflock import unpack
 
 try:
     from rarfile import RarFile
@@ -285,7 +286,6 @@ def demux_tar(filename, options):
 
     return retlist
 
-
 def demux_email(filename, options):
     retlist = []
     try:
@@ -309,6 +309,14 @@ def demux_msg(filename, options):
 
     return retlist
 
+def get_file_list(unpacked):
+    retlist = []
+    for child in unpacked.children:
+        at = child.astree()
+        if "file" in at['type']:
+            retlist.append(at['filename'])
+
+    return retlist
 
 def demux_sample(filename, package, options):
     """
@@ -318,20 +326,20 @@ def demux_sample(filename, package, options):
     """
 
     magic = File(filename).get_type()
+    password = None
+    if "password=" in options:
+        fields = options.split(",")
+        for field in fields:
+            try:
+                key, value = field.split("=", 1)
+                if key == "password":
+                    password = value
+                    break
+            except:
+                pass
 
     # if file is an Office doc and password is supplied, try to decrypt the doc
     if "Microsoft" in magic or "Composite Document File" in magic or "CDFV2 Encrypted" in magic:
-        password = None
-        if "password=" in options:
-            fields = options.split(",")
-            for field in fields:
-                try:
-                    key, value = field.split("=", 1)
-                    if key == "password":
-                        password = value
-                        break
-                except:
-                    pass
         if password:
             return demux_office(filename, password)
             log.debug("Extracting from Office doc - {}, password={}".format(filename, password))
@@ -352,43 +360,12 @@ def demux_sample(filename, package, options):
         return [ filename ]
 
     log.debug("File will to be extracted - {}".format(filename))
-    retlist = demux_zip(filename, options)
-    if not retlist:
-        retlist = demux_rar(filename, options)
-    if not retlist:
-        retlist = demux_tar(filename, options)
-    if not retlist:
-        retlist = demux_email(filename, options)
-    if not retlist:
-        retlist = demux_msg(filename, options)
-    # handle ZIPs/RARs inside extracted files
-    if retlist:
-        newretlist = []
-        for item in retlist:
-
-            magic = File(filename).get_type()
-
-            # if file is an Office doc
-            if "Microsoft" in magic or "Composite Document File" in magic:
-                log.debug("Extracted Office document - {}".format(item))
-                newretlist.extend(item)
-                continue
-            else:
-                log.debug("Nested file will to be extracted - {}".format(item))
-                zipext = demux_zip(item, options)
-            if zipext:
-                newretlist.extend(zipext)
-            else:
-                rarext = demux_rar(item, options)
-                if rarext:
-                    newretlist.extend(rarext)
-                else:
-                    tarext = demux_tar(item, options)
-                    if tarext:
-                        newretlist.extend(tarext)
-                    else:
-                        newretlist.append(item)
-        retlist = newretlist
+    try:
+        unpacked = unpack(filepath=filename, password=password, duplicates=False)
+        retlist = get_file_list(unpacked)
+    except Exception as err:
+        log.error("Error unpacking: {}".format(err))
+        pass
 
     # if it wasn't a ZIP or an email or we weren't able to obtain anything interesting from either, then just submit the
     # original file
