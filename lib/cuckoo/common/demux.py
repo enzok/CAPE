@@ -33,6 +33,9 @@ demux_extensions_list = [
         ".ppt", ".pot", ".pps", ".pptx", ".pptm", ".potx", ".potm", ".ppam", ".ppsx", ".ppsm", ".sldx", ".sldm", ".wsf",
     ]
 
+archive_extensions_list = [
+        "", ".bin", ".zip", ".tar", ".gz", ".tgz", ".rar", ".ace", ".bup", ".eml", ".msg", ".mso",
+    ]
 
 def demux_office(filename, password):
     retlist = []
@@ -309,25 +312,17 @@ def demux_msg(filename, options):
 
     return retlist
 
-def get_file_list(unpacked):
+def demux_all(filename, options):
     retlist = []
-    for child in unpacked.children:
-        at = child.astree()
-        if "file" in at['type']:
-            retlist.append(at['filename'])
 
-    return retlist
+    try:
+        # only extract from files with desired archive extensions
+        ext = os.path.splitext(filename)[1]
+        if ext not in archive_extensions_list:
+            return retlist
 
-def demux_sample(filename, package, options):
-    """
-    If file is a ZIP, extract its included files and return their file paths
-    If file is an email, extracts its attachments and return their file paths (later we'll also extract URLs)
-    If file is a password-protected Office doc and password is supplied, return path to decrypted doc
-    """
-
-    magic = File(filename).get_type()
-    password = None
-    if "password=" in options:
+        extracted = []
+        password="infected"
         fields = options.split(",")
         for field in fields:
             try:
@@ -338,8 +333,53 @@ def demux_sample(filename, package, options):
             except:
                 pass
 
+            options = Config()
+            tmp_path = options.cuckoo.get("tmppath", "/tmp")
+            target_path = os.path.join(tmp_path, "cuckoo-zip-tmp")
+            if not os.path.exists(target_path):
+                os.mkdir(target_path)
+            tmp_dir = tempfile.mkdtemp(prefix='cuckoozip_', dir=target_path)
+
+            unpacked = unpack(filepath=filename, password=password, duplicates=False)
+            for child in unpacked.children:
+                at = child.astree()
+                if "file" in at['type']:
+                    retlist.append(os.path.join(tmp_dir, at['filename']))
+                    log.debug("Archive {} contains file {}".format(filename, at['filename']))
+
+            if retlist:
+                unpacked.extract(tmp_dir)
+
+            log.debug("Extracted from file - {}/{}".format(filename, retlist))
+    except Exception as err:
+        log.error("Error unpacking file: {} - {}".format(filename, err))
+        pass
+
+    return retlist
+
+
+def demux_sample(filename, package, options):
+    """
+    If file is a ZIP, extract its included files and return their file paths
+    If file is an email, extracts its attachments and return their file paths (later we'll also extract URLs)
+    If file is a password-protected Office doc and password is supplied, return path to decrypted doc
+    """
+
+    magic = File(filename).get_type()
+
     # if file is an Office doc and password is supplied, try to decrypt the doc
     if "Microsoft" in magic or "Composite Document File" in magic or "CDFV2 Encrypted" in magic:
+        password = None
+        if "password=" in options:
+            fields = options.split(",")
+            for field in fields:
+                try:
+                    key, value = field.split("=", 1)
+                    if key == "password":
+                        password = value
+                        break
+                except:
+                    pass
         if password:
             return demux_office(filename, password)
             log.debug("Extracting from Office doc - {}, password={}".format(filename, password))
@@ -359,13 +399,8 @@ def demux_sample(filename, package, options):
     if "PE32" in magic or "MS-DOS executable" in magic:
         return [ filename ]
 
-    log.debug("File will to be extracted - {}".format(filename))
-    try:
-        unpacked = unpack(filepath=filename, password=password, duplicates=False)
-        retlist = get_file_list(unpacked)
-    except Exception as err:
-        log.error("Error unpacking: {}".format(err))
-        pass
+    log.debug("File to be extracted - {}".format(filename))
+    retlist = demux_all(filename, options)
 
     # if it wasn't a ZIP or an email or we weren't able to obtain anything interesting from either, then just submit the
     # original file
