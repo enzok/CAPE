@@ -347,11 +347,10 @@ def demux_all(filename, options):
             target_path = os.path.join(tmp_path, "cuckoo-zip-tmp")
             if not os.path.exists(target_path):
                 os.mkdir(target_path)
+            
             tmp_dir = tempfile.mkdtemp(prefix='cuckoozip_', dir=target_path)
             unpacked = unpack(filepath=filename, password=password)
-
             retlist = get_filenames([], tmp_dir, unpacked.children)
-
             if retlist:
                 unpacked.extract(tmp_dir)
             	print ("Extracted from file - {}->{}".format(filename, retlist))
