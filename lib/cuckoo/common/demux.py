@@ -129,7 +129,7 @@ def demux_zip(filename, options):
                         retlist.append(archive.extract(extfile, path=tmp_dir, pwd=password))
                     except:
                         retlist.append(archive.extract(extfile, path=tmp_dir))
-                    log.debug("Extracting from zip - {}/{}".format(tmp_dir, extfile))
+                    print ("Extracting from zip - {}/{}".format(tmp_dir, extfile))
     except:
         pass
 
@@ -312,9 +312,18 @@ def demux_msg(filename, options):
 
     return retlist
 
+def get_filenames(retlist, tmp_dir, children):
+    for child in children:
+        at = child.astree()
+        if 'file' in at['type']:
+            retlist.append(os.path.join(tmp_dir, at['filename']))
+        elif 'container' in at['type']:
+            get_filenames(retlist, tmp_dir, child.children)
+
+    return retlist
+
 def demux_all(filename, options):
     retlist = []
-
     try:
         # only extract from files with desired archive extensions
         ext = os.path.splitext(filename)[1]
@@ -339,20 +348,16 @@ def demux_all(filename, options):
             if not os.path.exists(target_path):
                 os.mkdir(target_path)
             tmp_dir = tempfile.mkdtemp(prefix='cuckoozip_', dir=target_path)
+            unpacked = unpack(filepath=filename, password=password)
 
-            unpacked = unpack(filepath=filename, password=password, duplicates=False)
-            for child in unpacked.children:
-                at = child.astree()
-                if "file" in at['type']:
-                    retlist.append(os.path.join(tmp_dir, at['filename']))
-                    log.debug("Archive {} contains file {}".format(filename, at['filename']))
+            retlist = get_filenames([], tmp_dir, unpacked.children)
 
             if retlist:
                 unpacked.extract(tmp_dir)
+            	print ("Extracted from file - {}->{}".format(filename, retlist))
 
-            log.debug("Extracted from file - {}/{}".format(filename, retlist))
     except Exception as err:
-        log.error("Error unpacking file: {} - {}".format(filename, err))
+        print ("Error unpacking file: {} - {}".format(filename, err))
         pass
 
     return retlist
@@ -382,10 +387,10 @@ def demux_sample(filename, package, options):
                     pass
         if password:
             return demux_office(filename, password)
-            log.debug("Extracting from Office doc - {}, password={}".format(filename, password))
+            print ("Extracting from Office doc - {}, password={}".format(filename, password))
         else:
             return [filename]
-            log.debug("Extracting from Office doc - {}".format(filename))
+            print ("Extracting from Office doc - {}".format(filename))
 
     # if a package was specified, then don't do anything special
     # this will allow for the ZIP package to be used to analyze binaries with included DLL dependencies
@@ -399,7 +404,6 @@ def demux_sample(filename, package, options):
     if "PE32" in magic or "MS-DOS executable" in magic:
         return [ filename ]
 
-    log.debug("File to be extracted - {}".format(filename))
     retlist = demux_all(filename, options)
 
     # if it wasn't a ZIP or an email or we weren't able to obtain anything interesting from either, then just submit the
@@ -407,6 +411,6 @@ def demux_sample(filename, package, options):
 
     if not retlist:
         retlist.append(filename)
-        log.debug("Not an archive file - {}".format(filename))
+        print ("Not an archive file - {}".format(filename))
 
     return retlist
