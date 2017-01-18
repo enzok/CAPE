@@ -330,8 +330,7 @@ def demux_all(filename, options):
         if ext not in archive_extensions_list:
             return retlist
 
-        extracted = []
-        password="infected"
+        password = "infected"
         fields = options.split(",")
         for field in fields:
             try:
@@ -353,7 +352,7 @@ def demux_all(filename, options):
             retlist = get_filenames([], tmp_dir, unpacked.children)
             if retlist:
                 unpacked.extract(tmp_dir)
-            	print ("Extracted from file - {}->{}".format(filename, retlist))
+                print ("Extracted from file - {}->{}".format(filename, retlist))
 
     except Exception as err:
         print ("Error unpacking file: {} - {}".format(filename, err))
