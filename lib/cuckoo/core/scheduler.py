@@ -525,7 +525,7 @@ class AnalysisManager(threading.Thread):
             #startup the configured vpn
             rooter("vpn_enable", self.route)
             timeout = 0
-            while timeout < 10:
+            while timeout < 30:
                 if not rooter("nic_available", self.interface):
                     time.sleep(1)
                     timeout += 1
@@ -549,7 +549,6 @@ class AnalysisManager(threading.Thread):
                 self.interface
             )
             self.route = "none"
-            self.task.options["route"] = None
             self.interface = None
             self.rt_table = None
 
