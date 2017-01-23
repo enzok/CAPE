@@ -529,7 +529,7 @@ class AnalysisManager(threading.Thread):
                 if not rooter("nic_available", self.interface):
                     time.sleep(1)
                     timeout += 1
-                    log.debug("Waiting for VPN interface '%s' to be enabled.",
+                    log.info("Waiting for VPN interface '%s' to be enabled.",
                               self.interface)
                 else:
                     log.info("Enabled VPN interface '%s'", self.interface)
@@ -549,7 +549,7 @@ class AnalysisManager(threading.Thread):
                 self.interface
             )
             self.route = "none"
-            self.task.options["route"] = "none"
+            self.task.options["route"] = None
             self.interface = None
             self.rt_table = None
 
