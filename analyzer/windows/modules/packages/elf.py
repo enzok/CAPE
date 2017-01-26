@@ -12,5 +12,6 @@ class ELF(Package):
     def start(self, path):
         cmd_path = self.get_path("cmd.exe")
         dump_cmd = "bin/dumpbin.exe"
-        cmd_args = "/c start /wait \"\" \"{0} {1}\"".format(dump_cmd, path)
+        dump_opt = "/headers /summary /imports /exports /symbols"
+        cmd_args = "/c start /wait \"\" \"{0} {1} {2}\"".format(dump_cmd, dump_opt, path)
         return self.execute(cmd_path, cmd_args, path)
