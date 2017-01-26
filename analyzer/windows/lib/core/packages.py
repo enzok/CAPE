@@ -46,6 +46,8 @@ def choose_package(file_type, file_name, exports):
         return "jar"
     elif "Zip" in file_type:
         return "zip"
+    elif "ELF" in file_type:
+        return "elf"
     elif "RAR archive" in file_type or file_name.endswith(".rar"):
         return "rar"
     elif "Macromedia Flash" in file_type or file_name.endswith(".swf"):
