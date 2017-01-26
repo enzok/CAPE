@@ -1,7 +1,7 @@
 from lib.common.abstracts import Package
 
 
-class SWF(Package):
+class ELF(Package):
     """ Dump linux ELF file information to file.
 
     """
