@@ -6,5 +6,5 @@ class ELF(Package):
 
     """
     def start(self, path):
-        out_file = "%TEMP%\\readelf_output.txt"
+        out_file = "readelf_output.txt"
         return self.execute("bin\\readelf.exe", "-a {0} > {1}".format(path, out_file), path)
