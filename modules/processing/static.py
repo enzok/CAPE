@@ -1490,7 +1490,7 @@ class Static(Processing):
                     static.update(DotNETExecutable(self.file_path, self.results).run())
             elif "PDF" in thetype or self.task["target"].endswith(".pdf") or package == "pdf":
                 static = PDF(self.file_path).run()
-            elif package in ("doc", "ppt", "xls"):
+            elif package in ("doc", "ppt", "xls", "pub"):
                 static = Office(self.file_path).run()
             elif "Java Jar" in thetype or "Java archive" in thetype or self.task["target"].endswith(".jar"):
                 decomp_jar = self.options.get("procyon_path", None)
@@ -1502,6 +1502,8 @@ class Static(Processing):
             # oleid to fail us out silently, yeilding no static analysis
             # results for actual zip files.
             elif "Zip archive data, at least v2.0" in thetype:
+                static = Office(self.file_path).run()
+            elif "Composite Document File V2 Document" in thetype:
                 static = Office(self.file_path).run()
             elif package == "wsf" or thetype == "XML document text" or self.task["target"].endswith(".wsf") or package == "hta":
                 static = WindowsScriptFile(self.file_path).run()
