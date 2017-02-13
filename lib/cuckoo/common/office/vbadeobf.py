@@ -50,7 +50,15 @@ def normalize_code(macro):
 @quote
 def decode_chr(m):
     ascii = re.findall(r"Chr[A-Z$]?\((\d+)\)", m.group(1))
-    return "".join(chr(int(n)) for n in ascii)
+    retstring = ""
+    for n in ascii:
+        try:
+            chrval = chr(int(n))
+        except ValueError:
+            chrval = "."
+        retstring += chrval
+
+    return retstring
 
 @quote
 def decode_base64(m):
