@@ -75,4 +75,4 @@ def choose_package(file_type, file_name, exports):
     elif "HTML" in file_type:
         return "html"
     else:
-        return "generic"
+        return "ie"
