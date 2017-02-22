@@ -3,6 +3,7 @@
 # See the file 'docs/LICENSE' for copying permission.
 
 from lib.common.abstracts import Package
+import os
 
 from _winreg import (OpenKey, CreateKeyEx, SetValueEx, CloseKey, QueryInfoKey, EnumKey,
         EnumValue, HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER, KEY_SET_VALUE, KEY_READ,
@@ -50,6 +51,11 @@ class PUB(Package):
             CloseKey(key)
 
     def start(self, path):
-         self.set_keys()
-         publisher = self.get_path_glob("Microsoft Office Publisher")
-         return self.execute(publisher, "/o \"%s\"" % path, path)
+        self.set_keys()
+        publisher = self.get_path_glob("Microsoft Office Publisher")
+
+        if not path.endswith(".pub"):
+            os.rename(path, path + ".pub")
+            path += ".pub"
+
+        return self.execute(publisher, "/o \"%s\"" % path, path)
