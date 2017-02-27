@@ -66,7 +66,7 @@ def choose_package(file_type, file_name, exports):
         return "eml"
     elif file_name.endswith(".js") or file_name.endswith(".jse"):
         return "js"
-    elif "HTML" in file_type .magic or file_name.endswith((".htm", ".html", ".hta")):
+    elif "HTML" in file_type or file_name.endswith((".htm", ".html", ".hta")):
         return "ie"
     elif file_name.endswith(".wsf") or file_type == "XML document text":
         return "wsf"
