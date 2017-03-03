@@ -347,7 +347,7 @@ class File:
                 })
 
         except Exception as e:
-            log.exception("Unable to match Yara signatures: %s", e)
+            log.exception("Unable to match Yara signatures for %s: %s", self.file_path, e)
 
         return results
     def get_clamav(self):
