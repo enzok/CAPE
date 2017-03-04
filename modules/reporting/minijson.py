@@ -36,7 +36,7 @@ class MiniJson(Report):
             if 'executed_commands' in results['behavior']['summary']:
                 miniresults['executed_commands'] = results['behavior']['summary']['executed_commands']
 
-            path = os.path.join(self.reports_path, "report.json")
+            path = os.path.join(self.reports_path, "mini-report.json")
             with codecs.open(path, "w", "utf-8") as report:
                 if ram_boost:
                     buf = json.dumps(miniresults, sort_keys=False,

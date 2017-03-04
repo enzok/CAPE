@@ -6,6 +6,12 @@
             <td style="text-align: right;"><a class="btn btn-primary btn-small" href="{% url "filereport" analysis.info.id "json" %}">Download</a></td>
         </tr>
       {% endif %}
+      {% if config.minijson %}
+        <tr>
+          <th>Mini JSON Report</th>
+            <td style="text-align: right;"><a class="btn btn-primary btn-small" href="{% url "filereport" analysis.info.id "json" %}">Download</a></td>
+        </tr>
+      {% endif %}
       {% if config.reporthtml %}
         <tr>
             <th>HTML Report</th>
