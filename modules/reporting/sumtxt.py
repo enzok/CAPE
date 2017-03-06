@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import os
 import codecs
 
@@ -112,9 +110,8 @@ class TextSummary(Report):
 
             path = os.path.join(self.reports_path, "summary-report.txt")
             with codecs.open(path, "w", "utf-8") as report:
-                    report.write(outbuf)
+                report.write(outbuf)
 
         except (UnicodeError, TypeError, IOError, KeyError) as e:
-
             raise CuckooReportError("Failed to generate summary text report: %s" % e)
 
