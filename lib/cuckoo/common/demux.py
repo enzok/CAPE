@@ -402,6 +402,12 @@ def demux_sample(filename, package, options):
     if "PE32" in magic or "MS-DOS executable" in magic:
         return [ filename ]
 
+    #add .ace extension to ACE files or unace will fail
+    if "ACE" in magic or "ACE archive" in magic:
+        if not filename.endswith(".ace"):
+            os.rename(filename, filename + ".ace")
+            filename += ".ace"
+
     retlist = demux_all(filename, options)
 
     # if it wasn't a ZIP or an email or we weren't able to obtain anything interesting from either, then just submit the
