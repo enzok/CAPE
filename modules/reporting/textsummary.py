@@ -112,7 +112,7 @@ class TextSummary(Report):
                     outbuf += "    dst: " + smtp['dst'] + "\n"
                     tmpdata = smtp['raw'].replace("\r\n", "\n          ")
                     tmpdata = tmpdata.replace("\n\\", "\n          \\")
-                    tmpdata = tmpdata.replace("\r\\", "\r          \\")
+                    tmpdata = tmpdata.replace("\r", "\r          ")
                     outbuf += "    data: " + tmpdata + "\n"
                 outbuf += "\n"
 
