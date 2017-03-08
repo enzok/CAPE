@@ -107,6 +107,14 @@ class TextSummary(Report):
                 for http in results['network']['http']:
                     outbuf += "    uri: " + http['uri'] + "\n"
                     outbuf += "    data: " + http['data'].replace("\r\n", "\n          ")
+                outbuf += "  SMTP:\n"
+                for smtp in results['network']['smtp']:
+                    outbuf += "    dst: " + smtp['dst'] + "\n"
+                    tmpdata = smtp['raw'].replace("\r\n", "\n          ")
+                    tmpdata = tmpdata.replace("\n\\", "\n          \\")
+                    tmpdata = tmpdata.replace("\r\\", "\r          \\")
+                    outbuf += "    data: " + tmpdata + "\n"
+                outbuf += "\n"
 
             path = os.path.join(self.reports_path, "summary-report.txt")
             with codecs.open(path, "w", "utf-8") as report:
