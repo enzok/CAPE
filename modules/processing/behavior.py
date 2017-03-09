@@ -1135,7 +1135,7 @@ class EncryptedBuffers:
         """
 
         if call["api"].startswith("SslEncryptPacket"):
-            buf = self.get_argument(call, "Buffer")
+            buf = self.get_argument(call, "Buffer", strip=True)
             bufsize = self.get_argument(call, "BufferSize")
             if buf and buf not in self.bufs:
                 self.bufs.append(dict(
@@ -1148,7 +1148,7 @@ class EncryptedBuffers:
 
         if call["api"].startswith("CryptEncrypt"):
             key = self.get_argument(call, "CryptKey")
-            buf = self.get_argument(call, "Buffer")
+            buf = self.get_argument(call, "Buffer", strip=True)
             if buf and buf not in self.bufs:
                 self.bufs.append(dict(
                     process_name=process["process_name"],
@@ -1159,14 +1159,13 @@ class EncryptedBuffers:
                 ))
 
         if call["api"].startswith("CryptEncryptMessage"):
-            buf = self.get_argument(call, "Buffer")
+            buf = self.get_argument(call, "Buffer", strip=True)
             if buf and buf not in self.bufs:
                 self.bufs.append(dict(
                     process_name=process["process_name"],
                     pid=process["process_id"],
                     api_call="CryptEncryptMessage",
                     buffer=buf,
-                    crypt_key=key,
                 ))
 
     def run(self):

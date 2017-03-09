@@ -82,7 +82,7 @@ class TextSummary(Report):
                         outbuf += "  Crypt Key: " + buffer['crypt_key'] + "\n"
                     if "buffer_size" in buffer:
                         outbuf += "  Size: " + buffer['buffer_size'] + "\n"
-                    outbuf += "  Data: " + buffer['buffer'] + "\n\n"
+                    outbuf += "  Data: " + buffer['buffer'] + "\n"
                 outbuf += "\n"
 
             if 'network' in results:
