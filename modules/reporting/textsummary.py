@@ -72,6 +72,19 @@ class TextSummary(Report):
                     outbuf += "  " + mutex + "\n"
                 outbuf += "\n"
 
+            if 'encryptedbuffers' in results['behavior']:
+                outbuf += "Encrypted Data Buffers:\n"
+                for buffer in results['behavior']['encryptedbuffers']:
+                    outbuf += "  Process Name: " + buffer['process_name'] + "\n"
+                    outbuf += "  PID: " + buffer['pid'] + "\n"
+                    outbuf += "  API Call: " + buffer['api_call'] + "\n"
+                    if "crypt_key" in buffer:
+                        outbuf += "  Crypt Key: " + buffer['crypt_key'] + "\n"
+                    if "buffer_size" in buffer:
+                        outbuf += "  Size: " + buffer['buffer_size'] + "\n"
+                    outbuf += "  Data: " + buffer['buffer'] + "\n\n"
+                outbuf += "\n"
+
             if 'network' in results:
                 outbuf += "Network:\n"
                 outbuf += "  DNS:\n"
