@@ -1139,11 +1139,11 @@ class EncryptedBuffers:
             bufsize = self.get_argument(call, "BufferSize")
             if buf and buf not in self.bufs:
                 self.bufs.append(dict(
-                    ProcessName=process["process_name"],
-                    PID=process["process_id"],
-                    ApiNme="SslEncryptPacket",
-                    Buffer=buf,
-                    BufferSize=bufsize,
+                    process_name=process["process_name"],
+                    pid=process["process_id"],
+                    api_call="SslEncryptPacket",
+                    buffer=buf,
+                    buffer_size=bufsize,
                 ))
 
         if call["api"].startswith("CryptEncrypt"):
@@ -1151,22 +1151,22 @@ class EncryptedBuffers:
             buf = self.get_argument(call, "Buffer")
             if buf and buf not in self.bufs:
                 self.bufs.append(dict(
-                    ProcessName=process["process_name"],
-                    PID=process["process_id"],
-                    ApiName="CryptEncrypt",
-                    Buffer=buf,
-                    CryptKey=key,
+                    process_name=process["process_name"],
+                    pid=process["process_id"],
+                    api_call="CryptEncrypt",
+                    buffer=buf,
+                    crypt_key=key,
                 ))
 
         if call["api"].startswith("CryptEncryptMessage"):
             buf = self.get_argument(call, "Buffer")
             if buf and buf not in self.bufs:
                 self.bufs.append(dict(
-                    ProcessName=process["process_name"],
-                    PID=process["process_id"],
-                    ApiName="CryptEncryptMessage",
-                    Buffer=buf,
-                    CryptKey=key,
+                    process_name=process["process_name"],
+                    pid=process["process_id"],
+                    api_call="CryptEncryptMessage",
+                    buffer=buf,
+                    crypt_key=key,
                 ))
 
     def run(self):
