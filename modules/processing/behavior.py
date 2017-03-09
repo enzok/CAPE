@@ -1112,7 +1112,7 @@ class EncryptedBuffers:
     key = "encryptedbuffers"
 
     def __init__(self):
-        self.bufs = {}
+        self.bufs = []
 
     def get_argument(self, call, argname, strip=False):
         for arg in call["arguments"]:
@@ -1139,11 +1139,11 @@ class EncryptedBuffers:
             bufsize = self.get_argument(call, "BufferSize")
             if buf and buf not in self.bufs:
                 self.bufs.append(dict(
-                    name=process["process_name"],
-                    pid=process["process_id"],
-                    apiname="SslEncryptPacket",
-                    buffer=buf,
-                    buffersize=bufsize,
+                    ProcessName=process["process_name"],
+                    PID=process["process_id"],
+                    ApiNme="SslEncryptPacket",
+                    Buffer=buf,
+                    BufferSize=bufsize,
                 ))
 
         if call["api"].startswith("CryptEncrypt"):
@@ -1151,22 +1151,22 @@ class EncryptedBuffers:
             buf = self.get_argument(call, "Buffer")
             if buf and buf not in self.bufs:
                 self.bufs.append(dict(
-                    name=process["process_name"],
-                    pid=process["process_id"],
-                    apiname="CryptEncrypt",
-                    buffer=buf,
-                    key=key,
+                    ProcessName=process["process_name"],
+                    PID=process["process_id"],
+                    ApiName="CryptEncrypt",
+                    Buffer=buf,
+                    CryptKey=key,
                 ))
 
         if call["api"].startswith("CryptEncryptMessage"):
             buf = self.get_argument(call, "Buffer")
             if buf and buf not in self.bufs:
                 self.bufs.append(dict(
-                    name=process["process_name"],
-                    pid=process["process_id"],
-                    apiname="CryptEncryptMessage",
-                    buffer=buf,
-                    key=key,
+                    ProcessName=process["process_name"],
+                    PID=process["process_id"],
+                    ApiName="CryptEncryptMessage",
+                    Buffer=buf,
+                    CryptKey=key,
                 ))
 
     def run(self):
