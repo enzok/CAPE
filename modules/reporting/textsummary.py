@@ -76,7 +76,7 @@ class TextSummary(Report):
                 outbuf += "Encrypted Data Buffers:\n"
                 for buffer in results['behavior']['encryptedbuffers']:
                     outbuf += "  Process Name: " + buffer['process_name'] + "\n"
-                    outbuf += "  PID: " + buffer['pid'] + "\n"
+                    outbuf += "  PID: " + str(buffer['pid']) + "\n"
                     outbuf += "  API Call: " + buffer['api_call'] + "\n"
                     if "crypt_key" in buffer:
                         outbuf += "  Crypt Key: " + buffer['crypt_key'] + "\n"
