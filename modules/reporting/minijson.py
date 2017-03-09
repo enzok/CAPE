@@ -33,6 +33,8 @@ class MiniJson(Report):
                 miniresults['virustotal'] = results['virustotal']['permalink']
             if 'mutexes' in results['behavior']['summary']:
                 miniresults['mutexes'] = results['behavior']['summary']['mutexes']
+            if 'encryptedbuffers' in results['behavior']:
+                miniresults['encryptedbuffers'] = results['behavior']['encryptedbuffers']
             if 'executed_commands' in results['behavior']['summary']:
                 miniresults['executed_commands'] = results['behavior']['summary']['executed_commands']
 
