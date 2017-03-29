@@ -95,7 +95,7 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--max-analysis-count", help="Maximum number of analyses", type=int, required=False)
     parser.add_argument("--clean", help="Remove all tasks and samples and their associated data", action='store_true', required=False)
     parser.add_argument("--failed-clean", help="Remove all tasks marked as failed", action='store_true', required=False)
-    parser.add_argument("--pending-clean", help="Remove all tasks marked as pending", action='store_true', required=False)
+    parser.add_argument("--pending-clean", help="Remove all pending tasks x through y", nargs=2, type=int, required=False)
     parser.add_argument("--failed-url-clean", help="Remove all tasks that are url tasks but we don't have any HTTP traffic", action='store_true', required=False)
     parser.add_argument("--delete-older-than-days", help="Remove all tasks older than X number of days", type=int, required=False)
     parser.add_argument("--pcap-sorted-clean", help="remove sorted pcap from jobs", action="store_true", required=False)
@@ -119,7 +119,7 @@ if __name__ == "__main__":
         sys.exit(0)
 
     if args.pending_clean:
-        cuckoo_remove_pending_tasks()
+        cuckoo_remove_pending_tasks(args.pending_clean)
         sys.exit(0)
 
     if args.delete_older_than_days:

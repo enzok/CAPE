@@ -404,7 +404,7 @@ def cuckoo_clean_failed_tasks():
                     print "failed to remove faile task %s from DB" % (int(new["id"]))
 
 
-def cuckoo_remove_pending_tasks():
+def cuckoo_remove_pending_tasks(pending_tasks):
     """Remove pending tasks
     It deletes all pending tasks from database.
     """
@@ -413,12 +413,29 @@ def cuckoo_remove_pending_tasks():
     # logger (init_logging()) logs to a file which will be deleted.
     init_console_logging()
 
+    start_task = pending_tasks[0]
+    end_task = pending_tasks[1]
+
+    if end_task < start_task:
+        print "No pending tasks deleted. Ending task greater than starting task."
+        return
+
     # Initialize the database connection.
     db = Database()
+    ptask_ids = []
 
     pending_tasks = db.list_tasks(status=TASK_PENDING)
-    for task in pending_tasks:
-        print "Task: {}".format(task)
+    for ptask in pending_tasks:
+        dtask = ptask.to_dict()
+        ptask_ids.append(dtask['id'])
+    task = start_task
+    while task <= end_task:
+        if task in ptask_ids:
+            if db.delete_task(task):
+                print "Task: {} was deleted".format(task)
+            else:
+                print "Task: {} was not delete".format(task)
+        task += 1
 
 
 def cuckoo_clean_bson_suri_logs():
