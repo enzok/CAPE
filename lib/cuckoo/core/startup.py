@@ -25,7 +25,7 @@ from lib.cuckoo.common.constants import CUCKOO_ROOT, CUCKOO_VERSION
 from lib.cuckoo.common.exceptions import CuckooStartupError
 from lib.cuckoo.common.exceptions import CuckooOperationalError
 from lib.cuckoo.common.utils import create_folders, store_temp_file, delete_folder
-from lib.cuckoo.core.database import Database, Task, TASK_RUNNING, TASK_FAILED_ANALYSIS, TASK_FAILED_PROCESSING, TASK_FAILED_REPORTING, TASK_RECOVERED, TASK_REPORTED
+from lib.cuckoo.core.database import Database, Task, TASK_RUNNING, TASK_FAILED_ANALYSIS, TASK_FAILED_PROCESSING, TASK_FAILED_REPORTING, TASK_RECOVERED, TASK_REPORTED, TASK_PENDING
 from lib.cuckoo.core.plugins import import_plugin, import_package, list_plugins
 import socket
 from lib.cuckoo.core.rooter import rooter, vpns
