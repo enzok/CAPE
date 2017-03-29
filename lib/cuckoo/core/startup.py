@@ -416,7 +416,7 @@ def cuckoo_remove_pending_tasks():
     # Initialize the database connection.
     db = Database()
 
-    pending_tasks = db.list_tasks(status=PENDING)
+    pending_tasks = db.list_tasks(status=TASK_PENDING)
     for task in pending_tasks:
         print "Task: {}".format(task)
 
