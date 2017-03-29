@@ -403,6 +403,24 @@ def cuckoo_clean_failed_tasks():
                 else:
                     print "failed to remove faile task %s from DB" % (int(new["id"]))
 
+
+def cuckoo_remove_pending_tasks():
+    """Remove pending tasks
+    It deletes all pending tasks from database.
+    """
+    # Init logging.
+    # This need to init a console logger handler, because the standard
+    # logger (init_logging()) logs to a file which will be deleted.
+    init_console_logging()
+
+    # Initialize the database connection.
+    db = Database()
+
+    pending_tasks = db.list_tasks(status=PENDING)
+    for task in pending_tasks:
+        print "Task: {}".format(task)
+
+
 def cuckoo_clean_bson_suri_logs():
     """Clean up raw suri log files probably not needed if storing in mongo. Does not remove extracted files
     """
