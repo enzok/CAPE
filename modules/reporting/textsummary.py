@@ -120,6 +120,7 @@ class TextSummary(Report):
                 for http in results['network']['http']:
                     outbuf += "    uri: " + http['uri'] + "\n"
                     outbuf += "    data: " + http['data'].replace("\r\n", "\n          ")
+                outbuf += "\n"
                 outbuf += "  SMTP:\n"
                 for smtp in results['network']['smtp']:
                     outbuf += "    dst: " + smtp['dst'] + "\n"
