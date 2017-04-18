@@ -408,8 +408,12 @@ class File:
 
         except Exception as e:
             errcode = e.message.split()[-1]
-            log.exception("Unable to match Yara signatures for %s: %s",
-                          self.file_path, yara_error[errcode])
+            if errcode in yara_error:
+                log.exception("Unable to match Yara signatures for %s: %s",
+                               self.file_path, yara_error[errcode])
+            else:
+                log.exception("Unable to match Yara signatures for %s: unknown code %s",
+                              self.file_path, errcode)
 
         return results
 
