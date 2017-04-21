@@ -3,6 +3,7 @@
 # See the file 'docs/LICENSE' for copying permission.
 
 from lib.common.abstracts import Package
+import os
 
 class Jar(Package):
     """Java analysis package."""
