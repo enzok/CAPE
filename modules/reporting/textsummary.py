@@ -16,7 +16,7 @@ class TextSummary(Report):
         outbuf = ""
 
         try:
-            if 'permalink' in results['virustotal']:
+            if 'virustotal' in results and ZZ'permalink' in results['virustotal']:
                 outbuf += "Virus Total: " + results['virustotal']['permalink'] + "\n"
             else:
                 outbuf += "Virus Total: None\n\n"

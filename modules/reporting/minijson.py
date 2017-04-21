@@ -29,7 +29,7 @@ class MiniJson(Report):
                 miniresults['dropped'] = results['dropped']
             if 'network' in results:
                 miniresults['network'] = results['network']
-            if 'permalink' in results['virustotal']:
+            if 'virustotal'in results and 'permalink' in results['virustotal']:
                 miniresults['virustotal'] = results['virustotal']['permalink']
             if 'mutexes' in results['behavior']['summary']:
                 miniresults['mutexes'] = results['behavior']['summary']['mutexes']

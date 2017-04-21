@@ -14,6 +14,10 @@ class Jar(Package):
         java = self.get_path_glob("Java")
         class_path = self.options.get("class")
 
+        if not path.endswith(".jar"):
+            os.rename(path, path + ".jar")
+            path += ".jar"
+
         if class_path:
             args = "-cp \"%s\" %s" % (path, class_path)
         else:
