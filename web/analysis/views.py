@@ -123,7 +123,7 @@ def get_analysis_info(db, id=-1, task=None):
             new["mlist_cnt"] = rtmp["mlist_cnt"]
         if rtmp.has_key("f_mlist_cnt") and rtmp["f_mlist_cnt"]:
             new["f_mlist_cnt"] = rtmp["f_mlist_cnt"]
-       if enabledconf.has_key("display_shrike") and enabledconf["display_shrike"] and rtmp.has_key("info") and rtmp["info"].has_key("shrike_msg") and rtmp["info"]["shrike_msg"]:
+        if enabledconf.has_key("display_shrike") and enabledconf["display_shrike"] and rtmp.has_key("info") and rtmp["info"].has_key("shrike_msg") and rtmp["info"]["shrike_msg"]:
             new["shrike_msg"] = rtmp["info"]["shrike_msg"]
         if rtmp.has_key("suri_tls_cnt") and rtmp["suri_tls_cnt"]:
             new["suri_tls_cnt"] = rtmp["suri_tls_cnt"]
@@ -1341,21 +1341,24 @@ def comments(request, task_id):
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
 def vtupload(request, task_id, dlfile):
     if settings.VTUPLOAD and settings.VTDL_PRIV_KEY:
-        db = Database()
-        path = os.path.join(CUCKOO_ROOT, "storage", "binaries", dlfile)
-        analysis_info = get_analysis_info(db, id=task_id)
-        if analysis_info:
-            filename = analysis_info['filename']
-        else:
-            filename = dlfile
-        params = {'apikey': settings.VTDL_PRIV_KEY}
-        files = {'file': (filename, open(path, 'rb'))}
         try:
+            db = Database()
+            path = os.path.join(CUCKOO_ROOT, "storage", "binaries", dlfile)
+            analysis_info = get_analysis_info(db, id=task_id)
+            if analysis_info:
+                filename = analysis_info['filename']
+            else:
+                filename = dlfile
+            params = {'apikey': settings.VTDL_PRIV_KEY}
+            files = {'file': (filename, open(path, 'rb'))}
             response = requests.post('https://www.virustotal.com/vtapi/v2/file/scan', files=files, params=params)
-            return render(request, response.json())
+            response_code = response.json()['response_code']
+            permalink = response.json()['permalink']
+            if response_code == 1:
+                return render(request, "success_vtup.html", {"permalink": permalink})
+            else:
+                return render(request, "error.html", {"error": "Response code: {}".format(response_code)})
         except Exception as err:
-            return render(request, "error.html",
-                                  {"error": err })
+            return render(request, "error.html", {"error": err})
     else:
-        return render(request, "error.html",
-                                  {"error": "Invalid Method"})
+        return redirect('report', task_id=task_id)

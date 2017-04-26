@@ -68,7 +68,7 @@
                     <a class="btn btn-primary btn-small" href="{% url "file" "sample" analysis.info.id analysis.target.file.sha256 %}">Download</a>
                 </td>
                 <td>
-                    <a class="btn btn-primary btn-small" href="{% url "vtupload" analysis.info.id analysis.target.file.filename %}">Submit to VirusTotal</a>
+                    <a class="btn btn-primary btn-small" href="{% url "vtupload" analysis.info.id analysis.target.file.sha256 %}">Submit to VirusTotal</a>
                 </td>
             </tr>
         </table>
