@@ -62,6 +62,7 @@ VTDL_ENABLED = vtdl_cfg.get("enabled",False)
 VTDL_PRIV_KEY = vtdl_cfg.get("dlprivkey",None)
 VTDL_INTEL_KEY = vtdl_cfg.get("dlintelkey",None)
 VTDL_PATH = vtdl_cfg.get("dlpath",None)
+VTUPLOAD = vtdl_cfg.get("vtupload",False)
 
 TEMP_PATH = Config().cuckoo.get("tmppath", "/tmp")
 
