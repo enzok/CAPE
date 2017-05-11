@@ -1339,7 +1339,7 @@ def comments(request, task_id):
                                   {"error": "Invalid Method"})
 
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
-def vtupload(request, task_id, dlfile):
+def vtupload(request, filename, dlfile):
     if settings.VTUPLOAD and settings.VTDL_PRIV_KEY:
         try:
             path = os.path.join(CUCKOO_ROOT, "storage", "binaries", dlfile)
@@ -1351,8 +1351,8 @@ def vtupload(request, task_id, dlfile):
             if response_code == 1:
                 return render(request, "success_vtup.html", {"permalink": permalink})
             else:
-                return render(request, "error.html", {"error": "Response code: {}".format(response_code)})
+                return render(request, "error.html", {"error": "Response code: {}".format(response.json())})
         except Exception as err:
             return render(request, "error.html", {"error": err})
     else:
-        return redirect('report', task_id=task_id)
+        return
