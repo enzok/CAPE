@@ -11,7 +11,7 @@ try:
 except ImportError:
     import re
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), ".."))
 
 from lib.cuckoo.common.config import Config
@@ -92,21 +92,28 @@ class Memory(VolatilityManager):
         return self.mask_filter(results)
 
 
-def analyze(task, mem_profile):
+def analyze(task, mem_profile, unzipped=False):
         """Run analysis.
         @return: volatility results dict.
         """
-        memory_path = os.path.join(CUCKOO_ROOT, "storage", "analyses", task, "memory.dmp.zip")
+        mem_filename = "memory.dmp"
+        if not unzipped:
+            mem_filename += ".zip"
+        memory_path = os.path.join(CUCKOO_ROOT, "storage", "analyses", task, mem_filename)
         results = {}
         options = ""
 
         if memory_path and os.path.exists(memory_path):
             try:
-                print "Retrieving and unzipping memory file {}".format(memory_path)
-                memory_file = demux_all(memory_path, options)
+                print "Retrieving and conditionally unzipping memory file {}".format(memory_path)
+                if unzipped:
+                    memory_file = memory_path
+                else:
+                    memory_file = demux_all(memory_path, options)[0]
                 if memory_file:
+                    print memory_file
                     try:
-                        vol = Memory(memory_file[0], mem_profile)
+                        vol = Memory(memory_file, mem_profile)
                         vol.voptions = Config("memory")
                         vol.voptions.basic.delete_memdump = True
                         results = vol.run()
@@ -148,10 +155,11 @@ def main():
     parser.add_argument("task", type=str, help="ID of task to analyze.")
     parser.add_argument("mem_profile", type=str, help="memory profile")
     parser.add_argument("-d", "--debug", help="Display debug messages", action="store_true", required=False)
+    parser.add_argument("-u", "--unzipped", help="Memory file is already unzipped", action="store_true", required=False)
     args = parser.parse_args()
 
     init_logging(tid=args.task, debug=args.debug)
-    results = analyze(task=args.task, mem_profile=args.mem_profile)
+    results = analyze(task=args.task, mem_profile=args.mem_profile, unzipped=args.unzipped)
     pprint(results)
 
 if __name__ == "__main__":
