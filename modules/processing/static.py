@@ -18,7 +18,9 @@ import math
 import array
 import base64
 import hashlib
+import zipfile
 
+from lxml import etree
 from lib.cuckoo.common.icon import PEGroupIconDir
 from PIL import Image
 from StringIO import StringIO
@@ -1055,6 +1057,78 @@ class Office(object):
         else:
             return "None"
 
+    def get_xml_meta(self, filepath):
+
+        zfile = zipfile.ZipFile(filepath)
+        core = etree.fromstring(zfile.read('docProps/core.xml'))
+        app = etree.fromstring(zfile.read('docProps/app.xml'))
+
+        metares = dict()
+        metares['SummaryInformation'] = {}
+        coretags = metares['SummaryInformation']
+
+        for child in core.iterchildren():
+
+            if 'title' in child.tag:
+                coretags['Title'] = child.text
+            if 'category' in child.tag:
+                coretags['Category'] = child.text
+            if 'contentStatus' in child.tag:
+                coretags['ContentStatus'] = child.text
+            if 'created' in child.tag:
+                coretags['Created'] = child.text
+            if 'creator' in child.tag:
+                coretags['Author'] = child.text
+            if 'description' in child.tag:
+                coretags['Description'] = child.text
+            if 'identifier' in child.tag:
+                coretags['Identifier'] = child.text
+            if 'keywords' in child.tag:
+                coretags['Keywords'] = child.text
+            if 'language' in child.tag:
+                coretags['Language'] = child.text
+            if 'lastModifiedBy' in child.tag:
+                coretags['LastModifiedBy'] = child.text
+            if 'lastPrinted' in child.tag:
+                coretags['LastPrinted'] = child.text
+            if 'modified' in child.tag:
+                coretags['Modified'] = child.text
+            if 'subject' in child.tag:
+                coretags['Subject'] = child.text
+            if 'version' in child.tag:
+                coretags['Version'] = child.text
+            if 'revision' in child.tag:
+                coretags['Revision'] = child.text
+
+        metares['DocumentSummaryInformation'] = {}
+        apptags = metares['DocumentSummaryInformation']
+
+        for child in app.iterchildren():
+            if 'TotalTime' in child.tag:
+                apptags['TotalTime'] = child.text
+            if 'Pages' in child.tag:
+                apptags['Pages'] = child.text
+            if 'Words' in child.tag:
+                apptags['Words'] = child.text
+            if 'Characters' in child.tag:
+                apptags['Characters'] = child.text
+            if 'Lines' in child.tag:
+                apptags['Lines'] = child.text
+            if 'Paragraphs' in child.tag:
+                apptags['Paragraphs'] = child.text
+            if 'Company' in child.tag:
+                apptags['Company'] = child.text
+            if 'HperlinkBase' in child.tag:
+                apptags['HyperlinkBase'] = child.text
+            if 'Slides' in child.tag:
+                apptags['Slides'] = child.text
+            if 'Notes' in child.tag:
+                apptags['Notes'] = child.text
+            if 'HiddenSlides' in child.tag:
+                apptags['HiddenSlides'] = child.text
+
+        return metares
+
     def _parse(self, filepath):
         """Parses an office document for static information.
         Currently (as per olefile) the following formats are supported:
@@ -1075,8 +1149,6 @@ class Office(object):
         officeresults = results["office"] = { }
 
         metares = officeresults["Metadata"] = dict()
-        # The bulk of the metadata checks are in the OLE Structures
-        # So don't check if we're dealing with XML.
         if olefile.isOleFile(filepath):
             ole = olefile.OleFileIO(filepath)
             meta = ole.get_metadata()
@@ -1089,6 +1161,10 @@ class Office(object):
             buf = self.convert_dt_string(metares["SummaryInformation"]["last_saved_time"])
             metares["SummaryInformation"]["last_saved_time"] = buf
             ole.close()
+        else:
+            officeresults["Metadata"] = self.get_xml_meta(self.file_path)
+            metares = officeresults["Metadata"]
+
         if vba.detect_vba_macros():
             metares["HasMacros"] = "Yes"
             macrores = officeresults["Macro"] = dict()
@@ -1503,7 +1579,7 @@ class Static(Processing):
             # results for actual zip files.
             elif "Zip archive data, at least v2.0" in thetype:
                 static = Office(self.file_path).run()
-            elif "Composite Document File V2 Document" in thetype:
+            elif "Composite Document File V2 Document" in thetype or "Microsoft OOXML" in thetype:
                 static = Office(self.file_path).run()
             elif package == "wsf" or thetype == "XML document text" or self.task["target"].endswith(".wsf") or package == "hta":
                 static = WindowsScriptFile(self.file_path).run()
