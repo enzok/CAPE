@@ -75,7 +75,7 @@
                         {% endif %}
                     </td>
                     <td>
-                        <a class="btn btn-primary btn-small" href="{% url "vtupload" file.name info.id file.sha256 %}">Submit to VirusTotal</a>
+                        <a class="btn btn-primary btn-small" href="{% url "vtupload" file.name file.sha256 %}">Submit to VirusTotal</a>
                     </td>
                 </tr>
                 {% else %}
