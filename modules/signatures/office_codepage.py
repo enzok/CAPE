@@ -86,10 +86,12 @@ class Office_Code_Page(Signature):
         if "static" in self.results and "office" in self.results["static"]:
             if "Metadata" in self.results["static"]["office"]:
                 if "SummaryInformation" in self.results["static"]["office"]["Metadata"]:
-                    codepage = self.results["static"]["office"]["Metadata"]["SummaryInformation"]["codepage"]
-                    for codepages in codepages:
-                        if codepages["code"] == codepage:
-                            self.description += ": %s" % codepages["language"]
-                            return True
-
+                    try:
+                        codepage = self.results["static"]["office"]["Metadata"]["SummaryInformation"]["codepage"]
+                        for codepages in codepages:
+                            if codepages["code"] == codepage:
+                                self.description += ": %s" % codepages["language"]
+                                return True
+                    except KeyError:
+                        return False
         return False

@@ -26,6 +26,7 @@ from PIL import Image
 from StringIO import StringIO
 from datetime import datetime, date, time, timedelta
 from subprocess import Popen, PIPE
+from lib.cuckoo.common.utils import convert_to_printable
 import struct
 
 try:
@@ -1058,74 +1059,43 @@ class Office(object):
             return "None"
 
     def get_xml_meta(self, filepath):
-
         zfile = zipfile.ZipFile(filepath)
         core = etree.fromstring(zfile.read('docProps/core.xml'))
         app = etree.fromstring(zfile.read('docProps/app.xml'))
+
+        SUMMARY_ATTRIBS = ['title', 'category', 'contentStatus', 'created', 'creator',
+                           'description', 'identifier', 'keywords', 'language', 'lastModifiedBy',
+                           'lastPrinted', 'modified', 'subject', 'version', 'revision']
+
+        DOCSUM_ATTRIBS = ['TotalTime', 'Pages', 'Words', 'Characters', 'Lines', 'Paragraphs',
+                          'Company', 'HyperlinkBase', 'Slides', 'Notes', 'HiddenSlides']
 
         metares = dict()
         metares['SummaryInformation'] = {}
         coretags = metares['SummaryInformation']
 
+        for prop in SUMMARY_ATTRIBS:
+            coretags[prop] = None
+
+        coretags["isXML"] = True
+
         for child in core.iterchildren():
 
-            if 'title' in child.tag:
-                coretags['Title'] = child.text
-            if 'category' in child.tag:
-                coretags['Category'] = child.text
-            if 'contentStatus' in child.tag:
-                coretags['ContentStatus'] = child.text
-            if 'created' in child.tag:
-                coretags['Created'] = child.text
-            if 'creator' in child.tag:
-                coretags['Author'] = child.text
-            if 'description' in child.tag:
-                coretags['Description'] = child.text
-            if 'identifier' in child.tag:
-                coretags['Identifier'] = child.text
-            if 'keywords' in child.tag:
-                coretags['Keywords'] = child.text
-            if 'language' in child.tag:
-                coretags['Language'] = child.text
-            if 'lastModifiedBy' in child.tag:
-                coretags['LastModifiedBy'] = child.text
-            if 'lastPrinted' in child.tag:
-                coretags['LastPrinted'] = child.text
-            if 'modified' in child.tag:
-                coretags['Modified'] = child.text
-            if 'subject' in child.tag:
-                coretags['Subject'] = child.text
-            if 'version' in child.tag:
-                coretags['Version'] = child.text
-            if 'revision' in child.tag:
-                coretags['Revision'] = child.text
+            for prop in SUMMARY_ATTRIBS:
+                if prop in child.tag:
+                    coretags[prop] = convert_to_printable(child.text)
 
         metares['DocumentSummaryInformation'] = {}
         apptags = metares['DocumentSummaryInformation']
 
+        for prop in DOCSUM_ATTRIBS:
+            coretags[prop] = None
+
         for child in app.iterchildren():
-            if 'TotalTime' in child.tag:
-                apptags['TotalTime'] = child.text
-            if 'Pages' in child.tag:
-                apptags['Pages'] = child.text
-            if 'Words' in child.tag:
-                apptags['Words'] = child.text
-            if 'Characters' in child.tag:
-                apptags['Characters'] = child.text
-            if 'Lines' in child.tag:
-                apptags['Lines'] = child.text
-            if 'Paragraphs' in child.tag:
-                apptags['Paragraphs'] = child.text
-            if 'Company' in child.tag:
-                apptags['Company'] = child.text
-            if 'HperlinkBase' in child.tag:
-                apptags['HyperlinkBase'] = child.text
-            if 'Slides' in child.tag:
-                apptags['Slides'] = child.text
-            if 'Notes' in child.tag:
-                apptags['Notes'] = child.text
-            if 'HiddenSlides' in child.tag:
-                apptags['HiddenSlides'] = child.text
+
+            for prop in DOCSUM_ATTRIBS:
+                if prop in child.tag:
+                    apptags[prop] = convert_to_printable(child.text)
 
         return metares
 
