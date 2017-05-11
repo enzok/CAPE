@@ -1342,13 +1342,7 @@ def comments(request, task_id):
 def vtupload(request, task_id, dlfile):
     if settings.VTUPLOAD and settings.VTDL_PRIV_KEY:
         try:
-            db = Database()
             path = os.path.join(CUCKOO_ROOT, "storage", "binaries", dlfile)
-            analysis_info = get_analysis_info(db, id=task_id)
-            if analysis_info:
-                filename = analysis_info['filename']
-            else:
-                filename = dlfile
             params = {'apikey': settings.VTDL_PRIV_KEY}
             files = {'file': (filename, open(path, 'rb'))}
             response = requests.post('https://www.virustotal.com/vtapi/v2/file/scan', files=files, params=params)
