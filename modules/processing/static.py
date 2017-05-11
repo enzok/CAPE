@@ -1063,7 +1063,7 @@ class Office(object):
         core = etree.fromstring(zfile.read('docProps/core.xml'))
         app = etree.fromstring(zfile.read('docProps/app.xml'))
 
-        SUMMARY_ATTRIBS = ['title', 'category', 'contentStatus', 'created', 'creator',
+        SUMMARY_ATTRIBS = ['title', 'category', 'contentStatus', 'created', 'creator', 'codepage',
                            'description', 'identifier', 'keywords', 'language', 'lastModifiedBy',
                            'lastPrinted', 'modified', 'subject', 'version', 'revision']
 
@@ -1085,6 +1085,8 @@ class Office(object):
                 if prop in child.tag:
                     if child.text:
                         coretags[prop] = convert_to_printable(child.text)
+
+
 
         metares['DocumentSummaryInformation'] = {}
         apptags = metares['DocumentSummaryInformation']
