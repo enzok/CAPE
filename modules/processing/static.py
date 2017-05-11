@@ -1083,7 +1083,8 @@ class Office(object):
 
             for prop in SUMMARY_ATTRIBS:
                 if prop in child.tag:
-                    coretags[prop] = convert_to_printable(child.text)
+                    if child.text:
+                        coretags[prop] = convert_to_printable(child.text)
 
         metares['DocumentSummaryInformation'] = {}
         apptags = metares['DocumentSummaryInformation']
@@ -1095,7 +1096,8 @@ class Office(object):
 
             for prop in DOCSUM_ATTRIBS:
                 if prop in child.tag:
-                    apptags[prop] = convert_to_printable(child.text)
+                    if child.text:
+                        apptags[prop] = convert_to_printable(child.text)
 
         return metares
 
