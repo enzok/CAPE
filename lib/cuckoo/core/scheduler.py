@@ -231,7 +231,7 @@ class AnalysisManager(threading.Thread):
         succeeded = False
         dead_machine = False
 
-        log.info("Task #{0}: Starting analysis of {1} '{2}'".format(
+        log.info(u"Task #{0}: Starting analysis of {1} '{2}'".format(
                  self.task.id, self.task.category.upper(), self.task.target)
                 )
 
