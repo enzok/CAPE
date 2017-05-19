@@ -62,8 +62,13 @@ class TextSummary(Report):
 
             if 'executed_commands' in results['behavior']['summary']:
                 outbuf += "Executed commands:\n"
+                cmds = []
                 for ec in results['behavior']['summary']['executed_commands']:
-                    outbuf += "  " + ec + "\n"
+                    newcmd = ec.strip('"')
+                    if newcmd not in cmds:
+                        cmds.append(newcmd)
+                for cmd in cmds:
+                    outbuf += "  " + cmd + "\n"
                 outbuf += "\n"
 
             if 'mutexes' in results['behavior']['summary']:
