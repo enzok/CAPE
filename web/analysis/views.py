@@ -617,7 +617,12 @@ def antivirus(request,task_id):
         analysis = es.search(index=fullidx,
                          doc_type="analysis",
                          q="info.id: \"%s\"" % task_id)["hits"]["hits"][0]["_source"]
-        rtmp = analysis["virustotal"]
+
+        vt = analysis["virustotal"]
+        cat = analysis["info"]["category"]
+
+        rtmp = {"virustotal": vt,
+                "info": {"category": cat}}
     if not rtmp:
         return render(request, "error.html",
                                   {"error": "The specified analysis does not exist"})
