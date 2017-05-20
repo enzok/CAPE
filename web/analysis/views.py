@@ -529,11 +529,11 @@ def surialert(request,task_id):
                              q="info.id: \"%s\"" % task_id)["hits"]["hits"][0]["_source"]
 
         alerts = analysis["suricata"]["alerts"]
-        report = {"suricata": {"http": alerts}}
+        report = {"suricata": {"alerts": alerts}}
 
     if not report:
         return render(request, "error.html",
-                                  {"error": "The specified analysis does not exist"})
+                      {"error": "The specified analysis does not exist"})
 
     suricata = report["suricata"]
 
