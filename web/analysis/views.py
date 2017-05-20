@@ -64,7 +64,7 @@ if enabledconf["elasticsearchdb"]:
              "host": settings.ELASTIC_HOST,
              "port": settings.ELASTIC_PORT,
          }],
-         timeout = 60)
+         timeout = 300)
 
 maxsimilar = int(Config("reporting").malheur.maxsimilar)
 

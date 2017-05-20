@@ -38,7 +38,7 @@ if repconf.elasticsearchdb.enabled and not repconf.elasticsearchdb.searchonly:
              "host": repconf.elasticsearchdb.host,
              "port": repconf.elasticsearchdb.port,
          }],
-         timeout = 60
+         timeout = 300
      )
 
 def process(target=None, copy_path=None, task=None, report=False, auto=False):
