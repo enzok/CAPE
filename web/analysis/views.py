@@ -611,11 +611,13 @@ def surifiles(request,task_id):
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
 def antivirus(request,task_id):
     if enabledconf["mongodb"]:
-        rtmp = results_db.analysis.find_one({"info.id": int(task_id)},{"virustotal": 1,"info.category": 1},
+        rtmp = results_db.analysis.find_one({"info.id": int(task_id)}, {"virustotal": 1, "info.category": 1},
                                             sort=[("_id", pymongo.DESCENDING)])
     if es_as_db:
-        rtmp = es.search(index=fullidx, doc_type="analysis", q="virustotal.results.sig: %s" % value)["hits"]["hits"]
-
+        analysis = es.search(index=fullidx,
+                         doc_type="analysis",
+                         q="info.id: \"%s\"" % task_id)["hits"]["hits"][0]["_source"]
+        rtmp = analysis["virustotal"]
     if not rtmp:
         return render(request, "error.html",
                                   {"error": "The specified analysis does not exist"})
