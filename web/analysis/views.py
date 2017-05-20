@@ -1186,7 +1186,7 @@ def perform_malscore_search(value):
     if es_as_db:
         reports = es.search(index=fullidx,
                             doc_type="analysis",
-                            q="malscore: [%d TO *]" % value)["hits"]["hits"]
+                            q="malscore: [%d TO *]" % int(value))["hits"]["hits"]
         return reports
 
 @csrf_exempt
