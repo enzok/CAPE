@@ -578,7 +578,7 @@ def shrike(request,task_id):
                       {"error": "The specified analysis does not exist"})
 
     return render(request, "analysis/shrike.html",
-                              {"shrike": shrike})
+                  {"shrike": shrike})
 
 @require_safe
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
@@ -597,7 +597,7 @@ def surihttp(request,task_id):
 
     if not report:
         return render(request, "error.html",
-                                  {"error": "The specified analysis does not exist"})
+                      {"error": "The specified analysis does not exist"})
 
     suricata = report["suricata"]
 
@@ -695,7 +695,8 @@ def antivirus(request,task_id):
 
     if not rtmp:
         return render(request, "error.html",
-                                  {"error": "The specified analysis does not exist"})
+                      {"error": "The specified analysis does not exist"})
+
     if settings.MOLOCH_ENABLED:
         if settings.MOLOCH_BASE[-1] != "/":
             settings.MOLOCH_BASE = settings.MOLOCH_BASE + "/"
@@ -703,7 +704,7 @@ def antivirus(request,task_id):
             rtmp["virustotal"]=gen_moloch_from_antivirus(rtmp["virustotal"])
 
     return render(request, "analysis/antivirus.html",
-                              {"analysis": rtmp})
+                  {"analysis": rtmp})
 
 @csrf_exempt
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
@@ -1185,7 +1186,7 @@ def perform_malscore_search(value):
     if es_as_db:
         reports = es.search(index=fullidx,
                             doc_type="analysis",
-                            q="malscore: \"%s\"" % query_val)["hits"]["hits"]
+                            q="malscore: [%d TO *]" % query_val)["hits"]["hits"]
         return reports
 
 @csrf_exempt
