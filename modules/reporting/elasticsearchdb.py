@@ -32,7 +32,7 @@ class ElasticsearchDB(Report):
                 'host': self.options.get("host", "127.0.0.1"),
                 'port': self.options.get("port", 9200),
             }],
-            timeout = 60
+            timeout = 300
         )
 
     def run(self, results):
@@ -138,6 +138,9 @@ class ElasticsearchDB(Report):
         # Other info we want Quick access to from the web UI
         if results.has_key("virustotal") and results["virustotal"] and results["virustotal"].has_key("positives") and results["virustotal"].has_key("total"):
             report["virustotal_summary"] = "%s/%s" % (results["virustotal"]["positives"],results["virustotal"]["total"])
+
+        # Increase index maximum fields to 5000
+        report["settings"] = {"index.mapping.total_fields.limit": "5000"}
 
         # Store the report and retrieve its object id.
         self.es.index(index=self.index_name, doc_type="analysis", id=results["info"]["id"], body=report)
