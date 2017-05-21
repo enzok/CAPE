@@ -151,4 +151,3 @@ class ElasticsearchDB(Report):
 
         # Store the report and retrieve its object id.
         self.es.index(index=self.index_name, doc_type="analysis", id=results["info"]["id"], body=report)
-        self.es.indices.get_
