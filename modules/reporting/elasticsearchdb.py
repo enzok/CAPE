@@ -143,11 +143,9 @@ class ElasticsearchDB(Report):
         settings = {}
         settings["settings"] = {"index": {"mapping": {"total_fields": {"limit": "5000"}}}}
         if self.es.indices.exists(index=self.index_name):
-            value = self.es.indices.get_settings(index=self.index_name, name="index.mapping.total_fields.limit")
-            if "5000" not in value:
-                self.es.indices.put_settings(index=self.index_name, body=settings)
-        else:
-            self.es.indices.create(index=self.index_name, body=settings)
+            self.es.delete(index=self.index_name, doc_type="analysis", id=results["info"]["id"])
+
+        self.es.indices.create(index=self.index_name, body=settings)
 
         # Store the report and retrieve its object id.
         self.es.index(index=self.index_name, doc_type="analysis", id=results["info"]["id"], body=report)
