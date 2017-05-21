@@ -139,10 +139,10 @@ class ElasticsearchDB(Report):
         if results.has_key("virustotal") and results["virustotal"] and results["virustotal"].has_key("positives") and results["virustotal"].has_key("total"):
             report["virustotal_summary"] = "%s/%s" % (results["virustotal"]["positives"],results["virustotal"]["total"])
 
-        # Increase index maximum fields to 5000
+        # Create index and set maximum fields limit to 5000
         settings = {}
-        settings["settings"] = {"index.mapping.total_fields.limit": "5000"}
-        self.es.index(index=self.index_name, doc_type="analysis", id=results["info"]["id"], body=settings)
+        settings["settings"] = {"index": {"mapping": {"total_fields": {"limit": "5000"}}}}
+        self.es.indices.create(index=self.index_name, body=settings)
 
         # Store the report and retrieve its object id.
         self.es.index(index=self.index_name, doc_type="analysis", id=results["info"]["id"], body=report)
