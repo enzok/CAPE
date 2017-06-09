@@ -33,14 +33,6 @@ class PowershellCommand(Signature):
         self.hidden_window = False
         self.b64_encoded = False
         self.filedownload = False
-<<<<<<< HEAD
-        self.noninteractive = False
-        self.startprocess = False
-        self.webrequest = False
-        self.bitstransfer = False
-        self.invokeitem = False
-=======
->>>>>>> ng/mydev
 
     filter_apinames = set(["CreateProcessInternalW","ShellExecuteExW"])
 
@@ -61,35 +53,12 @@ class PowershellCommand(Signature):
         if "powershell.exe" in cmdline and "-w" in cmdline and "hidden" in cmdline:
             self.hidden_window = True
 
-<<<<<<< HEAD
-        if "powershell.exe" in cmdline and ("-enc" in cmdline or "-e " in cmdline):
-            self.b64_encoded = True
-            
-        if "powershell.exe" in cmdline and "-noni" in cmdline:
-            self.noninteractive = True
-            
-        if "powershell.exe" in cmdline and "start-process" in cmdline:
-            self.startprocess = True
-=======
         if "powershell.exe" in cmdline and ("-enc" in cmdline or "-e "):
             self.b64_encoded = True
->>>>>>> ng/mydev
 
         if "powershell.exe" in cmdline and ("downloadfile(" in cmdline or "ZG93bmxvYWRmaWxlK" in cmdline or "Rvd25sb2FkZmlsZS" in cmdline or "kb3dubG9hZGZpbGUo" in cmdline):
             self.filedownload = True
 
-<<<<<<< HEAD
-        if "powershell.exe" in cmdline and "system.net.webrequest" in cmdline and "create(" in cmdline and "getresponse" in cmdline:
-            self.webrequest = True
-
-        if "powershell.exe" in cmdline and "start-bitstransfer" in cmdline:
-            self.bitstransfer = True
-
-        if "powershell.exe" in cmdline and "invoke-item" in cmdline:
-            self.invokeitem = True
-
-=======
->>>>>>> ng/mydev
     def on_complete(self):
         if self.exec_policy:
             self.data.append({"execution_policy" : "Attempts to bypass execution policy"})
@@ -108,43 +77,12 @@ class PowershellCommand(Signature):
         if self.b64_encoded:
             self.data.append({"b64_encoded" : "Uses a Base64 encoded command value"})
             self.weight += 1
-<<<<<<< HEAD
-            
-        if self.noninteractive:
-            self.data.append({"noninteractive" : "Creates a non-interactive prompt"})
-            self.weight += 1
-
-        if self.startprocess:
-            self.data.append({"starts_process" : "Creates a new process"})
-            self.weight += 1
-        
-        if self.filedownload:
-            self.data.append({"file_download" : "Uses powershell to download a file"})
-            self.severity = 3
-            self.weight += 1
-
-        if self.webrequest:
-            self.data.append({"web_request" : "Uses powershell System.Net.WebRequest method to perform a HTTP request potentially to fetch a second stage file"})
-            self.severity = 3
-            self.weight += 1
-
-        if self.bitstransfer:
-            self.data.append({"bitsadmin_download" : "Uses BitsTransfer to download a file"})
-            self.severity = 3
-            self.weight += 1
-
-        if self.invokeitem:
-            self.data.append({"invoke_item" : "Potentially uses Invoke-Item to execute a file"})
-            self.weight += 1
-
-=======
 
         if self.filedownload:
             self.data.append({"file_download" : "Uses powershell to execute a file download from the command line"})
             self.severity = 3
             self.weight += 1
 
->>>>>>> ng/mydev
         if self.weight:
             return True
         return False

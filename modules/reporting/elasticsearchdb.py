@@ -32,11 +32,7 @@ class ElasticsearchDB(Report):
                 'host': self.options.get("host", "127.0.0.1"),
                 'port': self.options.get("port", 9200),
             }],
-<<<<<<< HEAD
-            timeout = 60
-=======
             timeout = 300
->>>>>>> ng/mydev
         )
 
     def run(self, results):
@@ -121,13 +117,6 @@ class ElasticsearchDB(Report):
                         # in the Django view
                         report["shots"].append(shot_file.replace(".jpg", ""))
 
-<<<<<<< HEAD
-            # Other info we want Quick access to from the web UI
-            if results.has_key("virustotal") and results["virustotal"] and results["virustotal"].has_key("positives") and results["virustotal"].has_key("total"):
-                report["virustotal_summary"] = "%s/%s" % (results["virustotal"]["positives"],results["virustotal"]["total"])
-
-=======
->>>>>>> ng/mydev
             if results.has_key("suricata") and results["suricata"]:
                 if results["suricata"].has_key("tls") and len(results["suricata"]["tls"]) > 0:
                     report["suri_tls_cnt"] = len(results["suricata"]["tls"])
@@ -145,10 +134,6 @@ class ElasticsearchDB(Report):
             report["summary"] = results.get("behavior", {}).get("summary")
             report["network"] = results.get("network")
             report["virustotal"] = results.get("virustotal")
-<<<<<<< HEAD
-            report["virustotal_summary"] = "%s/%s" % (results["virustotal"]["positives"],results["virustotal"]["total"])
-
-=======
 
         # Other info we want Quick access to from the web UI
         if results.has_key("virustotal") and results["virustotal"] and results["virustotal"].has_key("positives") and results["virustotal"].has_key("total"):
@@ -162,6 +147,5 @@ class ElasticsearchDB(Report):
         else:
             self.es.indices.create(index=self.index_name, body=settings)
 
->>>>>>> ng/mydev
         # Store the report and retrieve its object id.
         self.es.index(index=self.index_name, doc_type="analysis", id=results["info"]["id"], body=report)

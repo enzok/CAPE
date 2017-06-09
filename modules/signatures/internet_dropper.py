@@ -45,11 +45,7 @@ class Internet_Dropper(Signature):
         elif call["api"].startswith("HttpOpenRequest"):
             handle = str(self.get_argument(call, "InternetHandle"))
             # Sanity check
-<<<<<<< HEAD
-            if self.lasthost and handle == self.dropper[self.lasthost]["curhandle"]:
-=======
             if handle == self.dropper[self.lasthost]["curhandle"]:
->>>>>>> ng/mydev
                 uri = self.get_argument(call, "Path")
                 if uri != "/" and uri != "":
                     self.uris.add(uri)

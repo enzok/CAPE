@@ -297,14 +297,6 @@
                                 <span class="text-primary"><b>{{analysis.cape}}</b></span>
                             {% endif %}
                         </td>
-                        {% if config.expanded_dashboard %}
-                        <td>
-                            {% if analysis.package %}
-                                  <span class="mono">{{analysis.package}}</span>
-                            {% else %}
-                                  <span class="mono">None</span>
-                            {% endif %}
-                        </td>
                         {% endif %}
                         {% if config.moloch %}
                         <td>
