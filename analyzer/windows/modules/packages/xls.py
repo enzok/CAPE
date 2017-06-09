@@ -2,6 +2,7 @@
 # This file is part of Cuckoo Sandbox - http://www.cuckoosandbox.org
 # See the file 'docs/LICENSE' for copying permission.
 
+import os
 from lib.common.abstracts import Package
 
 
@@ -15,4 +16,9 @@ class XLS(Package):
 
     def start(self, path):
         excel = self.get_path_glob("Microsoft Office Excel")
+
+        if not path.endswith((".xls", ".xlsx", ".xlsm")):
+            os.rename(path, path + ".xls")
+            path += ".xls"
+
         return self.execute(excel, "\"%s\" /e" % path, path)

@@ -86,6 +86,7 @@ class HawkEye_APIs(Signature):
                     self.sockets[sock]["data"] = list()
 
         elif call["api"] == "send":
+<<<<<<< HEAD
             sock = self.get_argument(call, "socket")
             if sock in self.sockets:
                 buf = self.get_argument(call, "buffer")
@@ -97,6 +98,18 @@ class HawkEye_APIs(Signature):
                     if buf.startswith(word):
                         self.sockets[sock]["data"].append(buf)
                         self.badsocks.add(sock)
+=======
+            buf = self.get_argument(call, "buffer")
+            sock = self.get_argument(call, "socket")
+            tmp = unbuffered_b64decode(buf)
+            for term in self.emailterms:
+                if term in buf.lower() or term in tmp.lower():
+                    self.badness += 10
+            for word in self.keywords:
+                if buf.startswith(word):
+                    self.sockets[sock]["data"].append(buf)
+                    self.badsocks.add(sock)
+>>>>>>> ng/mydev
 
         elif call["api"] == "NtCreateEvent":
             evname = self.get_argument(call, "EventName")

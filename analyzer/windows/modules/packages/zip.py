@@ -16,6 +16,10 @@ from zipfile import ZipFile, BadZipfile
 from lib.common.abstracts import Package
 from lib.common.exceptions import CuckooPackageError
 
+from _winreg import (OpenKey, CreateKeyEx, SetValueEx, CloseKey, QueryInfoKey, EnumKey,
+        EnumValue, HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER, KEY_SET_VALUE, KEY_READ,
+        REG_SZ, REG_DWORD)
+
 log = logging.getLogger(__name__)
 
 class Zip(Package):
@@ -24,6 +28,10 @@ class Zip(Package):
              ("SystemRoot", "system32", "cmd.exe"),
              ("SystemRoot", "system32", "wscript.exe"),
             ]
+
+    def filtered_namelist(self, archive):
+        return [x for x in archive.namelist() if x]
+
     def extract_zip(self, zip_path, extract_path, password, recursion_depth):
         """Extracts a nested ZIP file.
         @param zip_path: ZIP path
@@ -42,19 +50,19 @@ class Zip(Package):
         # Extraction.
         with ZipFile(zip_path, "r") as archive:
             try:
-                archive.extractall(path=extract_path, pwd=password)
+                archive.extractall(path=extract_path, members=self.filtered_namelist(archive), pwd=password)
             except BadZipfile:
                 raise CuckooPackageError("Invalid Zip file")
             except RuntimeError:
                 try:
-                    archive.extractall(path=extract_path, pwd="infected")
+                    archive.extractall(path=extract_path, members=self.filtered_namelist(archive), pwd="infected")
                 except RuntimeError as e:
                     raise CuckooPackageError("Unable to extract Zip file: "
                                              "{0}".format(e))
             finally:
                 if recursion_depth < 4:
                     # Extract nested archives.
-                    for name in archive.namelist():
+                    for name in self.filtered_namelist(archive):
                         if name.endswith(".zip"):
                             # Recurse.
                             try:
@@ -72,7 +80,7 @@ class Zip(Package):
         with ZipFile(zip_path, "r") as archive:
             try:
                 # Test if zip file contains a file named as itself.
-                for name in archive.namelist():
+                for name in self.filtered_namelist(archive):
                     if name == os.path.basename(zip_path):
                         return True
                 return False
@@ -90,10 +98,43 @@ class Zip(Package):
         except BadZipfile:
             raise CuckooPackageError("Invalid Zip file")
 
+    def set_keys(self):
+
+        baseOfficeKeyPath = r"Software\Microsoft\Office"
+        installedVersions = list()
+        try:
+            officeKey = OpenKey(HKEY_CURRENT_USER, baseOfficeKeyPath, 0, KEY_READ)
+            for currentKey in xrange(0, QueryInfoKey(officeKey)[0]):
+                isVersion = True
+                officeVersion = EnumKey(officeKey, currentKey)
+                if "." in officeVersion:
+                    for intCheck in officeVersion.split("."):
+                        if not intCheck.isdigit():
+                            isVersion = False
+                            break
+
+                    if isVersion:
+                        installedVersions.append(officeVersion)
+            CloseKey(officeKey)
+        except WindowsError:
+            # Office isn't installed at all
+            return
+
+        for oVersion in installedVersions:
+            key = CreateKeyEx(HKEY_CURRENT_USER,
+                              r"{0}\{1}\Publisher\Security".format(baseOfficeKeyPath, oVersion),
+                              0, KEY_SET_VALUE)
+
+            SetValueEx(key, "VBAWarnings", 0, REG_DWORD, 1)
+            SetValueEx(key, "AccessVBOM", 0, REG_DWORD, 1)
+            SetValueEx(key, "ExtensionHardening", 0, REG_DWORD, 0)
+            CloseKey(key)
+
     def start(self, path):
         root = os.environ["TEMP"]
         password = self.options.get("password")
         exe_regex = re.compile('(\.exe|\.scr|\.msi|\.bat|\.lnk|\.js|\.jse|\.vbs|\.vbe|\.wsf)$',flags=re.IGNORECASE)
+        office_regex = re.compile('(\.doc|\.xls|\.pub|\.ppt)$', flags=re.IGNORECASE)
         zipinfos = self.get_infos(path)
         self.extract_zip(path, root, password, 0)
 
@@ -107,12 +148,14 @@ class Zip(Package):
                     if exe_regex.search(f.filename):
                         file_name = f.filename
                         break
+                    elif office_regex.search(f.filename):
+                        file_name = f.filename
+                        break
                 # Default to the first one if none found
                 file_name = file_name if file_name else zipinfos[0].filename
                 log.debug("Missing file option, auto executing: {0}".format(file_name))
             else:
                 raise CuckooPackageError("Empty ZIP archive")
-
 
         file_path = os.path.join(root, file_name)
         log.debug("file_name: \"%s\"" % (file_name))
@@ -128,5 +171,41 @@ class Zip(Package):
             wscript = self.get_path_app_in_path("wscript.exe")
             wscript_args = "\"{0}\"".format(file_path)
             return self.execute(wscript, wscript_args, file_path)
+        elif file_name.lower().endswith(('.doc','docx', 'docm')):
+            PATHS = [
+                     ("ProgramFiles", "Microsoft Office", "WINWORD.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "Office*", "WINWORD.EXE"),
+                     ("ProgramFiles", "Microsoft Office*", "root", "Office*", "WINWORD.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "WORDVIEW.EXE"),
+                    ]
+            word = self.get_path_glob("Microsoft Office Word")
+            return self.execute(word, "\"%s\" /q" % file_path, file_path)
+        elif file_name.lower().endswith(('.xls', 'xlsx', 'xlsb', 'xlsm')):
+            PATHS = [
+                     ("ProgramFiles", "Microsoft Office", "EXCEL.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "Office*", "EXCEL.EXE"),
+                     ("ProgramFiles", "Microsoft Office*", "root", "Office*", "EXCEL.EXE"),
+                    ]
+            excel = self.get_path_glob("Microsoft Office Excel")
+            return self.execute(excel, "\"%s\" /e" % file_path, file_path)
+        elif file_name.lower().endswith(('.ppt', 'pptx', 'pptm')):
+            PATHS = [
+                     ("ProgramFiles", "Microsoft Office", "POWERPNT.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "Office*", "POWERPNT.EXE"),
+                     ("ProgramFiles", "Microsoft Office*", "root", "Office*", "POWERPNT.EXE"),
+                    ]
+            powerpoint = self.get_path_glob("Microsoft Office PowerPoint")
+            return self.execute(powerpoint, "/s \"%s\"" % file_path, file_path)
+        elif file_name.lower().endswith('.pub'):
+            PATHS = [
+                     ("ProgramFiles", "Microsoft Office", "MSPUB.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "Office*", "MSPUB.EXE"),
+                     ("ProgramFiles", "Microsoft Office*", "root", "Office*", "MSPUB.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "MSPUB.EXE"),
+                    ]
+            self.set_keys()
+            publisher = self.get_path_glob("Microsoft Office Publisher")
+            return self.execute(publisher, "/o \"%s\"" % file_path, file_path)
         else:
             return self.execute(file_path, self.options.get("arguments"), file_path)
+

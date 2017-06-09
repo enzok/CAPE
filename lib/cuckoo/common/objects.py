@@ -12,11 +12,14 @@ import struct
 import copy
 
 from lib.cuckoo.common.constants import CUCKOO_ROOT
-from lib.cuckoo.common.defines import PAGE_NOACCESS, PAGE_READONLY, PAGE_READWRITE, PAGE_WRITECOPY, PAGE_EXECUTE, PAGE_EXECUTE_READ
-from lib.cuckoo.common.defines import PAGE_EXECUTE_READWRITE, PAGE_EXECUTE_WRITECOPY, PAGE_GUARD, PAGE_NOCACHE, PAGE_WRITECOMBINE
+from lib.cuckoo.common.defines import PAGE_NOACCESS, PAGE_READONLY, PAGE_READWRITE, PAGE_WRITECOPY, PAGE_EXECUTE, \
+    PAGE_EXECUTE_READ
+from lib.cuckoo.common.defines import PAGE_EXECUTE_READWRITE, PAGE_EXECUTE_WRITECOPY, PAGE_GUARD, PAGE_NOCACHE, \
+    PAGE_WRITECOMBINE
 
 try:
     import magic
+
     HAVE_MAGIC = True
 except ImportError:
     HAVE_MAGIC = False
@@ -91,11 +94,11 @@ class File:
 
         # these will be populated when first accessed
         self._file_data = None
-        self._crc32     = None
-        self._md5       = None
-        self._sha1      = None
-        self._sha256    = None
-        self._sha512    = None
+        self._crc32 = None
+        self._md5 = None
+        self._sha1 = None
+        self._sha256 = None
+        self._sha512 = None
 
     def get_name(self):
         """Get file name.
@@ -128,12 +131,12 @@ class File:
 
     def calc_hashes(self):
         """Calculate all possible hashes for this file."""
-        crc     = 0
-        md5     = hashlib.md5()
-        sha1    = hashlib.sha1()
-        sha256  = hashlib.sha256()
-        sha512  = hashlib.sha512()
-        
+        crc = 0
+        md5 = hashlib.md5()
+        sha1 = hashlib.sha1()
+        sha256 = hashlib.sha256()
+        sha512 = hashlib.sha512()
+
         for chunk in self.get_chunks():
             crc = binascii.crc32(chunk, crc)
             md5.update(chunk)
@@ -141,11 +144,11 @@ class File:
             sha256.update(chunk)
             sha512.update(chunk)
 
-        self._crc32     = "".join("%02X" % ((crc>>i)&0xff) for i in [24, 16, 8, 0])
-        self._md5       = md5.hexdigest()
-        self._sha1      = sha1.hexdigest()
-        self._sha256    = sha256.hexdigest()
-        self._sha512    = sha512.hexdigest()
+        self._crc32 = "".join("%02X" % ((crc >> i) & 0xff) for i in [24, 16, 8, 0])
+        self._md5 = md5.hexdigest()
+        self._sha1 = sha1.hexdigest()
+        self._sha256 = sha256.hexdigest()
+        self._sha512 = sha512.hexdigest()
 
     @property
     def file_data(self):
@@ -247,7 +250,7 @@ class File:
         file_type = None
         if HAVE_MAGIC:
             try:
-                ms = magic.open(magic.MAGIC_MIME|magic.MAGIC_SYMLINK)
+                ms = magic.open(magic.MAGIC_MIME | magic.MAGIC_SYMLINK)
                 ms.load()
                 file_type = ms.file(self.file_path)
             except:
@@ -277,7 +280,7 @@ class File:
             new = s.encode("utf-8")
         except UnicodeDecodeError:
             s = s.lstrip("uU").encode("hex").upper()
-            s = " ".join(s[i:i+2] for i in range(0, len(s), 2))
+            s = " ".join(s[i:i + 2] for i in range(0, len(s), 2))
             new = "{ %s }" % s
 
         return new
@@ -304,6 +307,55 @@ class File:
         @return: matched Yara signatures.
         """
         results = []
+
+        yara_error = {"1": "ERROR_INSUFFICIENT_MEMORY",
+                      "2": "ERROR_COULD_NOT_ATTACH_TO_PROCESS",
+                      "3": "ERROR_COULD_NOT_OPEN_FILE",
+                      "4": "ERROR_COULD_NOT_MAP_FILE",
+                      "6": "ERROR_INVALID_FILE",
+                      "7": "ERROR_CORRUPT_FILE",
+                      "8": "ERROR_UNSUPPORTED_FILE_VERSION",
+                      "9": "ERROR_INVALID_REGULAR_EXPRESSION",
+                      "10": "ERROR_INVALID_HEX_STRING",
+                      "11": "ERROR_SYNTAX_ERROR",
+                      "12": "ERROR_LOOP_NESTING_LIMIT_EXCEEDED",
+                      "13": "ERROR_DUPLICATED_LOOP_IDENTIFIER",
+                      "14": "ERROR_DUPLICATED_IDENTIFIER",
+                      "15": "ERROR_DUPLICATED_TAG_IDENTIFIER",
+                      "16": "ERROR_DUPLICATED_META_IDENTIFIER",
+                      "17": "ERROR_DUPLICATED_STRING_IDENTIFIER",
+                      "18": "ERROR_UNREFERENCED_STRING",
+                      "19": "ERROR_UNDEFINED_STRING",
+                      "20": "ERROR_UNDEFINED_IDENTIFIER",
+                      "21": "ERROR_MISPLACED_ANONYMOUS_STRING",
+                      "22": "ERROR_INCLUDES_CIRCULAR_REFERENCE",
+                      "23": "ERROR_INCLUDE_DEPTH_EXCEEDED",
+                      "24": "ERROR_WRONG_TYPE",
+                      "25": "ERROR_EXEC_STACK_OVERFLOW",
+                      "26": "ERROR_SCAN_TIMEOUT",
+                      "27": "ERROR_TOO_MANY_SCAN_THREADS",
+                      "28": "ERROR_CALLBACK_ERROR",
+                      "29": "ERROR_INVALID_ARGUMENT",
+                      "30": "ERROR_TOO_MANY_MATCHES",
+                      "31": "ERROR_INTERNAL_FATAL_ERROR",
+                      "32": "ERROR_NESTED_FOR_OF_LOOP",
+                      "33": "ERROR_INVALID_FIELD_NAME",
+                      "34": "ERROR_UNKNOWN_MODULE",
+                      "35": "ERROR_NOT_A_STRUCTURE",
+                      "36": "ERROR_NOT_INDEXABLE",
+                      "37": "ERROR_NOT_A_FUNCTION",
+                      "38": "ERROR_INVALID_FORMAT",
+                      "39": "ERROR_TOO_MANY_ARGUMENTS",
+                      "40": "ERROR_WRONG_ARGUMENTS",
+                      "41": "ERROR_WRONG_RETURN_TYPE",
+                      "42": "ERROR_DUPLICATED_STRUCTURE_MEMBER",
+                      "43": "ERROR_EMPTY_STRING",
+                      "44": "ERROR_DIVISION_BY_ZERO",
+                      "45": "ERROR_REGULAR_EXPRESSION_TOO_LARGE",
+                      "46": "ERROR_TOO_MANY_RE_FIBERS",
+                      "47": "ERROR_COULD_NOT_READ_PROCESS_MEMORY",
+                      "48": "ERROR_INVALID_EXTERNAL_VARIABLE_TYPE",
+                      "49": "ERROR_REGULAR_EXPRESSION_TOO_COMPLEX", }
 
         if not HAVE_YARA:
             if not File.notified_yara:
@@ -356,13 +408,19 @@ class File:
                     "name": match.rule,
                     "meta": match.meta,
                     "strings": list(strings),
-                    "addresses": addresses,
                 })
 
         except Exception as e:
-            log.exception("Unable to match Yara signatures: %s", e)
+            errcode = e.message.split()[-1]
+            if errcode in yara_error:
+                log.exception("Unable to match Yara signatures for %s: %s",
+                               self.file_path, yara_error[errcode])
+            else:
+                log.exception("Unable to match Yara signatures for %s: unknown code %s",
+                              self.file_path, errcode)
 
         return results
+
     def get_clamav(self):
         """Get ClamAV signatures matches.
         @return: matched ClamAV signatures.
@@ -414,14 +472,14 @@ class ProcDump(object):
         self.dumpfile = mmap.mmap(self._dumpfile.fileno(), 0, access=mmap.ACCESS_READ)
         self.address_space = self.parse_dump()
         self.protmap = protmap = {
-            PAGE_NOACCESS : "NOACCESS",
-            PAGE_READONLY : "R",
-            PAGE_READWRITE : "RW",
-            PAGE_WRITECOPY : "RWC",
-            PAGE_EXECUTE : "X",
-            PAGE_EXECUTE_READ : "RX",
-            PAGE_EXECUTE_READWRITE : "RWX",
-            PAGE_EXECUTE_WRITECOPY : "RWXC",
+            PAGE_NOACCESS: "NOACCESS",
+            PAGE_READONLY: "R",
+            PAGE_READWRITE: "RW",
+            PAGE_WRITECOPY: "RWC",
+            PAGE_EXECUTE: "X",
+            PAGE_EXECUTE_READ: "RX",
+            PAGE_EXECUTE_READWRITE: "RWX",
+            PAGE_EXECUTE_WRITECOPY: "RWXC",
         }
 
     def __del__(self):
@@ -478,7 +536,7 @@ class ProcDump(object):
             if data == '':
                 break
             alloc = dict()
-            addr,size,mem_state,mem_type,mem_prot = struct.unpack("QIIII", data)
+            addr, size, mem_state, mem_type, mem_prot = struct.unpack("QIIII", data)
             offset = f.tell()
             if addr != lastend and len(curchunk):
                 address_space.append(self._coalesce_chunks(curchunk))
@@ -495,7 +553,7 @@ class ProcDump(object):
             try:
                 if f.read(2) == "MZ":
                     alloc["PE"] = True
-                f.seek(size-2, 1)
+                f.seek(size - 2, 1)
             except:
                 break
             curchunk.append(alloc)

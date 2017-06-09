@@ -24,6 +24,10 @@ class RansomwareExtensions(Signature):
             (".*\.herbst$", ["Herbst"]),
             (".*\.CrySiS$", ["Crysis"]),
             (".*\.bart\.zip$", ["Bart"]),
+<<<<<<< HEAD
+=======
+            (".*\.crypt$", ["CryptXXX"]),
+>>>>>>> ng/mydev
             (".*\.crypz$", ["CryptXXX"]),
             (".*\.cryp1$", ["CryptXXX"]),
             (".*\.[0-9A-F]{32}\.[0-9A-F]{5}$", ["CryptXXX"]),
@@ -50,7 +54,10 @@ class RansomwareExtensions(Signature):
             (".*\.aesir$", ["Locky"]),
             (".*\.zzzzz$", ["Locky"]),
             (".*\.osiris$", ["Locky"]),
+<<<<<<< HEAD
             (".*\.crypt$", ["multi-family"]),
+=======
+>>>>>>> ng/mydev
             (".*\.locked$", ["multi-family"]),
             (".*\.encrypted$", ["multi-family"]),
             (".*dxxd$", ["DXXD"]),
@@ -73,6 +80,7 @@ class RansomwareExtensions(Signature):
             (".*\.no_more_ransom$", ["Troldesh"]),
             (".*_luck$", ["CryptoLuck"]),
             (".*\.CHIP$", ["CHIP"]),
+<<<<<<< HEAD
             (".*\.DALE$", ["CHIP"]),
             (".*\.sexy$", ["PayDay"]),
             (".*\.kraken$", ["Kraken"]),
@@ -81,6 +89,8 @@ class RansomwareExtensions(Signature):
             (".*\.CRYPTOSHIELD$", ["CryptoShield"]),
             (".*\.serpent$", ["Serpent"]),
             (".*\.REVENGE$", ["Revenge"]),
+=======
+>>>>>>> ng/mydev
         ]
 
         for indicator in indicators:

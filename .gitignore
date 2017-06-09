@@ -29,7 +29,18 @@ docs/book/src/_build/
 web/web/secret_key.py
 
 cuckoo.v12.suo
+cuckoo.v11.suo
+cuckoo.sln
 
 # Ignore yara rules
 data/yara/index_*.yar
 UpgradeLog.htm
+
+# Ignore Django auth DB
+web/siteauth.sqlite
+
+# Ignore feeds
+data/feeds/*
+
+#Ignore Cuckoo configs
+conf/*

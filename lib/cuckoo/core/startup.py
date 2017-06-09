@@ -25,8 +25,10 @@ from lib.cuckoo.common.constants import CUCKOO_ROOT, CUCKOO_VERSION
 from lib.cuckoo.common.exceptions import CuckooStartupError
 from lib.cuckoo.common.exceptions import CuckooOperationalError
 from lib.cuckoo.common.utils import create_folders, store_temp_file, delete_folder
-from lib.cuckoo.core.database import Database, Task, TASK_RUNNING, TASK_PENDING, TASK_FAILED_ANALYSIS, TASK_FAILED_PROCESSING, TASK_FAILED_REPORTING, TASK_RECOVERED, TASK_REPORTED
+from lib.cuckoo.core.database import Database, Task, TASK_RUNNING, TASK_FAILED_ANALYSIS, TASK_FAILED_PROCESSING, TASK_FAILED_REPORTING, TASK_RECOVERED, TASK_REPORTED, TASK_PENDING
 from lib.cuckoo.core.plugins import import_plugin, import_package, list_plugins
+import socket
+from lib.cuckoo.core.rooter import rooter, vpns
 
 log = logging.getLogger()
 
@@ -402,6 +404,41 @@ def cuckoo_clean_failed_tasks():
                 else:
                     print "failed to remove failed task %s from DB" % (int(new["id"]))
 
+
+def cuckoo_remove_pending_tasks(pending_tasks):
+    """Remove pending tasks
+    It deletes all pending tasks from database.
+    """
+    # Init logging.
+    # This need to init a console logger handler, because the standard
+    # logger (init_logging()) logs to a file which will be deleted.
+    init_console_logging()
+
+    start_task = pending_tasks[0]
+    end_task = pending_tasks[1]
+
+    if end_task < start_task:
+        print "No pending tasks deleted. Ending task greater than starting task."
+        return
+
+    # Initialize the database connection.
+    db = Database()
+    ptask_ids = []
+
+    pending_tasks = db.list_tasks(status=TASK_PENDING)
+    for ptask in pending_tasks:
+        dtask = ptask.to_dict()
+        ptask_ids.append(dtask['id'])
+    task = start_task
+    while task <= end_task:
+        if task in ptask_ids:
+            if db.delete_task(task):
+                print "Task: {} was deleted".format(task)
+            else:
+                print "Task: {} was not delete".format(task)
+        task += 1
+
+
 def cuckoo_clean_bson_suri_logs():
     """Clean up raw suri log files probably not needed if storing in mongo. Does not remove extracted files
     """
@@ -605,43 +642,172 @@ def cuckoo_clean_sorted_pcap_dump():
             else:
                 done = True
 
-def cuckoo_clean_pending_tasks():
-    """Clean up pending tasks 
-    It deletes all stored data from file system and configured databases (SQL
-    and MongoDB for pending tasks.
-    """
-    # Init logging.
-    # This need to init a console logger handler, because the standard
-    # logger (init_logging()) logs to a file which will be deleted.
-    create_structure()
-    init_console_logging()
+def init_rooter():
+    """If required, check whether the rooter is running and whether we can
+    connect to it."""
+    cuckoo = Config()
 
-    # Initialize the database connection.
-    db = Database()
+    # The default configuration doesn't require the rooter to be ran.
+    if not Config("vpn").vpn.enabled and cuckoo.routing.route == "none":
+        return
 
-    # Check if MongoDB reporting is enabled and drop that if it is.
-    cfg = Config("reporting")
-    if cfg.mongodb and cfg.mongodb.enabled:
-        from pymongo import MongoClient
-        host = cfg.mongodb.get("host", "127.0.0.1")
-        port = cfg.mongodb.get("port", 27017)
-        mdb = cfg.mongodb.get("db", "cuckoo")
-        try:
-            results_db = MongoClient(host, port)[mdb]
-        except:
-            log.warning("Unable to connect to MongoDB database: %s", mdb)
-            return 
+    cuckoo = Config()
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
 
-        pending_tasks = db.list_tasks(status=TASK_PENDING)
-        for e in pending_tasks:
-            new = e.to_dict()
-            print int(new["id"])
-            try:
-                results_db.analysis.remove({"info.id": int(new["id"])})
-            except:
-                print "failed to remove analysis info (may not exist) %s" % (int(new["id"]))
-            if db.delete_task(new["id"]):
-                delete_folder(os.path.join(CUCKOO_ROOT, "storage", "analyses",
-                        "%s" % int(new["id"])))
-            else:
-                print "failed to remove pending task %s from DB" % (int(new["id"]))
+    try:
+        s.connect(cuckoo.cuckoo.rooter)
+    except socket.error as e:
+        if e.strerror == "No such file or directory":
+            raise CuckooStartupError(
+                "The rooter is required but it is either not running or it "
+                "has been configured to a different Unix socket path. "
+                "(In order to disable the use of rooter, please set route "
+                "and internet to none in cuckoo.conf and enabled to no in "
+                "vpn.conf)."
+            )
+
+        if e.strerror == "Connection refused":
+            raise CuckooStartupError(
+                "The rooter is required but we can't connect to it as the "
+                "rooter is not actually running. "
+                "(In order to disable the use of rooter, please set route "
+                "and internet to none in cuckoo.conf and enabled to no in "
+                "vpn.conf)."
+            )
+
+        if e.strerror == "Permission denied":
+            raise CuckooStartupError(
+                "The rooter is required but we can't connect to it due to "
+                "incorrect permissions. Did you assign it the correct group? "
+                "(In order to disable the use of rooter, please set route "
+                "and internet to none in cuckoo.conf and enabled to no in "
+                "vpn.conf)."
+            )
+
+        raise CuckooStartupError("Unknown rooter error: %s" % e)
+
+    # Do not forward any packets unless we have explicitly stated so.
+    rooter("forward_drop")
+
+def init_routing():
+    """Initialize and check whether the routing information is correct."""
+    cuckoo = Config()
+    vpn = Config("vpn")
+
+    # Check whether all VPNs exist if configured and make their configuration
+    # available through the vpns variable. Also enable NAT on each interface.
+    if vpn.vpn.enabled:
+        for name in vpn.vpn.vpns.split(","):
+            name = name.strip()
+            if not name:
+                continue
+
+            if not hasattr(vpn, name):
+                raise CuckooStartupError(
+                    "Could not find VPN configuration for %s" % name
+                )
+
+            entry = vpn.get(name)
+            #add = 1
+            #if not rooter("nic_available", entry.interface):
+                #raise CuckooStartupError(
+                #   "The network interface that has been configured for "
+                #    "VPN %s is not available." % entry.name
+                #)
+            #    add = 0
+            if not rooter("rt_available", entry.rt_table):
+                raise CuckooStartupError(
+                    "The routing table that has been configured for "
+                    "VPN %s is not available." % entry.name
+                )
+            vpns[entry.name] = entry
+
+            # Disable & enable NAT on this network interface. Disable it just
+            # in case we still had the same rule from a previous run.
+            rooter("disable_nat", entry.interface)
+            rooter("enable_nat", entry.interface)
+
+            # Populate routing table with entries from main routing table.
+            if cuckoo.routing.auto_rt:
+                rooter("flush_rttable", entry.rt_table)
+                rooter("init_rttable", entry.rt_table, entry.interface)
+
+    # Check whether the default VPN exists if specified.
+    if cuckoo.routing.route not in ("none", "internet"):
+        if not vpn.vpn.enabled:
+            raise CuckooStartupError(
+                "A VPN has been configured as default routing interface for "
+                "VMs, but VPNs have not been enabled in vpn.conf"
+            )
+
+        if cuckoo.routing.route not in vpns:
+            raise CuckooStartupError(
+                "The VPN defined as default routing target has not been "
+                "configured in vpn.conf."
+            )
+
+    # Check whether the dirty line exists if it has been defined.
+    if cuckoo.routing.internet != "none":
+        if not rooter("nic_available", cuckoo.routing.internet):
+            raise CuckooStartupError(
+                "The network interface that has been configured as dirty "
+                "line is not available."
+            )
+
+        if not rooter("rt_available", cuckoo.routing.rt_table):
+            raise CuckooStartupError(
+                "The routing table that has been configured for dirty "
+                "line interface is not available."
+            )
+
+        # Disable & enable NAT on this network interface. Disable it just
+        # in case we still had the same rule from a previous run.
+        rooter("disable_nat", cuckoo.routing.internet)
+        rooter("enable_nat", cuckoo.routing.internet)
+
+        # Populate routing table with entries from main routing table.
+        if cuckoo.routing.auto_rt:
+            rooter("flush_rttable", cuckoo.routing.rt_table)
+            rooter("init_rttable", cuckoo.routing.rt_table,
+                   cuckoo.routing.internet)
+
+    # Check if tor interface exists, if yes then enable nat
+    if cuckoo.routing.tor_interface:
+        if not rooter("nic_available", cuckoo.routing.tor_interface):
+            raise CuckooStartupError(
+                "The network interface that has been configured as tor "
+                "line is not available."
+            )
+
+        # Disable & enable NAT on this network interface. Disable it just
+        # in case we still had the same rule from a previous run.
+        rooter("disable_nat", cuckoo.routing.tor_interface)
+        rooter("enable_nat", cuckoo.routing.tor_interface)
+
+        # Populate routing table with entries from main routing table.
+        if cuckoo.routing.auto_rt:
+            rooter("flush_rttable", cuckoo.routing.rt_table)
+            rooter("init_rttable", cuckoo.routing.rt_table,
+                   cuckoo.routing.internet)
+
+
+    # Check if inetsim interface exists, if yes then enable nat, if interface is not the same as tor
+    #if cuckoo.routing.inetsim_interface and cuckoo.routing.inetsim_interface !=  cuckoo.routing.tor_interface:
+    # Check if inetsim interface exists, if yes then enable nat
+    if cuckoo.routing.inetsim_interface:
+        if not rooter("nic_available", cuckoo.routing.tor_interface):
+            raise CuckooStartupError(
+                "The network interface that has been configured as tor "
+                "line is not available."
+            )
+
+        # Disable & enable NAT on this network interface. Disable it just
+        # in case we still had the same rule from a previous run.
+        rooter("disable_nat", cuckoo.routing.tor_interface)
+        rooter("enable_nat", cuckoo.routing.tor_interface)
+
+        # Populate routing table with entries from main routing table.
+        if cuckoo.routing.auto_rt:
+            rooter("flush_rttable", cuckoo.routing.rt_table)
+            rooter("init_rttable", cuckoo.routing.rt_table,
+                   cuckoo.routing.internet)

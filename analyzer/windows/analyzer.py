@@ -1144,7 +1144,7 @@ class Analyzer:
             else:
                 log.debug("Started auxiliary module %s", module.__name__)
                 AUX_ENABLED.append(aux)
-       
+
         # Set the default DLL to that specified by the package
         if pack.options.has_key("dll") and pack.options["dll"] != None:
             DEFAULT_DLL = pack.options["dll"]

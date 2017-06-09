@@ -7639,7 +7639,7 @@ class PDFParser :
             This function returns an array of raw indirect objects of the PDF file given the raw body.
             @param content: string with the raw content of the PDF body.
             @param looseMode: boolean specifies if the parsing process should search for the endobj tag or not.
-            @return matchingObjects: array of tuples (object_content,object_header).
+            @return matchingObjects: array of tuples (object_header+object_content,object_header).
         '''
         global pdfFile
         matchingObjects = []
@@ -7649,20 +7649,21 @@ class PDFParser :
             regExp = re.compile('((\d{1,10}\s\d{1,10}\sobj).*?endobj)',re.DOTALL)
             matchingObjects = regExp.findall(content)
         else:
-            regExp = re.compile('((\d{1,10}\s\d{1,10}\sobj).*?)\s\d{1,10}\s\d{1,10}\sobj',re.DOTALL)
-            matchingObjectsAux = regExp.findall(content)
-            while matchingObjectsAux != []:
-                if matchingObjectsAux[0] != []:
-                    objectBody = matchingObjectsAux[0][0]
-                    matchingObjects.append(matchingObjectsAux[0])
-                    content = content[content.find(objectBody)+len(objectBody):]
-                    matchingObjectsAux = regExp.findall(content)
-                else:
-                    matchingObjectsAux = []
-            lastObject = re.findall('(\d{1,5}\s\d{1,5}\sobj)',content,re.DOTALL)
-            if lastObject != []:
-                content = content[content.find(lastObject[0]):]
-                matchingObjects.append((content,lastObject[0]))
+            regExp = re.compile('\d{1,10}\s\d{1,10}\sobj')
+            match = regExp.search(content)
+            lastidx = 0
+            lastobjbody = None
+            lasthead = None
+            while match:
+                if lastobjbody:
+                    matchingObjects.append((lasthead + lastobjbody, lasthead))
+                lasthead = match.group(0)
+                lastidx += match.end()
+                match = regExp.search(content[lastidx:])
+                if match:
+                    lastobjbody = content[lastidx:lastidx+match.start()]
+            if lasthead:
+                matchingObjects.append((lasthead + content[lastidx:], lasthead))
         return matchingObjects
         
     def getLines(self, content):
@@ -7689,6 +7690,10 @@ class PDFParser :
             lines.append(content)
         return lines
     
+    def adjustCharCounterAndReturn(self, counterAdjust, ret):
+        self.charCounter += counterAdjust
+        return ret
+
     def readObject(self, content, objectType = None, forceMode = False, looseMode = False):
         '''
             Method to parse the raw body of the PDF file and obtain PDFObject instances
@@ -7712,7 +7717,7 @@ class PDFParser :
             else:
                 if isForceMode:
                     pdfFile.addError('Unknown object type while parsing object')
-                    return (-1,'Unknown object type')
+                    return self.adjustCharCounterAndReturn(oldCounter, (-1,'Unknown object type'))
                 else:
                     sys.exit('Error: Unknown object type!!')
         else:
@@ -7731,7 +7736,7 @@ class PDFParser :
                     if streamFound:
                         ret = self.readUntilSymbol(content, 'stream')
                         if ret[0] == -1:
-                            return ret
+                            return self.adjustCharCounterAndReturn(oldCounter, ret)
                         auxDict = ret[1]
                         self.readSymbol(content, 'stream', False)
                         self.readUntilEndOfLine(content)
@@ -7745,7 +7750,7 @@ class PDFParser :
                             self.readSymbol(content, 'endstream')
                         ret = self.createPDFStream(dictContent, stream)
                         if ret[0] == -1:
-                            return ret
+                            return self.adjustCharCounterAndReturn(oldCounter, ret)
                         pdfObject = ret[1]
                         break
                     else:
@@ -7753,7 +7758,7 @@ class PDFParser :
                             self.readSymbol(content, delim[1])
                             ret = self.createPDFDictionary(dictContent)
                             if ret[0] == -1:
-                                return ret
+                                return self.adjustCharCounterAndReturn(oldCounter, ret)
                             pdfObject = ret[1]
                         else:
                             pdfObject = PDFDictionary(content)
@@ -7786,15 +7791,18 @@ class PDFParser :
                         self.readSymbol(content, delim[1])
                         ret = self.createPDFArray(arrayContent)
                         if ret[0] == -1:
-                            return ret
+                            return self.adjustCharCounterAndReturn(oldCounter, ret)
                         pdfObject = ret[1]
                     else:
                         pdfObject = PDFArray(content)
                         pdfObject.addError('Closing delimiter not found in array object')
                     break
                 elif delim[2] == 'name':
-                    ret,raw = self.readUntilNotRegularChar(content)
-                    pdfObject = PDFName(raw)
+                    ret = self.readUntilNotRegularChar(content)
+                    if ret[0] == 0:
+                        pdfObject = PDFName(ret[1])
+                    else:
+                        return self.adjustCharCounterAndReturn(oldCounter, ret)
                     break
                 elif delim[2] == 'comment':
                     ret = self.readUntilEndOfLine(content)
@@ -7803,7 +7811,7 @@ class PDFParser :
                         self.readSpaces(content)
                         pdfObject = self.readObject(content[self.charCounter:],objectType)
                     else:
-                        return ret
+                        return self.adjustCharCounterAndReturn(oldCounter, ret)
                     break
         else:
             if content[0] == 't' or content[0] == 'f':
@@ -7817,16 +7825,14 @@ class PDFParser :
                 ret,genNumber = self.readUntilNotRegularChar(content)
                 ret = self.readSymbol(content, 'R')
                 if ret[0] == -1:
-                    return ret
+                    return self.adjustCharCounterAndReturn(oldCounter, ret)
                 pdfObject = PDFReference(id, genNumber)
             elif re.findall('^([-+]?\.?\d{1,15}\.?\d{0,15})', content, re.DOTALL) != []:
                 ret,num = self.readUntilNotRegularChar(content)
                 pdfObject = PDFNum(num)
             else:
-                self.charCounter += oldCounter
-                return (-1,'Object not found')
-        self.charCounter += oldCounter
-        return (0,pdfObject)
+                return self.adjustCharCounterAndReturn(oldCounter, (-1,'Object not found'))
+        return self.adjustCharCounterAndReturn(oldCounter, (0,pdfObject))
 
     def readSpaces(self, string):
         '''

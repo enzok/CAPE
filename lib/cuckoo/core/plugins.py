@@ -540,6 +540,8 @@ class RunSignatures(object):
                             "worm",
                             "fake",
                             "malicious",
+                            "observed",
+                            "windows",
                         ]
                         isgood = True
                         for black in blacklist:

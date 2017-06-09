@@ -25,6 +25,7 @@ class VBoxDetectDevices(Signature):
 
     def run(self):
         indicators = [
+<<<<<<< HEAD
             r".*\\VBoxGuest$",
             r".*\\VBoxMouse$",
             r".*\\VBoxVideo$",
@@ -34,6 +35,17 @@ class VBoxDetectDevices(Signature):
 
         for indicator in indicators:
             if self.check_file(pattern=indicator, regex=True):
+=======
+            ".*\\VBoxGuest$",
+            ".*\\VBoxMouse$",
+            ".*\\VBoxVideo$",
+            ".*\\VBoxMiniRdrDN$",
+            ".*\\VBoxTrayIPC$",
+        ]
+
+        for indicator in indicators:
+            if self.check_file(pattern=indicator):
+>>>>>>> ng/mydev
                 return True
 
         return False

@@ -82,10 +82,14 @@
                 {% if file.dropdir %}
                 <tr>
                     <th></th>
-                    <td><a href="{% url "file" "dropped" analysis.info.id file.dropdir %}" class="btn btn-primary btn-small">Download</a>
+                    <td>
+                        <a href="{% url "file" "dropped" analysis.info.id file.dropdir %}" class="btn btn-primary btn-small">Download</a>
                         {% if file.data %}
                         &emsp;<a class="btn btn-primary btn-small" data-toggle="collapse" data-target="#{{file.sha256}}">Display Text</a>
                         {% endif %}
+                    </td>
+                    <td>
+                        <a class="btn btn-primary btn-small" href="{% url "vtupload" file.name file.sha256 %}">Submit to VirusTotal</a>
                     </td>
                 </tr>
                 {% else %}
@@ -96,6 +100,9 @@
                         {% if file.data %}
                         &emsp;<a class="btn btn-primary btn-small" data-toggle="collapse" data-target="#{{file.sha256}}">Display Text</a>
                         {% endif %}
+                    </td>
+                    <td>
+                        <a class="btn btn-primary btn-small" href="{% url "vtupload" file.name file.sha256 %}">Submit to VirusTotal</a>
                     </td>
                 </tr>
                 {% endif %}

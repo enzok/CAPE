@@ -15,6 +15,14 @@ CUCKOO_PATH = os.path.join(os.getcwd(), "..")
 sys.path.append(CUCKOO_PATH)
 from lib.cuckoo.common.config import Config
 
+# In case we have VPNs enabled we need to initialize through the following
+# two methods as they verify the interaction with VPNs as well as gather
+# which VPNs are available (for representation upon File/URL submission).
+from lib.cuckoo.core.startup import init_rooter, init_routing
+
+init_rooter()
+init_routing()
+
 cfg = Config("reporting")
 
 # Error handling for database backends
@@ -54,6 +62,7 @@ VTDL_ENABLED = vtdl_cfg.get("enabled",False)
 VTDL_PRIV_KEY = vtdl_cfg.get("dlprivkey",None)
 VTDL_INTEL_KEY = vtdl_cfg.get("dlintelkey",None)
 VTDL_PATH = vtdl_cfg.get("dlpath",None)
+VTUPLOAD = vtdl_cfg.get("vtupload",False)
 
 TEMP_PATH = Config().cuckoo.get("tmppath", "/tmp")
 
@@ -69,12 +78,12 @@ if GATEWAYS:
  
 
 # Enabled/Disable Zer0m0n tickbox on the submission page
-OPT_ZER0M0N = False
+OPT_ZER0M0N = True
 
 # To disable comment support, change the below to False
 COMMENTS = True
 
-DEBUG = True
+DEBUG = False
 
 # Database settings. We don't need it.
 DATABASES = {
@@ -224,6 +233,14 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s %(levelname)s [%(name)s:%(lineno)s] %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        }
+    },
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
@@ -234,6 +251,13 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'cuckoo_web': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'verbose',
+            'filename': '/opt/cuckoo/log/cuckoo_web.log',
+            'maxBytes': 1024 * 1024 * 16,  # 16 mb
         }
     },
     'loggers': {
@@ -241,6 +265,16 @@ LOGGING = {
             'handlers': ['mail_admins'],
             'level': 'ERROR',
             'propagate': True,
+        },
+        'django': {
+            'level': 'INFO',
+            'handlers': ['cuckoo_web'],
+            'propagate': False,
+        },
+        'gunicorn': {
+            'level': 'DEBUG',
+            'handlers': ['cuckoo_web'],
+            'propagate': False,
         },
     }
 }

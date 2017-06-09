@@ -197,7 +197,7 @@ class Package(object):
         #    for pid in self.pids:
         #        p = Process(pid=pid)
         #        p.dump_memory()
-        
+
         return True
 
 class Auxiliary(object):

@@ -19,11 +19,11 @@
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="conf\analyzer\windows\bin\execsc.exe" />
-    <Content Include="conf\analyzer\windows\bin\loader.exe" />
-    <Content Include="conf\analyzer\windows\bin\loader_x64.exe" />
-    <Content Include="conf\analyzer\windows\dll\cuckoomon.dll" />
-    <Content Include="conf\analyzer\windows\dll\cuckoomon_x64.dll" />
+    <Content Include="analyzer\windows\bin\execsc.exe" />
+    <Content Include="analyzer\windows\bin\loader.exe" />
+    <Content Include="analyzer\windows\bin\loader_x64.exe" />
+    <Content Include="analyzer\windows\dll\cuckoomon.dll" />
+    <Content Include="analyzer\windows\dll\cuckoomon_x64.dll" />
     <Content Include="conf\api.conf" />
     <Content Include="conf\auxiliary.conf" />
     <Content Include="conf\cuckoo.conf" />
@@ -42,10 +42,31 @@
     <Content Include="data\yara\binaries\shellcodes.yar" />
     <Content Include="data\yara\binaries\vmdetect.yar" />
     <Content Include="data\yara\memory\.gitignore" />
+    <Content Include="data\yara\memory\adgholas.yar" />
+    <Content Include="data\yara\memory\angler.yar" />
+    <Content Include="data\yara\memory\astrum.yar" />
+    <Content Include="data\yara\memory\cve_2013_2551.yar" />
+    <Content Include="data\yara\memory\cve_2014_0515.yar" />
+    <Content Include="data\yara\memory\cve_2014_0569.yar" />
+    <Content Include="data\yara\memory\cve_2014_6332.yar" />
+    <Content Include="data\yara\memory\cve_2015_0016.yar" />
+    <Content Include="data\yara\memory\cve_2015_2419.yar" />
+    <Content Include="data\yara\memory\cve_2015_2545.yar" />
+    <Content Include="data\yara\memory\cve_2015_5122.yar" />
+    <Content Include="data\yara\memory\cve_2016_0189.yar" />
+    <Content Include="data\yara\memory\cve_2016_3298.yar" />
     <Content Include="data\yara\memory\darkcomet.yar" />
     <Content Include="data\yara\memory\dridex.yar" />
     <Content Include="data\yara\memory\dyre.yar" />
+    <Content Include="data\yara\memory\eitest.yar" />
+    <Content Include="data\yara\memory\Exploit_HT_Flash_Vars.yar" />
+    <Content Include="data\yara\memory\Exploit_HT_VRename.yar" />
+    <Content Include="data\yara\memory\flash_exploits.yar" />
     <Content Include="data\yara\memory\kazybot.yar" />
+    <Content Include="data\yara\memory\neutrino.yar" />
+    <Content Include="data\yara\memory\nuclear.yar" />
+    <Content Include="data\yara\memory\rig.yar" />
+    <Content Include="data\yara\memory\sundown.yar" />
     <Content Include="data\yara\urls\.gitignore" />
     <Content Include="docs\AUTHORS" />
     <Content Include="docs\book\src\customization\auxiliary.rst" />
@@ -127,6 +148,7 @@
     <Compile Include="analyzer\windows\modules\packages\js.py" />
     <Compile Include="analyzer\windows\modules\packages\msg.py" />
     <Compile Include="analyzer\windows\modules\packages\eml.py" />
+    <Compile Include="analyzer\windows\modules\packages\pub.py" />
     <Compile Include="analyzer\windows\modules\packages\rar.py" />
     <Compile Include="analyzer\windows\modules\packages\regsvr.py" />
     <Compile Include="analyzer\windows\modules\packages\firefox.py" />
@@ -443,6 +465,8 @@
     <Compile Include="modules\processing\virustotal.py" />
     <Compile Include="modules\processing\__init__.py" />
     <Compile Include="modules\reporting\jsondump.py" />
+    <Compile Include="modules\reporting\minijson.py" />
+    <Compile Include="modules\reporting\textsummary.py" />
     <Compile Include="modules\reporting\mmdef.py" />
     <Compile Include="modules\reporting\mongodb.py" />
     <Compile Include="modules\reporting\reporthtml.py" />

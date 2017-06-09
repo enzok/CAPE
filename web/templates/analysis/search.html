@@ -2,7 +2,7 @@
 {% block content %}
 <div class="row">
     <div class="col-md-6 col-md-offset-3 center">
-        <p><img src="{{ STATIC_URL }}graphic/cape.png" /></p>
+        <p><img src="{{ STATIC_URL }}graphic/cuckoo.png" /></p>
 
         <form class="form-inline" role="form" action="{% url "search" %}" enctype="multipart/form-data" method="post">{% csrf_token %}
             <p class="text-muted" style="margin-top: 5px;">For details on how to perform searches, get some <a href="#help" data-toggle="collapse">help</a>.</p>
@@ -217,15 +217,12 @@
             <table class="table table-striped" style="table-layout: fixed;">
                 <thead>
                 <tr>
-                    <th width="5%">ID</th>
-                    <th width="10%">Timestamp</th>
-                    <th width="8%">Package</th>
-                    <th width="37%">Filename</th>
-                    <th width="20%">Target</th>
+                    <th width="3%">ID</th>
+                    <th width="8%">Timestamp</th>
+                    <th width="7%">Package</th>
+                    <th width="17%">Filename</th>
+                    <th width="18%">Target</th>
                     <th width="7%">CAPE</th>
-                    {% if config.expanded_dashboard %}
-                    <th width="2.5%">PKG</th>
-                    {% endif %}
                     {% if config.moloch %}
                     <th width="5%">Moloch</th>
                     {% endif %}
@@ -244,10 +241,10 @@
                     {% endif %}
                     <th width="5%">MalScore</th>
                     {% if config.expanded_dashboard %}
-                    <th width="4%">MalFamily</th>
+                    <th width="6%">MalFamily</th>
                     <th width="3%">PCAP</th>
                     <th width="5%">ClamAV</th>
-                    <th width="10%">Custom</th>
+                    <th width="8%">Custom</th>
                     {% endif %}
                     {% if config.display_shrike %}
                     <th width="5%">Shrike</th>
@@ -270,7 +267,7 @@
                         </td>
                         <td>
                         {{analysis.package}}
-                        </td>                      
+                        </td>
                         <td>
                         {% if analysis.filename %}
                             {{analysis.filename}}

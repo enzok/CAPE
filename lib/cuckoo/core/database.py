@@ -735,6 +735,8 @@ class Database(object):
             if tags:
                 for tag in tags:
                     machines = machines.filter(Machine.tags.any(name=tag.name))
+            elif not label:
+                machines = machines.filter(~Machine.tags.any(name="noauto"))
 
             # Check if there are any machines that satisfy the
             # selection requirements.
@@ -976,15 +978,8 @@ class Database(object):
                 except ValueError:
                     log.warning("The date you specified has an invalid format, using current timestamp.")
                     task.clock = datetime.utcfromtimestamp(0)
-
             else:
                 task.clock = clock
-
-
-
-
-
-
         else:
             task.clock = datetime.utcfromtimestamp(0)
 
@@ -1176,7 +1171,6 @@ class Database(object):
             return []
         finally:
             session.close()
-
 
     @classlock
     def list_tasks(self, limit=None, details=False, category=None,

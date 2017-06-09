@@ -3,96 +3,206 @@
     {% if analysis.static and analysis.static.office %}
         {% if analysis.static.office.Metadata %}
             {% if analysis.static.office.Metadata.SummaryInformation %}
-            <div>
-                <div id="si_metadata">
-                    <h4>SummaryInformation Metadata</h4>
-                    <table class="table table-striped table-bordered">
-                        <colgroup>
-                            <col width="250" />
-                            <col width="*" />
-                        </colgroup>
-                        <tr>
-                            <td>Creating Application</td>
-                            <td>{{analysis.static.office.Metadata.SummaryInformation.creating_application}}</td>
-                        </tr>
-                        <tr>
-                            <td>Author</td>
-                            <td>{{analysis.static.office.Metadata.SummaryInformation.author}}</td>
-                        </tr>
-                        <tr>
-                            <td>Last Saved By</td>
-                            <td>{{analysis.static.office.Metadata.SummaryInformation.last_saved_by}}</td>
-                        </tr>
-                        <tr>
-                            <td>Creation Time</td>
-                            <td>{{analysis.static.office.Metadata.SummaryInformation.create_time}}</td>
-                        </tr>
-                        <tr>
-                            <td>Last Saved Time</td>
-                            <td>{{analysis.static.office.Metadata.SummaryInformation.last_saved_time}}</td>
-                        </tr>
-                        <tr>
-                            <td>Total Edit Time</td>
-                            <td>{{analysis.static.office.Metadata.SummaryInformation.total_edit_time}}</td>
-                        </tr>
-                        <tr>
-                            <td>Document Title</td>
-                            <td>{{analysis.static.office.Metadata.SummaryInformation.title}}</td>
-                        </tr>
-                        <tr>
-                            <td>Document Subject</td>
-                            <td>{{analysis.static.office.Metadata.SummaryInformation.subject}}</td>
-                        </tr>
-                        <tr>
-                            <td>Amount of Pages</td>
-                            <td>{{analysis.static.office.Metadata.SummaryInformation.num_pages}}</td>
-                        </tr>
-                        <tr>
-                            <td>Amount of Words</td>
-                            <td>{{analysis.static.office.Metadata.SummaryInformation.num_words}}</td>
-                        </tr>
-                        <tr>
-                            <td>Amount of Characters</td>
-                            <td>{{analysis.static.office.Metadata.SummaryInformation.num_chars}}</td>
-                        </tr>
-                    </table>
+                {% if analysis.static.office.Metadata.SummaryInformation.isXML %}
+                <div>
+                    <div id="si_metadata">
+                        <h4>SummaryInformation Metadata</h4>
+                        <table class="table table-striped table-bordered">
+                            <colgroup>
+                                <col width="250" />
+                                <col width="*" />
+                            </colgroup>
+                            <tr>
+                                <td>Author</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.creator}}</td>
+                            </tr>
+                            <tr>
+                                <td>Last Saved By</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.lastModifiedBy}}</td>
+                            </tr>
+                            <tr>
+                                <td>Creation Time</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.created}}</td>
+                            </tr>
+                            <tr>
+                                <td>Last Saved Time</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.modified}}</td>
+                            </tr>
+                            <tr>
+                                <td>Document Title</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.title}}</td>
+                            </tr>
+                            <tr>
+                                <td>Document Subject</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.subject}}</td>
+                            </tr>
+                            <tr>
+                                <td>Document Category</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.category}}</td>
+                            </tr>
+                            <tr>
+                                <td>Document Version</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.version}}</td>
+                            </tr>
+                            <tr>
+                                <td>Document Revision</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.revision}}</td>
+                            </tr>
+                            <tr>
+                                <td>Document Language</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.language}}</td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
-            </div>
-            <hr />
+                <hr />
+                {% else %}
+                <div>
+                    <div id="si_metadata">
+                        <h4>SummaryInformation Metadata</h4>
+                        <table class="table table-striped table-bordered">
+                            <colgroup>
+                                <col width="250" />
+                                <col width="*" />
+                            </colgroup>
+                            <tr>
+                                <td>Creating Application</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.creating_application}}</td>
+                            </tr>
+                            <tr>
+                                <td>Author</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.author}}</td>
+                            </tr>
+                            <tr>
+                                <td>Last Saved By</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.last_saved_by}}</td>
+                            </tr>
+                            <tr>
+                                <td>Creation Time</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.create_time}}</td>
+                            </tr>
+                            <tr>
+                                <td>Last Saved Time</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.last_saved_time}}</td>
+                            </tr>
+                            <tr>
+                                <td>Total Edit Time</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.total_edit_time}}</td>
+                            </tr>
+                            <tr>
+                                <td>Document Title</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.title}}</td>
+                            </tr>
+                            <tr>
+                                <td>Document Subject</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.subject}}</td>
+                            </tr>
+                            <tr>
+                                <td>Amount of Pages</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.num_pages}}</td>
+                            </tr>
+                            <tr>
+                                <td>Amount of Words</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.num_words}}</td>
+                            </tr>
+                            <tr>
+                                <td>Amount of Characters</td>
+                                <td>{{analysis.static.office.Metadata.SummaryInformation.num_chars}}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <hr />
+                {% endif %}
             {% endif %}
             {% if analysis.static.office.Metadata.DocumentSummaryInformation %}
-            <div>
-                <div id="dsi_metadata">
-                    <h4>DocumentSummaryInformation Metadata</h4>
-                    <table class="table table-striped table-bordered">
-                        <colgroup>
-                            <col width="250" />
-                            <col width="*" />
-                        </colgroup>
-                        <tr>
-                            <td>Company</td>
-                            <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.company}}</td>
-                        </tr>
-                        <tr>
-                            <td>Document Version</td>
-                            <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.doc_version}}</td>
-                        </tr>
-                        <tr>
-                            <td>Digital Signature</td>
-                            <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.dig_sig}}</td>
-                        </tr>
-                        <tr>
-                            <td>Language</td>
-                            <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.language}}</td>
-                        </tr>
-                        <tr>
-                            <td>Notes</td>
-                            <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.notes}}</td>
-                        </tr>
-                    </table>
+                {% if analysis.static.office.Metadata.SummaryInformation.isXML %}
+                <div>
+                    <div id="dsi_metadata">
+                        <h4>DocumentSummaryInformation Metadata</h4>
+                        <table class="table table-striped table-bordered">
+                            <colgroup>
+                                <col width="250" />
+                                <col width="*" />
+                            </colgroup>
+                            <tr>
+                                <td>Company</td>
+                                <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.Company}}</td>
+                            </tr>
+                            <tr>
+                                <td>Total Edit Time</td>
+                                <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.TotalTime}}</td>
+                            </tr>
+                            <tr>
+                                <td>Amount of Pages</td>
+                                <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.Pages}}</td>
+                            </tr>
+                            <tr>
+                                <td>Amount of Words</td>
+                                <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.Words}}</td>
+                            </tr>
+                            <tr>
+                                <td>Amount of Characters</td>
+                                <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.Characters}}</td>
+                            </tr>
+                            <tr>
+                                <td>Amount of Lines</td>
+                                <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.Lines}}</td>
+                            </tr>
+                            <tr>
+                                <td>Amount of Paragraphs</td>
+                                <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.Paragraphs}}</td>
+                            </tr>
+                            <tr>
+                                <td>Amount of Slides</td>
+                                <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.Slides}}</td>
+                            </tr>
+                            <tr>
+                                <td>Amount of Hidden Slides</td>
+                                <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.HiddenSlides}}</td>
+                            </tr>
+                            <tr>
+                                <td>Notes</td>
+                                <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.Notes}}</td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
-            </div>
-            <hr />
+                <hr />
+                {% else %}
+                <div>
+                    <div id="dsi_metadata">
+                        <h4>DocumentSummaryInformation Metadata</h4>
+                        <table class="table table-striped table-bordered">
+                            <colgroup>
+                                <col width="250" />
+                                <col width="*" />
+                            </colgroup>
+                            <tr>
+                                <td>Company</td>
+                                <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.company}}</td>
+                            </tr>
+                            <tr>
+                                <td>Document Version</td>
+                                <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.doc_version}}</td>
+                            </tr>
+                            <tr>
+                                <td>Digital Signature</td>
+                                <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.dig_sig}}</td>
+                            </tr>
+                            <tr>
+                                <td>Language</td>
+                                <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.language}}</td>
+                            </tr>
+                            <tr>
+                                <td>Notes</td>
+                                <td>{{analysis.static.office.Metadata.DocumentSummaryInformation.notes}}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <hr />
+                {% endif %}
             {% endif %}
         {% endif %}
 
@@ -112,7 +222,7 @@
                             <tr>
                                 <td>{{indicator}}</td>
                                 <td>{{description}}</td>
-                            </td>
+                            </tr>
                         {% endfor %}
                         </table>
                     {% endfor %}

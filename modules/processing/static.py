@@ -3,7 +3,6 @@
 # See the file 'docs/LICENSE' for copying permission.
 
 import json
-from lib.cuckoo.common.utils import store_temp_file
 import lib.cuckoo.common.office.olefile as olefile
 import lib.cuckoo.common.office.vbadeobf as vbadeobf
 import lib.cuckoo.common.decoders.darkcomet as darkcomet
@@ -14,17 +13,20 @@ import lib.cuckoo.common.decoders.qrat as qrat
 import logging
 import os
 import re
+import requests
 import math
 import array
 import base64
 import hashlib
+import zipfile
 
-from datetime import datetime, timedelta
+from lxml import etree
 from lib.cuckoo.common.icon import PEGroupIconDir
 from PIL import Image
 from StringIO import StringIO
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 from subprocess import Popen, PIPE
+from lib.cuckoo.common.utils import convert_to_printable
 import struct
 
 try:
@@ -74,7 +76,7 @@ from lib.cuckoo.common.office.olevba import detect_patterns
 from lib.cuckoo.common.office.olevba import detect_suspicious
 from lib.cuckoo.common.office.olevba import filter_vba
 from lib.cuckoo.common.office.olevba import VBA_Parser
-from lib.cuckoo.common.utils import convert_to_printable
+from lib.cuckoo.common.utils import convert_to_printable, store_temp_file
 from lib.cuckoo.common.pdftools.pdfid import PDFiD, PDFiD2JSON
 from lib.cuckoo.common.peepdf.PDFCore import PDFParser
 from lib.cuckoo.common.peepdf.JSAnalysis import analyseJS
@@ -677,7 +679,7 @@ class PortableExecutable(object):
         except AttributeError:
             return None
 
-        return datetime.fromtimestamp(pe_timestamp).strftime("%Y-%m-%d %H:%M:%S")
+        return datetime.utcfromtimestamp(pe_timestamp).strftime("%Y-%m-%d %H:%M:%S")
 
     def _get_guest_digital_signers(self):
         retdata = dict()
@@ -1056,6 +1058,51 @@ class Office(object):
         else:
             return "None"
 
+    def get_xml_meta(self, filepath):
+        zfile = zipfile.ZipFile(filepath)
+        core = etree.fromstring(zfile.read('docProps/core.xml'))
+        app = etree.fromstring(zfile.read('docProps/app.xml'))
+
+        SUMMARY_ATTRIBS = ['title', 'category', 'contentStatus', 'created', 'creator', 'codepage',
+                           'description', 'identifier', 'keywords', 'language', 'lastModifiedBy',
+                           'lastPrinted', 'modified', 'subject', 'version', 'revision']
+
+        DOCSUM_ATTRIBS = ['TotalTime', 'Pages', 'Words', 'Characters', 'Lines', 'Paragraphs',
+                          'Company', 'HyperlinkBase', 'Slides', 'Notes', 'HiddenSlides']
+
+        metares = dict()
+        metares['SummaryInformation'] = {}
+        coretags = metares['SummaryInformation']
+
+        for prop in SUMMARY_ATTRIBS:
+            coretags[prop] = None
+
+        coretags["isXML"] = True
+
+        for child in core.iterchildren():
+
+            for prop in SUMMARY_ATTRIBS:
+                if prop in child.tag:
+                    if child.text:
+                        coretags[prop] = convert_to_printable(child.text)
+
+
+
+        metares['DocumentSummaryInformation'] = {}
+        apptags = metares['DocumentSummaryInformation']
+
+        for prop in DOCSUM_ATTRIBS:
+            coretags[prop] = None
+
+        for child in app.iterchildren():
+
+            for prop in DOCSUM_ATTRIBS:
+                if prop in child.tag:
+                    if child.text:
+                        apptags[prop] = convert_to_printable(child.text)
+
+        return metares
+
     def _parse(self, filepath):
         """Parses an office document for static information.
         Currently (as per olefile) the following formats are supported:
@@ -1076,8 +1123,6 @@ class Office(object):
         officeresults = results["office"] = { }
 
         metares = officeresults["Metadata"] = dict()
-        # The bulk of the metadata checks are in the OLE Structures
-        # So don't check if we're dealing with XML.
         if olefile.isOleFile(filepath):
             ole = olefile.OleFileIO(filepath)
             meta = ole.get_metadata()
@@ -1090,6 +1135,10 @@ class Office(object):
             buf = self.convert_dt_string(metares["SummaryInformation"]["last_saved_time"])
             metares["SummaryInformation"]["last_saved_time"] = buf
             ole.close()
+        else:
+            officeresults["Metadata"] = self.get_xml_meta(self.file_path)
+            metares = officeresults["Metadata"]
+
         if vba.detect_vba_macros():
             metares["HasMacros"] = "Yes"
             macrores = officeresults["Macro"] = dict()
@@ -1225,6 +1274,30 @@ class URL(object):
         else:
             self.domain = ""
 
+    def parse_json_in_javascript(self, data=str(), ignore_nest_level=0):
+        nest_count = 0 - ignore_nest_level
+        string_buf = str()
+        json_buf = list()
+        json_data = list()
+        for character in data:
+            if character == "{":
+                nest_count += 1
+            if nest_count > 0:
+                string_buf += character
+            if character == "}":
+                nest_count -= 1
+            if nest_count == 0 and len(string_buf):
+                json_buf.append(string_buf)
+                string_buf = str()
+
+        if json_buf:
+            for data in json_buf:
+                if len(data) > 4:
+                    json_data.append(json.loads(data))
+            return json_data
+
+        return []
+
     def run(self):
         results = {}
         if self.domain:
@@ -1280,6 +1353,21 @@ class URL(object):
                          "\n    ".join(w["name_servers"]),
                          "\n    ".join(w["referral_url"]))
             results["url"]["whois"] = output
+
+        if self.domain == "bit.ly":
+            resp = requests.get(self.url+"+")
+            soup = bs4.BeautifulSoup(resp.text, "html.parser")
+            output = list()
+            for script in [x.extract() for x in soup.find_all("script")]:
+                if script.contents:
+                    content = script.contents[0]
+                    if "long_url_no_protocol" in content:
+                        output = self.parse_json_in_javascript(content, 1)
+
+            if output:
+                results["url"]["bitly"] = {k: v for d in output for k, v in d.items()}
+                newtime = datetime.fromtimestamp(int(results["url"]["bitly"]["created_at"]))
+                results["url"]["bitly"]["created_at"] = newtime.strftime("%Y-%m-%d %H:%M:%S") + " GMT"
 
         return results
 
@@ -1448,11 +1536,11 @@ class Static(Processing):
                 static = PortableExecutable(self.file_path, self.results).run()
                 if static and "Mono" in thetype:
                     static.update(DotNETExecutable(self.file_path, self.results).run())
-            elif "PDF" in thetype or self.task["target"].endswith(".pdf"):
+            elif "PDF" in thetype or self.task["target"].endswith(".pdf") or package == "pdf":
                 static = PDF(self.file_path).run()
-            elif package in ("doc", "ppt", "xls"):
+            elif package in ("doc", "ppt", "xls", "pub"):
                 static = Office(self.file_path).run()
-            elif "Java Jar" in thetype or self.task["target"].endswith(".jar"):
+            elif "Java Jar" in thetype or "Java archive" in thetype or self.task["target"].endswith(".jar"):
                 decomp_jar = self.options.get("procyon_path", None)
                 if decomp_jar and not os.path.exists(decomp_jar):
                     log.error("procyon_path specified in processing.conf but the file does not exist.")
@@ -1462,6 +1550,8 @@ class Static(Processing):
             # oleid to fail us out silently, yeilding no static analysis
             # results for actual zip files.
             elif "Zip archive data, at least v2.0" in thetype:
+                static = Office(self.file_path).run()
+            elif "Composite Document File V2 Document" in thetype or "Microsoft OOXML" in thetype:
                 static = Office(self.file_path).run()
             elif package == "wsf" or thetype == "XML document text" or self.task["target"].endswith(".wsf") or package == "hta":
                 static = WindowsScriptFile(self.file_path).run()

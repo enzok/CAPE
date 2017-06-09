@@ -857,7 +857,7 @@ def ext_tasks_search(request):
             elif option == "signame":
                 records = results_db.analysis.find({"signatures.name": {"$regex": dataarg, "$options": "-i"}}).sort([["_id", -1]])
             elif option == "malfamily":
-                records = results_db.analysis.find({"malfamily": {"$regex": value, "$options": "-i"}}).sort([["_id", -1]])
+                records = results_db.analysis.find({"malfamily": {"$regex": dataarg, "$options": "-i"}}).sort([["_id", -1]])
             elif option == "url":
                 records = results_db.analysis.find({"target.url": dataarg}).sort([["_id", -1]])
             elif option == "iconhash":
@@ -1221,6 +1221,8 @@ def tasks_report(request, task_id, report_format="json"):
 
     formats = {
         "json": "report.json",
+        "minijson": "mini-report.json",
+        "textsummary": "summary-report.txt",
         "html": "report.html",
         "htmlsummary": "summary-report.html",
         "pdf": "report.pdf",
@@ -1236,13 +1238,19 @@ def tasks_report(request, task_id, report_format="json"):
             if report_format == "json":
                 content = "application/json; charset=UTF-8"
                 ext = "json"
+            elif report_format == "minijson":
+                content = "application/json; charset=UTF-8"
+                ext = "json"
+            elif report_format == "textsummary":
+                content = "application/text; charset=UTF-8"
+                ext = "txt"
             elif report_format.startswith("html"):
                 content = "text/html"
                 ext = "html"
             elif report_format == "maec" or report_format == "metadata":
                 content = "text/xml"
                 ext = "xml"
-            elif export_format == "pdf":
+            elif report_format == "pdf":
                 content = "application/pdf"
                 ext = "pdf"
             fname = "%s_report.%s" % (task_id, ext)
@@ -1881,18 +1889,31 @@ def get_files(request, stype, value):
         return jsonize(resp, response=True)
 
     if stype == "md5":
-        file_hash = db.find_sample(md5=value).to_dict()["sha256"]
+        db_sample = db.find_sample(md5=value)
     elif stype == "sha1":
-        file_hash = db.find_sample(sha1=value).to_dict()["sha256"]
+        db_sample = db.find_sample(sha1=value)
     elif stype == "task":
         check = validate_task(value)
         if check["error"]:
             return jsonize(check, response=True)
 
         sid = db.view_task(value).to_dict()["sample_id"]
-        file_hash = db.view_sample(sid).to_dict()["sha256"]
+        db_sample = db.view_sample(sid)
     elif stype == "sha256":
         file_hash = value
+    else:
+        resp = {"error": True,
+                "error_value": "Sample type %s not supported" % stype}
+        return jsonize(resp, response=True)
+
+    if not db_sample and stype != "sha256":
+        resp = {"error": True,
+                "error_value": "Sample %s was not found" % value}
+        return jsonize(resp, response=True)
+
+    if db_sample:
+        file_hash = db_sample.to_dict()["sha256"]
+
     sample = os.path.join(CUCKOO_ROOT, "storage", "binaries", file_hash)
     if os.path.exists(sample):
         mime = "application/octet-stream"
@@ -1906,7 +1927,7 @@ def get_files(request, stype, value):
     else:
         resp = {"error": True,
                 "error_value": "Sample %s was not found" % file_hash}
-        return jsonize(file_hash, response=True)
+        return jsonize(resp, response=True)
 
 if apiconf.machinelist.get("enabled"):
     raterps = apiconf.machinelist.get("rps")

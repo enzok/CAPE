@@ -545,6 +545,7 @@ class Process:
         is_64bit = self.is_64bit()
         if not dll:
             log.debug("No DLL has been specified for injection")
+
             if is_64bit:
                 dll = CUCKOOMON64_NAME
             else:

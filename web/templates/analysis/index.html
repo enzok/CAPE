@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<p style="margin-bottom: 10px;"><img src="{{ STATIC_URL }}graphic/cape.png" /></p>
+<p style="margin-bottom: 10px;"><img src="{{ STATIC_URL }}graphic/cuckoo.png" /></p>
 
 <ul class="nav nav-tabs">
     <li class="active"><a href="#files" data-toggle="tab">Files</a></li>
@@ -40,15 +40,11 @@
                 <thead>
                 <tr>
                     <th width="3%">ID</th>
-                    <th width="10%">Timestamp</th>
-                    <th width="7%">Machine</th>
+                    <th width="8%">Timestamp</th>
                     <th width="8%">Package</th>
-                    <th width="33%">Filename</th>
-                    <th width="18%">MD5</th>
+                    <th width="17%">Filename</th>
+                    <th width="16%">MD5</th>
                     <th width="7%">CAPE</th>
-                    {% if config.expanded_dashboard %}
-                    <th width="2.5%">PKG</th>
-                    {% endif %}
                     {% if config.moloch %}
                     <th width="4%">Moloch</th>
                     {% endif %}
@@ -67,10 +63,10 @@
                     {% endif %}
                     <th width="3%">MalScore</th>
                     {% if config.expanded_dashboard %}
-                    <th width="4%">MalFamily</th>
+                    <th width="6%">MalFamily</th>
                     <th width="3%">PCAP</th>
                     <th width="5%">ClamAV</th>
-                    <th width="10%">Custom</th>
+                    <th width="8%">Custom</th>
                     {% endif %}
                     {% if config.display_shrike %}
                     <th width="5%">Shrike</th>
@@ -92,8 +88,6 @@
                         {% endif %}
                         </td>
                         <td>
-                        {{analysis.machine}}
-                        </td>                      
                         <td>
                         {{analysis.package}}
                         </td>                      
@@ -114,15 +108,6 @@
                                 <span class="text-primary"><b>{{analysis.cape}}</b></span>
                             {% endif %}
                         </td>
-                        {% if config.expanded_dashboard %}
-                        <td>
-                            {% if analysis.package %}
-                                  <span class="mono">{{analysis.package}}</span>
-                            {% else %}
-                                  <span class="mono">None</span>
-                            {% endif %}
-                        </td>
-                        {% endif %}
                         {% if config.moloch %}
                         <td>
                             {% if analysis.moloch_url %}
