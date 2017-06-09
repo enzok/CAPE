@@ -28883,15 +28883,6 @@ rule ANDpakk2_018_by_Dmitry_quotANDquot_Andreev: PEiD
 
 }
 
-rule InstallShield_2000: PEiD
-{
-    strings:
-        $a = { 55 8B EC 6A FF 68 ?? ?? ?? ?? 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 64 89 25 ?? ?? ?? ?? 83 C4 ?? 53 56 57 }
-    condition:
-        $a at pe.entry_point
-
-}
-
 rule SimbiOZ_Poly_21_Extranger: PEiD
 {
     strings:
