@@ -331,8 +331,17 @@ def index(request):
                             options = update_options(gw, orig_options)
 
                             for entry in task_machines:
-                                task_ids_new = db.demux_sample_and_add_to_db(file_path=filename, package=package, timeout=timeout, options=options, priority=priority,
-                                                                             machine=entry, custom=custom, memory=memory, enforce_timeout=enforce_timeout, tags=tags, clock=clock)
+                                task_ids_new = db.demux_sample_and_add_to_db(file_path=filename,
+                                                                             package=package,
+                                                                             timeout=timeout,
+                                                                             options=options,
+                                                                             priority=priority,
+                                                                             machine=entry,
+                                                                             custom=custom,
+                                                                             memory=memory,
+                                                                             enforce_timeout=enforce_timeout,
+                                                                             tags=tags,
+                                                                             clock=clock)
                                 task_ids.extend(task_ids_new)
                     elif r.status_code == 403:
                         return render(request, "error.html",
@@ -343,16 +352,60 @@ def index(request):
                     return render(request, "error.html",
                                               {"error": "Provided hash not found on VirusTotal"})
 
+        elif "resubmit" in request.POST and request.POST.get("resubmit").strip():
 
+            subsuccess = False
+
+            hash = request.POST.get("resubmit").strip()
+            if not hash or len(hash) != 64:
+                return render(request, "error.html", {"error": "You specified an invalid hash!"})
+
+            base_dir = tempfile.mkdtemp(prefix='cuckooresubmit', dir="/tmp/")
+            filename = "{}/{}".format(base_dir, hash)
+
+            url = "https://{}:{}/files/get/{}".format(settings.CUCKOO_HOST, settings.CUCKOO_PORT, hash)
+
+            try:
+                r = requests.get(url, verify=False)
+            except requests.exceptions.RequestException as e:
+                return render(request, "error.html", {"error": "Error completing connection to Cuckoo: {0}".format(e)})
+            if r.status_code == 200:
+                try:
+                    f = open(filename, 'wb')
+                    f.write(r.content)
+                    f.close()
+                except:
+                    return render(request, "error.html",
+                                  {"error": "Error writing sample download file to temporary path"})
+
+                subsuccess = True
+
+                for entry in task_machines:
+                    task_ids_new = db.demux_sample_and_add_to_db(file_path=filename,
+                                                                 package=package,
+                                                                 timeout=timeout,
+                                                                 options=options,
+                                                                 priority=priority,
+                                                                 machine=entry,
+                                                                 custom=custom,
+                                                                 memory=memory,
+                                                                 enforce_timeout=enforce_timeout,
+                                                                 tags=tags,
+                                                                 clock=clock)
+                    task_ids.extend(task_ids_new)
+
+            elif r.status_code == 404:
+                return render(request, "error.html", {"error": "Sample not found in Cuckoo db"})
+
+            if not subsuccess:
+                return render(request, "error.html", {"error": "Provided hash not found on VirusTotal"})
 
         tasks_count = len(task_ids)
+
         if tasks_count > 0:
-            return render(request, "submission/complete.html",
-                                      {"tasks" : task_ids,
-                                       "tasks_count" : tasks_count})
+            return render(request, "submission/complete.html", {"tasks": task_ids, "tasks_count": tasks_count})
         else:
-            return render(request, "error.html",
-                                      {"error": "Error adding task to Cuckoo's database."})
+            return render(request, "error.html", {"error": "Error adding task to Cuckoo's database."})
     else:
         cfg = Config("cuckoo")
         enabledconf = dict()

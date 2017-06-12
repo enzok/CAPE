@@ -64,6 +64,9 @@ VTDL_INTEL_KEY = vtdl_cfg.get("dlintelkey",None)
 VTDL_PATH = vtdl_cfg.get("dlpath",None)
 VTUPLOAD = vtdl_cfg.get("vtupload",False)
 
+CUCKOO_HOST = "cuckoo01"
+CUCKOO_PORT = "8090"
+
 TEMP_PATH = Config().cuckoo.get("tmppath", "/tmp")
 
 ipaddy_re = re.compile(r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
