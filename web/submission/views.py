@@ -288,7 +288,7 @@ def index(request):
                                          clock=clock)
                     if task_id:
                         task_ids.append(task_id)
-        elif settings.VTDL_ENABLED and "vtdl" in request.POST:
+        elif settings.VTDL_ENABLED and "vtdl" in request.POST and request.POST.get("vtdl").strip():
             vtdl = request.POST.get("vtdl").strip()
             if (not settings.VTDL_PRIV_KEY and not settings.VTDL_INTEL_KEY) or not settings.VTDL_PATH:
                     return render(request, "error.html",
@@ -398,7 +398,7 @@ def index(request):
                 return render(request, "error.html", {"error": "Sample not found in Cuckoo db"})
 
             if not subsuccess:
-                return render(request, "error.html", {"error": "Provided hash not found on VirusTotal"})
+                return render(request, "error.html", {"error": "Sample hash not found in Cuckoo db"})
 
         tasks_count = len(task_ids)
 
