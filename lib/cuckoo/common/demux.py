@@ -318,7 +318,12 @@ def get_filenames(retlist, tmp_dir, children):
         if 'file' in at['type']:
             retlist.append(os.path.join(tmp_dir, at['filename']))
         elif 'container' in at['type']:
-            get_filenames(retlist, tmp_dir, child.children)
+            if not at['package'] in ('doc','xls','ppt'):
+                print "{} is a container".format(at['filename'])
+                get_filenames(retlist, tmp_dir, child.children)
+            else:
+                print "Archive {} contains an MS Office file {}".format(filename, at['filename'])
+                retlist.append(os.path.join(tmp_dir, at['filename']))
 
     return retlist
 
