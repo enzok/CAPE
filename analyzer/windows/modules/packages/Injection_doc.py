@@ -3,6 +3,7 @@
 # See the file 'docs/LICENSE' for copying permission.
 
 from lib.common.abstracts import Package
+import os
 
 class Injection_PS1(Package):
     """PowerShell analysis package."""
