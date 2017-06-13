@@ -78,26 +78,32 @@ class Office_Macro(Signature):
         if ret and package != "xls" and "static" in self.results and "office" in self.results["static"]:
             if "Metadata" in self.results["static"]["office"]:
                 if "SummaryInformation" in self.results["static"]["office"]["Metadata"]:
-                    words = self.results["static"]["office"]["Metadata"]["SummaryInformation"]["num_words"]
-                    if words == "0" or words == "None":
-                        self.severity = 3
-                        self.weight += 2
-                        self.data.append({"content" : "The file appears to have no content."})
+                    if "num_words" in self.results["static"]["office"]["Metadata"]["SummaryInformation"]:
+                        words = self.results["static"]["office"]["Metadata"]["SummaryInformation"]["num_words"]
+                        if words == "0" or words == "None":
+                            self.severity = 3
+                            self.weight += 2
+                            self.data.append({"content" : "The file appears to have no content."})
                         
         if ret and package != "xls" and "static" in self.results and "office" in self.results["static"]:
             if "Metadata" in self.results["static"]["office"]:
                 if "SummaryInformation" in self.results["static"]["office"]["Metadata"]:
-                    pages = self.results["static"]["office"]["Metadata"]["SummaryInformation"]["num_pages"]
-                    if pages == "0" or pages == "None":
-                        self.severity = 3
-                        self.weight += 2
-                        self.data.append({"no_pages" : "The file appears to have no pages potentially caused by it being malformed or intentionally corrupted"})
+                    if num_pages in self.results["static"]["office"]["Metadata"]["SummaryInformation"]:
+                        pages = self.results["static"]["office"]["Metadata"]["SummaryInformation"]["num_pages"]
+                        if pages == "0" or pages == "None":
+                           self.severity = 3
+                           self.weight += 2
+                           self.data.append({"no_pages" : "The file appears to have no pages potentially caused by it being malformed or intentionally corrupted"})
 
         if ret and "static" in self.results and "office" in self.results["static"]:
             if "Metadata" in self.results["static"]["office"]:
                 if "SummaryInformation" in self.results["static"]["office"]["Metadata"]:
-                    author = self.results["static"]["office"]["Metadata"]["SummaryInformation"]["author"]
-                    lastauthor = self.results["static"]["office"]["Metadata"]["SummaryInformation"]["last_saved_by"]
+                    if "author" in self.results["static"]["office"]["Metadata"]["SummaryInformation"]:
+                        author = self.results["static"]["office"]["Metadata"]["SummaryInformation"]["author"]
+                        lastauthor = self.results["static"]["office"]["Metadata"]["SummaryInformation"]["last_saved_by"]
+                    else:
+                        author = self.results["static"]["office"]["Metadata"]["SummaryInformation"]["creator"]
+                        lastauthor = self.results["static"]["office"]["Metadata"]["SummaryInformation"]["lastModifiedBy"]
                     known_authors = ["Alex","Microsoft Office","Adder"]
                     numerical_author = re.compile("^[0-9]{1,}$")
                     for known_authors in known_authors:
