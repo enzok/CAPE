@@ -88,7 +88,7 @@ class Office_Macro(Signature):
         if ret and package != "xls" and "static" in self.results and "office" in self.results["static"]:
             if "Metadata" in self.results["static"]["office"]:
                 if "SummaryInformation" in self.results["static"]["office"]["Metadata"]:
-                    if num_pages in self.results["static"]["office"]["Metadata"]["SummaryInformation"]:
+                    if "num_pages" in self.results["static"]["office"]["Metadata"]["SummaryInformation"]:
                         pages = self.results["static"]["office"]["Metadata"]["SummaryInformation"]["num_pages"]
                         if pages == "0" or pages == "None":
                            self.severity = 3
