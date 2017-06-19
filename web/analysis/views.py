@@ -1002,7 +1002,7 @@ def file(request, category, task_id, dlfile):
         else:
             path = buf
             file_name += ".bin"
-    # Just for suricata dropped files currently
+    # Just for suricata dropped files currently"
     elif category == "zip":
         file_name = "files.zip"
         path = os.path.join(CUCKOO_ROOT, "storage", "analyses",
@@ -1510,12 +1510,24 @@ def vtupload(request, filename, dlfile):
         return
 
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
-def zipdownload(request, dlfile):
+def zipdownload(request, category, task_id, dlfile):
     if settings.ZIP_PWD:
-        cd = "application/zip"
+
         file_name = dlfile + ".zip"
-        bin_path = os.path.join(CUCKOO_ROOT, "storage", "binaries", dlfile)
+        cd = "application/zip"
+
+        if category == "sample":
+            path = os.path.join(CUCKOO_ROOT, "storage", "binaries", dlfile)
+        elif category == "dropped":
+            path = os.path.join(CUCKOO_ROOT, "storage", "analyses", task_id, "files", dlfile)
+        elif category == "procdump":
+            path = os.path.join(CUCKOO_ROOT, "storage", "analyses", task_id, "procdump", dlfile)
+        elif category == "CAPE":
+            path = os.path.join(CUCKOO_ROOT, "storage", "analyses", task_id, "CAPE", dlfile)
+
+        bin_path = path
         zip_file = os.path.join(settings.TEMP_PATH, "zip-upload", file_name)
+
         if os.path.exists(bin_path):
             try:
                 rc = subprocess.call(['7z', 'a', '-p' + settings.ZIP_PWD, '-tzip', '-y', zip_file] + [bin_path])

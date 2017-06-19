@@ -80,7 +80,7 @@
                 <th></th>
                 <td>
                     {% if config.zipped_download %}
-                        <a class="btn btn-primary btn-small" href="{% url "zipdownload" analysis.target.file.sha256 %}">Download</a>
+                        <a class="btn btn-primary btn-small" href="{% url "zipdownload" "sample" analysis.info.id analysis.target.file.sha256 %}">Download</a>
                     {% else  %}
                         <a class="btn btn-primary btn-small" href="{% url "file" "sample" analysis.info.id analysis.target.file.sha256 %}">Download</a>
                     {% endif %}
