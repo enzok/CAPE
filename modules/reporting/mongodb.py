@@ -261,11 +261,6 @@ class MongoDB(Report):
 		compressed_behavior_summary = zlib.compress(JSONEncoder().encode(report["behavior"]["summary"]).encode('utf8'))
                 report["behavior"]["summary"] = Binary(compressed_behavior_summary)
 
-	# Compress virustotal results
-	if "virustotal" in report:
-		compressed_vt = zlib.compress(JSONEncoder().encode(report["virustotal"]).encode('utf8'))
-        report["virustotal"] = Binary(compressed_vt)	
-
         # Store the report and retrieve its object id.
         try:
             self.db.analysis.save(report)
