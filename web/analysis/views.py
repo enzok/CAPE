@@ -3,6 +3,7 @@
 # See the file 'docs/LICENSE' for copying permission.
 
 import sys
+import subprocess
 
 try:
     import re2 as re
@@ -1514,3 +1515,28 @@ def vtupload(request, filename, dlfile):
             return render(request, "error.html", {"error": err})
     else:
         return
+
+@conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
+def zipdownload(request, dlfile):
+    if settings.ZIP_PWD:
+        cd = "application/zip"
+        file_name = dlfile + ".zip"
+        bin_path = os.path.join(CUCKOO_ROOT, "storage", "binaries", dlfile)
+        if os.path.exists(bin_path):
+            try:
+                rc = subprocess.call(['7z', 'a', '-p' + settings.ZIP_PWD, '-tzip', '-y', file_name] + [bin_path])
+                if rc == 0:
+                    resp = StreamingHttpResponse(FileWrapper(open(bin_path), 8192), content_type=cd)
+                    resp["Content-Length"] = os.path.getsize(bin_path)
+                    resp["Content-Disposition"] = "attachment; filename=" + file_name
+                    return resp
+                else:
+                    return render(request, "error.html", {"error": "7z response code: {}".format(rc)})
+
+            except Exception as err:
+                return render(request, "error.html", {"error": err})
+        else:
+            return render(request, "error.html", {"error": "File {} does not exist.".format(dlfile)})
+    else:
+        return render(request, "error.html",
+                      {"error": "No zip password is configured. Check web settings or auxiliary conf file."})

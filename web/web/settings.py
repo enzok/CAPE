@@ -33,9 +33,10 @@ if cfg.mongodb.get("enabled") and cfg.elasticsearchdb.get("enabled") and \
     not cfg.elasticsearchdb.get("searchonly"):
     raise Exception("Both database backend reporting modules are enabled. Please only enable ElasticSearch or MongoDB.")
 
-aux_cfg =  Config("auxiliary")
+aux_cfg = Config("auxiliary")
 vtdl_cfg = aux_cfg.virustotaldl
 tor_cfg = aux_cfg.tor
+zip_cfg = aux_cfg.zipped_download
 
 # Enable Django authentication for website
 WEB_AUTHENTICATION = False
@@ -50,8 +51,6 @@ ELASTIC_PORT = cfg.elasticsearchdb.get("port", 9200)
 ELASTIC_INDEX = cfg.elasticsearchdb.get("index", "cuckoo")
 
 moloch_cfg = Config("reporting").moloch
-aux_cfg =  Config("auxiliary")
-vtdl_cfg = Config("auxiliary").virustotaldl
 
 MOLOCH_BASE = moloch_cfg.get("base", None)
 MOLOCH_NODE = moloch_cfg.get("node", None)
@@ -63,6 +62,8 @@ VTDL_PRIV_KEY = vtdl_cfg.get("dlprivkey",None)
 VTDL_INTEL_KEY = vtdl_cfg.get("dlintelkey",None)
 VTDL_PATH = vtdl_cfg.get("dlpath",None)
 VTUPLOAD = vtdl_cfg.get("vtupload",False)
+
+ZIP_PWD = zip_cfg.get("zip_pwd", "inf3ct3d")
 
 CUCKOO_HOST = "cuckoo01"
 CUCKOO_PORT = "8090"

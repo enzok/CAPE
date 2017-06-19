@@ -110,8 +110,13 @@
                 {% if file.id %}
                 <tr>
                     <th></th>
-                    <td><a href="{% url "file" "suricata" analysis.info.id file.id %}" class="btn btn-primary btn-small">Download</a>
-                    {% if file.file_info.data %}
+                    <td>
+                        {% if config.zipped_download %}
+                            <a class="btn btn-primary btn-small" href="{% url "zipdownload" analysis.target.file.sha256 %}">Download</a>
+                        {% else  %}
+                            <a href="{% url "file" "suricata" analysis.info.id file.id %}" class="btn btn-primary btn-small">Download</a>
+                        {% endif %}
+                        {% if file.file_info.data %}
                     &emsp;<a class="btn btn-primary btn-small" data-toggle="collapse" data-target="#{{file.sp}}{{file.dp}}{{file.id}}">Display Text</a>
                     {% endif %}
                     </td>

@@ -79,7 +79,11 @@
             <tr>
                 <th></th>
                 <td>
-                    <a class="btn btn-primary btn-small" href="{% url "file" "sample" analysis.info.id analysis.target.file.sha256 %}">Download</a>
+                    {% if config.zipped_download %}
+                        <a class="btn btn-primary btn-small" href="{% url "zipdownload" analysis.target.file.sha256 %}">Download</a>
+                    {% else  %}
+                        <a class="btn btn-primary btn-small" href="{% url "file" "sample" analysis.info.id analysis.target.file.sha256 %}">Download</a>
+                    {% endif %}
                 </td>
                 <td>
                     <a class="btn btn-primary btn-small" href="{% url "vtupload" analysis.target.file.name analysis.target.file.sha256 %}">Submit to VirusTotal</a>

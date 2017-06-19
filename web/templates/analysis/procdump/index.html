@@ -91,7 +91,11 @@
                 <tr>
                     <th></th>
                     <td>
-                        <a href="{% url "file" "procdump" analysis.info.id file.sha256 %}" class="btn btn-primary btn-small">Download</a>
+                        {% if config.zipped_download %}
+                            <a class="btn btn-primary btn-small" href="{% url "zipdownload" file.sha256 %}">Download</a>
+                        {% else  %}
+                            <a href="{% url "file" "procdump" analysis.info.id file.sha256 %}" class="btn btn-primary btn-small">Download</a>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endif %}
