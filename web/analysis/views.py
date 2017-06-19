@@ -1520,7 +1520,7 @@ def zipdownload(request, dlfile):
             try:
                 rc = subprocess.call(['7z', 'a', '-p' + settings.ZIP_PWD, '-tzip', '-y', zip_file] + [bin_path])
                 if rc == 0:
-                    resp = StreamingHttpResponse(FileWrapper(open(zip_file, 8192), content_type=cd)
+                    resp = StreamingHttpResponse(FileWrapper(open(zip_file), 8192), content_type=cd)
                     resp["Content-Length"] = os.path.getsize(zip_file)
                     resp["Content-Disposition"] = "attachment; filename=" + file_name
                     return resp
