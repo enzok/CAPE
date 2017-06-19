@@ -1529,12 +1529,13 @@ def zipdownload(request, dlfile):
         cd = "application/zip"
         file_name = dlfile + ".zip"
         bin_path = os.path.join(CUCKOO_ROOT, "storage", "binaries", dlfile)
+        zip_file = os.path.join(settings.TEMP_PATH, "zip-upload", file_name)
         if os.path.exists(bin_path):
             try:
-                rc = subprocess.call(['7z', 'a', '-p' + settings.ZIP_PWD, '-tzip', '-y', file_name] + [bin_path])
+                rc = subprocess.call(['7z', 'a', '-p' + settings.ZIP_PWD, '-tzip', '-y', zip_file] + [bin_path])
                 if rc == 0:
-                    resp = StreamingHttpResponse(FileWrapper(open(bin_path), 8192), content_type=cd)
-                    resp["Content-Length"] = os.path.getsize(bin_path)
+                    resp = StreamingHttpResponse(FileWrapper(open(zip_file, 8192), content_type=cd)
+                    resp["Content-Length"] = os.path.getsize(zip_file)
                     resp["Content-Disposition"] = "attachment; filename=" + file_name
                     return resp
                 else:
