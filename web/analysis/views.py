@@ -711,13 +711,6 @@ def antivirus(request,task_id):
         return render(request, "error.html",
                       {"error": "The specified analysis does not exist"})
 
-    # decompress virustotal
-    if "virustotal" in rtmp:
-        try:
-            rtmp["virustotal"] = json.loads(zlib.decompress(rtmp["virustotal"]))
-        except:
-            pass
-
     if settings.MOLOCH_ENABLED:
         if settings.MOLOCH_BASE[-1] != "/":
             settings.MOLOCH_BASE = settings.MOLOCH_BASE + "/"
@@ -857,13 +850,6 @@ def report(request, task_id):
     if "summary" in report["behavior"]:
         try:
             report["behavior"]["summary"] = json.loads(zlib.decompress(report["behavior"]["summary"]))
-        except:
-            pass
-
-    # decompress virustotal
-    if "virustotal" in report:
-        try:
-            report["virustotal"] = json.loads(zlib.decompress(report["virustotal"]))
         except:
             pass
 
