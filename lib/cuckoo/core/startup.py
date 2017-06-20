@@ -811,3 +811,50 @@ def init_routing():
             rooter("flush_rttable", cuckoo.routing.rt_table)
             rooter("init_rttable", cuckoo.routing.rt_table,
                    cuckoo.routing.internet)
+
+def cuckoo_clean_tasks(tasks):
+    """Clean up list of tasks
+    It deletes all stored data from file system and configured databases (SQL
+    and MongoDB for listed tasks.
+    """
+    # Init logging.
+    # This need to init a console logger handler, because the standard
+    # logger (init_logging()) logs to a file which will be deleted.
+    create_structure()
+    init_console_logging()
+
+    task = tasks[0]
+    end_task = tasks[1]
+
+    if end_task < task:
+        print "No tasks deleted. Ending task greater than starting task."
+        return
+
+    # Initialize the database connection.
+    db = Database()
+
+    # Check if MongoDB reporting is enabled and drop that if it is.
+    cfg = Config("reporting")
+    if cfg.mongodb and cfg.mongodb.enabled:
+        from pymongo import MongoClient
+        host = cfg.mongodb.get("host", "127.0.0.1")
+        port = cfg.mongodb.get("port", 27017)
+        mdb = cfg.mongodb.get("db", "cuckoo")
+        try:
+            results_db = MongoClient(host, port)[mdb]
+        except:
+            log.warning("Unable to connect to MongoDB database: %s", mdb)
+            return
+
+        while task <= end_task:
+            try:
+                results_db.analysis.remove({"info.id": task})
+                if db.delete_task(task):
+                    delete_folder(os.path.join(CUCKOO_ROOT, "storage", "analyses", "%s" % task))
+                    print "Task: {} was deleted".format(task)
+                else:
+                    print "failed to remove failed task %s from DB" % (task)
+            except:
+                print "failed to remove analysis info (may not exist) %s" % (task)
+
+            task += 1

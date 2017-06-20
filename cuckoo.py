@@ -19,7 +19,7 @@ try:
     from lib.cuckoo.core.startup import create_structure
     from lib.cuckoo.core.startup import init_logging, init_modules, init_console_logging
     from lib.cuckoo.core.startup import init_tasks, init_yara
-    from lib.cuckoo.core.startup import cuckoo_remove_pending_tasks
+    from lib.cuckoo.core.startup import cuckoo_remove_pending_tasks, cuckoo_clean_tasks
     from lib.cuckoo.core.scheduler import Scheduler
     from lib.cuckoo.core.resultserver import ResultServer
     from lib.cuckoo.core.startup import init_rooter, init_routing
@@ -94,6 +94,7 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--test", help="Test startup", action="store_true", required=False)
     parser.add_argument("-m", "--max-analysis-count", help="Maximum number of analyses", type=int, required=False)
     parser.add_argument("--clean", help="Remove all tasks and samples and their associated data", action='store_true', required=False)
+    parser.add_argument("--clean-tasks", help="Remove range of tasks STARTING_TASK through ENDING_TASK", nargs=2, metavar=('STARTING_TASK', 'ENDING_TASK'), type=int, required=False)
     parser.add_argument("--failed-clean", help="Remove all tasks marked as failed", action='store_true', required=False)
     parser.add_argument("--pending-clean", help="Remove all pending tasks STARTING_TASK through ENDING_TASK", nargs=2, metavar=('STARTING_TASK', 'ENDING_TASK'), type=int, required=False)
     parser.add_argument("--failed-url-clean", help="Remove all tasks that are url tasks but we don't have any HTTP traffic", action='store_true', required=False)
@@ -108,6 +109,10 @@ if __name__ == "__main__":
 
     if args.clean:
         cuckoo_clean()
+        sys.exit(0)
+
+    if args.clean_tasks:
+        cuckoo_clean_tasks(args.clean_tasks)
         sys.exit(0)
 
     if args.failed_clean:
