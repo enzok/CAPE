@@ -830,22 +830,21 @@ def report(request, task_id):
                                   {"error": "The specified analysis does not exist"})
 
     children = 0
-    # decompress CAPE data    
+    # If compressed, decompress CAPE data    
     if "CAPE" in report:
         try:
             report["CAPE"] = json.loads(zlib.decompress(report["CAPE"]))
-            session = db.Session()
-            children = [c for c in session.query(Task.id,Task.package).filter(Task.parent_id == task_id)]
         except:
-            # backward compatability
+            # In case compressresults processing module is not enabled
             pass
+        session = db.Session()
+        children = [c for c in session.query(Task.id,Task.package).filter(Task.parent_id == task_id)]
 
-    # decompress behaviour analysis (enhanced & summary)
+    # If compressed, decompress behaviour analysis (enhanced & summary)
     if "enhanced" in report["behavior"]:
         try:
             report["behavior"]["enhanced"] = json.loads(zlib.decompress(report["behavior"]["enhanced"]))
         except:
-            # backward compatibility
             pass
     if "summary" in report["behavior"]:
         try:
