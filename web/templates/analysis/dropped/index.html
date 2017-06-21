@@ -88,9 +88,6 @@
                         &emsp;<a class="btn btn-primary btn-small" data-toggle="collapse" data-target="#{{file.sha256}}">Display Text</a>
                         {% endif %}
                     </td>
-                    <td>
-                        <a class="btn btn-primary btn-small" href="{% url "vtupload" file.name file.sha256 %}">Submit to VirusTotal</a>
-                    </td>
                 </tr>
                 {% else %}
                 <tr>
@@ -106,7 +103,9 @@
                         {% endif %}
                     </td>
                     <td>
+                        {% if config.vtupload %}
                         <a class="btn btn-primary btn-small" href="{% url "vtupload" file.name file.sha256 %}">Submit to VirusTotal</a>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endif %}
