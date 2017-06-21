@@ -89,7 +89,7 @@ class SubmitCAPE(Report):
         db = Database()
         detections = set()
 
-        if self.task_options and 'disable_cape=1' in self.task_options:        
+        if self.task_options and 'enable_cape=0' in self.task_options:
             return
             
         parent_package = report["info"].get("package")

@@ -835,7 +835,7 @@ def report(request, task_id):
         try:
             report["CAPE"] = json.loads(zlib.decompress(report["CAPE"]))
         except:
-            # In case compressresults processing module is not enabled
+            # In case compress results processing module is not enabled
             pass
         session = db.Session()
         children = [c for c in session.query(Task.id,Task.package).filter(Task.parent_id == task_id)]

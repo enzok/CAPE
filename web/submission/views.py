@@ -121,10 +121,14 @@ def index(request):
                 options += ","
             options += "import_reconstruction=1"        
             
-        if request.POST.get("disable_cape"):
+        if request.POST.get("enable_cape"):
             if options:
                 options += ","
-            options += "disable_cape=1"
+            options += "enable_cape=1"
+        else:
+            if options:
+                options += ","
+            options += "enable_cape=0"
 
         if request.POST.get("kernel_analysis"):
             if options:
