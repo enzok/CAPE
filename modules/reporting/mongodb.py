@@ -199,15 +199,21 @@ class MongoDB(Report):
                     if type(report) == list:
                         report = report[0]
 
-                    del report[parent_key][child_key]
                     try:
-                        self.db.analysis.save(report)
-                        error_saved = False
-                    except InvalidDocument as e:
-                        parent_key, psize = self.debug_dict_size(report)[0]
-                        child_key, csize = self.debug_dict_size(report[parent_key])[0]
+                        del report[parent_key][child_key]
+
+                        try:
+                            self.db.analysis.save(report)
+                            error_saved = False
+                        except InvalidDocument as e:
+                            parent_key, psize = self.debug_dict_size(report)[0]
+                            child_key, csize = self.debug_dict_size(report[parent_key])[0]
+                            log.error(str(e))
+                            log.error("Largest parent key: %s (%d MB)" % (parent_key, int(psize) / 1048576))
+                            log.error("Largest child key: %s (%d MB)" % (child_key, int(csize) / 1048576))
+                    except Exception as e:
                         log.error(str(e))
-                        log.error("Largest parent key: %s (%d MB)" % (parent_key, int(psize) / 1048576))
-                        log.error("Largest child key: %s (%d MB)" % (child_key, int(csize) / 1048576))
+                        log.error("Type = %s" % report)
+                        log.error(report)
 
         self.conn.close()
