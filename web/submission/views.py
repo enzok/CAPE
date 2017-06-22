@@ -124,11 +124,7 @@ def index(request):
         if request.POST.get("enable_cape"):
             if options:
                 options += ","
-            options += "enable_cape=1"
-        else:
-            if options:
-                options += ","
-            options += "enable_cape=0"
+            options += "enable_cape=yes"
 
         if request.POST.get("kernel_analysis"):
             if options:

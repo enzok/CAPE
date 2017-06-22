@@ -89,7 +89,9 @@ class SubmitCAPE(Report):
         db = Database()
         detections = set()
 
-        if self.task_options and 'enable_cape=0' in self.task_options:
+        self.task_options = self.task["options"]
+        if self.task_options and not 'enable_cape=yes' in self.task_options:
+            log.info("Cape submission disabled.")
             return
             
         parent_package = report["info"].get("package")
@@ -246,7 +248,6 @@ class SubmitCAPE(Report):
             else:
                 package = 'Sedreco'
             
-        self.task_options = self.task["options"]
         # we want to switch off automatic process dumps in CAPE submissions
         if self.task_options and 'procdump=1' in self.task_options:
             self.task_options = self.task_options.replace(u"procdump=1", u"procdump=0", 1)
