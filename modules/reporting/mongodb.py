@@ -183,24 +183,27 @@ class MongoDB(Report):
             self.db.analysis.save(report)
         except InvalidDocument as e:
             parent_key, psize = self.debug_dict_size(report)[0]
-            child_key, csize = self.debug_dict_size(report[parent_key])[0]
             if not self.options.get("fix_large_docs", False):
                 # Just log the error and problem keys
                 log.error(str(e))
                 log.error("Largest parent key: %s (%d MB)" % (parent_key, int(psize) / 1048576))
-                log.error("Largest child key: %s (%d MB)" % (child_key, int(csize) / 1048576))
             else:
                 # Delete the problem keys and check for more
                 error_saved = True
                 while error_saved:
-                    log.warn("results['%s']['%s'] deleted due to >16MB size (%dMB)" %
-                             (parent_key, child_key, int(psize) / 1048576))
-
                     if type(report) == list:
                         report = report[0]
 
                     try:
-                        del report[parent_key][child_key]
+                        if type(report[parent_key]) == list:
+                            for j, parent_dict in enumerate(report[parent_key]):
+                                child_key, csize = self.debug_dict_size(parent_dict)[0]
+                                del report[parent_key][j][child_key]
+                                log.warn("results['%s']['%s'] deleted due to >16MB" % (parent_key, child_key))
+                        else:
+                            child_key, csize = self.debug_dict_size(report[parent_key])
+                            del report[parent_key][child_key]
+                            log.warn("results['%s']['%s'] deleted due to >16MB" % (parent_key, child_key))
 
                         try:
                             self.db.analysis.save(report)
@@ -210,10 +213,8 @@ class MongoDB(Report):
                             child_key, csize = self.debug_dict_size(report[parent_key])[0]
                             log.error(str(e))
                             log.error("Largest parent key: %s (%d MB)" % (parent_key, int(psize) / 1048576))
-                            log.error("Largest child key: %s (%d MB)" % (child_key, int(csize) / 1048576))
                     except Exception as e:
-                        log.error(str(e))
-                        log.error("Type = %s" % report)
-                        log.error(report)
+                        log.error("Failed to delete child key: %s" % str(e))
+                        error_saved = False
 
         self.conn.close()
