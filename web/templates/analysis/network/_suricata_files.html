@@ -112,7 +112,7 @@
                     <th></th>
                     <td>
                         {% if config.zipped_download %}
-                            <a class="btn btn-primary btn-small" href="{% url "zipdownload" "suricata" analysis.info.id analysis.target.file.sha256 %}">Download</a>
+                            <a class="btn btn-primary btn-small" href="{% url "zipdownload" "suricata" analysis.info.id file.id %}">Download</a>
                         {% else  %}
                             <a href="{% url "file" "suricata" analysis.info.id file.id %}" class="btn btn-primary btn-small">Download</a>
                         {% endif %}
