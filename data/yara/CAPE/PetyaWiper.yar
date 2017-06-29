@@ -1,9 +1,9 @@
-rule Petya
+rule PetyaWiper
 {
     meta:
         author = "kevoreilly"
-        description = "Petya Payload"
-        cape_type = "Petya Payload"
+        description = "Petya Wiper Payload"
+        cape_type = "Petya Wiper Payload"
     strings:
         $a1 = "CHKDSK is repairing sector"
         $a2 = "wowsmith123456@posteo.net"
