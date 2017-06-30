@@ -13,7 +13,7 @@ import socket
 import stat
 import subprocess
 import sys
-
+import errno
 
 log = logging.getLogger("cuckoo-rooter")
 formatter = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
@@ -295,7 +295,12 @@ if __name__ == "__main__":
     os.chmod(settings.socket, stat.S_IRUSR | stat.S_IWUSR | stat.S_IWGRP)
 
     while True:
-        command, addr = server.recvfrom(4096)
+        try:
+            command, addr = server.recvfrom(4096)
+        except socket.error as e:
+            if e.errno == errno.EINTR:
+                continue
+            raise e
 
         try:
             obj = json.loads(command)
