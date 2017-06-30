@@ -8,6 +8,8 @@ import os
 INJECT_CREATEREMOTETHREAD = 0
 INJECT_QUEUEUSERAPC       = 1
 
+
+from _winreg import CreateKey, SetValueEx, CloseKey, REG_DWORD, REG_SZ
 from lib.api.process import Process
 from lib.api.utils import Utils
 from lib.common.exceptions import CuckooPackageError
@@ -15,6 +17,7 @@ from lib.common.exceptions import CuckooPackageError
 class Package(object):
     """Base abstract analysis package."""
     PATHS = []
+    REGKEYS = []
 
     def __init__(self, options={}, config=None):
         """@param options: options dict."""
@@ -103,6 +106,28 @@ class Package(object):
         raise CuckooPackageError("Unable to find any %s executable." %
                                  application)
 
+    def init_regkeys(self, regkeys):
+        """Initializes the registry to avoid annoying popups, configure
+        settings, etc.
+        @param regkeys: the root keys, subkeys, and key/value pairs.
+        """
+        for rootkey, subkey, values in regkeys:
+            key_handle = CreateKey(rootkey, subkey)
+
+            for key, value in values.items():
+                if isinstance(value, str):
+                    SetValueEx(key_handle, key, 0, REG_SZ, value)
+                elif isinstance(value, int):
+                    SetValueEx(key_handle, key, 0, REG_DWORD, value)
+                elif isinstance(value, dict):
+                    self.init_regkeys([
+                        [rootkey, "%s\\%s" % (subkey, key), value],
+                    ])
+                else:
+                    raise CuckooPackageError("Invalid value type: %r" % value)
+
+            CloseKey(key_handle)
+
     def execute(self, path, args, interest):
         """Starts an executable for analysis.
         @param path: executable path
@@ -126,6 +151,9 @@ class Package(object):
         
         if kernel_analysis != False:
             kernel_analysis = True
+
+        # Setup pre-defined registry keys.
+        self.init_regkeys(self.REGKEYS)
 
         p = Process()
         if not p.execute(path=path, args=args, suspended=suspended, kernel_analysis=kernel_analysis):
