@@ -156,7 +156,7 @@ class MongoDB(Report):
                 if entry["name"] == "office_martian_children":
                     report["f_mlist_cnt"] = len(entry["data"])
 
-        #Other info we want Quick access to from the web UI
+        # Other info we want quick access to from the web UI
         if results.has_key("virustotal") and results["virustotal"] and results["virustotal"].has_key("positives") and results["virustotal"].has_key("total"):
             report["virustotal_summary"] = "%s/%s" % (results["virustotal"]["positives"],results["virustotal"]["total"])
         if results.has_key("suricata") and results["suricata"]:
@@ -217,3 +217,4 @@ class MongoDB(Report):
                         error_saved = False
 
         self.conn.close()
+    
