@@ -1379,6 +1379,27 @@ def remove(request, task_id):
                     doc_type="analysis",
                     id=esid,
                 )
+    elif essearch:
+        # remove es search data
+        analyses = es.search(
+                       index=fullidx,
+                       doc_type="analysis",
+                       q="info.id: \"%s\"" % task_id
+                   )["hits"]["hits"]
+        if len(analyses) > 1:
+            message = "Multiple tasks with this ID deleted."
+        elif len(analyses) == 1:
+            message = "Task deleted."
+        if len(analyses) > 0:
+            for analysis in analyses:
+                esidx = analysis["_index"]
+                esid = analysis["_id"]
+                # Delete the analysis results
+                es.delete(
+                    index=esidx,
+                    doc_type="analysis",
+                    id=esid,
+                )
 
     # Delete from SQL db.
     db = Database()
