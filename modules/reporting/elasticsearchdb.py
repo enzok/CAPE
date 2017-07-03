@@ -5,8 +5,6 @@
 import datetime
 import logging
 import os
-import json
-import zlib
 
 from lib.cuckoo.common.abstracts import Report
 from lib.cuckoo.common.exceptions import CuckooDependencyError
@@ -23,7 +21,7 @@ logging.getLogger("elasticsearch").setLevel(logging.WARNING)
 
 class ElasticsearchDB(Report):
     """Stores report in Elastic Search."""
-    order = 9998
+    order = 9997
 
     def connect(self):
         """Connects to Elasticsearch database, loads options and set connectors.
@@ -133,12 +131,7 @@ class ElasticsearchDB(Report):
             report["task_id"] = results["info"]["id"]
             report["info"]    = results.get("info")
             report["target"]  = results.get("target")
-
-            try:
-                report["summary"] = json.loads(zlib.decompress(results.get("behavior", {}).get("summary")))
-            except:
-                report["summary"] = results.get("behavior", {}).get("summary")
-
+            report["summary"] = results.get("behavior", {}).get("summary")
             report["network"] = results.get("network")
             report["virustotal"] = results.get("virustotal")
 
