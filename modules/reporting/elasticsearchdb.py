@@ -133,6 +133,8 @@ class ElasticsearchDB(Report):
             report["target"]  = results.get("target")
             report["summary"] = results.get("behavior", {}).get("summary")
             report["network"] = results.get("network")
+            report["malfamily"] = results.get("malfamily", "")
+            report["cape"] = results.get("cape", "")
             report["virustotal"] = results.get("virustotal")
 
         # Other info we want Quick access to from the web UI
