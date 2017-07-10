@@ -19,9 +19,10 @@ class JS(Package):
         if ext != ".js" and ext != ".jse":
             if os.path.isfile(path) and "#@~^" in open(path, "rb").read(100):
                 os.rename(path,path + ".jse")
-                path = path + ".jse"
+                path += ".jse"
             else:
-                os.rename(path,path + ".js")
-                path = path + ".js"
+                os.rename(path, path + ".js")
+                path += ".js"
+
         args = "\"%s\"" % path
         return self.execute(wscript, args, path)
