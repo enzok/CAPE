@@ -118,14 +118,14 @@ class ElasticsearchDB(Report):
                         # in the Django view
                         report["shots"].append(shot_file.replace(".jpg", ""))
 
-            if results.has_key("suricata") and results["suricata"]:
-                if results["suricata"].has_key("tls") and len(results["suricata"]["tls"]) > 0:
+            if "suricata" in results and results["suricata"]:
+                if "tls" in results["suricata"] and len(results["suricata"]["tls"]) > 0:
                     report["suri_tls_cnt"] = len(results["suricata"]["tls"])
-                if results["suricata"] and results["suricata"].has_key("alerts") and len(results["suricata"]["alerts"]) > 0:
+                if "alerts" in results["suricata"] and len(results["suricata"]["alerts"]) > 0:
                     report["suri_alert_cnt"] = len(results["suricata"]["alerts"])
-                if results["suricata"].has_key("files") and len(results["suricata"]["files"]) > 0:
+                if "files" in results["suricata"] and len(results["suricata"]["files"]) > 0:
                     report["suri_file_cnt"] = len(results["suricata"]["files"])
-                if results["suricata"].has_key("http") and len(results["suricata"]["http"]) > 0:
+                if "http" in results["suricata"] and len(results["suricata"]["http"]) > 0:
                     report["suri_http_cnt"] = len(results["suricata"]["http"])
         else:
             report = {}
@@ -139,8 +139,9 @@ class ElasticsearchDB(Report):
             report["virustotal"] = results.get("virustotal")
 
         # Other info we want Quick access to from the web UI
-        if results.has_key("virustotal") and results["virustotal"] and results["virustotal"].has_key("positives") and results["virustotal"].has_key("total"):
-            report["virustotal_summary"] = "%s/%s" % (results["virustotal"]["positives"],results["virustotal"]["total"])
+        if "virustotal" in results and all(key in results["virustotal"] for key in ("positives", "total")):
+            report["virustotal_summary"] = "%s/%s" % (results["virustotal"]["positives"],
+                                                      results["virustotal"]["total"])
 
         # Create index and set maximum fields limit to 5000
         settings = {}
@@ -152,8 +153,9 @@ class ElasticsearchDB(Report):
 
         # Store the report and retrieve its object id.
         try:
-            self.es.index(index=self.index_name, doc_type="analysis", id=results["info"]["id"], body=report)
+            self.es.index(index=self.index_name, doc_type="analysis", id=report["info"]["id"], body=report)
         except Exception as cept:
+            log.error(cept)
             error_saved = True
             while error_saved:
                 desc = cept.message.split(",")[-1]
@@ -162,15 +164,17 @@ class ElasticsearchDB(Report):
                     subresult = {}
                     for name in reversed(keys):
                         subresult = {name: subresult}
-                try:
-                    del results[subresult]
                     try:
-                        self.es.index(index=self.index_name, doc_type="analysis", id=results["info"]["id"], body=report)
+                        del report[subresult]
+                        try:
+                            self.es.index(index=self.index_name, doc_type="analysis", id=report["info"]["id"],
+                                          body=report)
+                            error_saved = False
+                        except Exception as cept:
+                            log.error("Failed to save results: %s", cept)
+                    except KeyError as cept:
+                        log.error("Failed to delete key: %s", subresult)
                         error_saved = False
-                    except Exception as cept:
-                        log.error("Failed to save results: %s", cept)
-                except KeyError as cept:
-                    log.error("Failed to delete key: %s", subresult)
-                    error_saved = False
-
+                else:
+                    log.error("%s contains invalid field type", desc)
 
