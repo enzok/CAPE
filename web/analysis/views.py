@@ -1517,10 +1517,13 @@ def comments(request, task_id):
                                   {"error": "Invalid Method"})
 
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
-def vtupload(request, filename, dlfile):
+def vtupload(request, category, task_id, filename, dlfile):
     if enabledconf["vtupload"] and settings.VTDL_PRIV_KEY:
         try:
-            path = os.path.join(CUCKOO_ROOT, "storage", "binaries", dlfile)
+            if category == "sample":
+                path = os.path.join(CUCKOO_ROOT, "storage", "binaries", dlfile)
+            elif category == "dropped":
+                path = os.path.join(CUCKOO_ROOT, "storage", "analyses", task_id, "files", dlfile)
             params = {'apikey': settings.VTDL_PRIV_KEY}
             files = {'file': (filename, open(path, 'rb'))}
             response = requests.post('https://www.virustotal.com/vtapi/v2/file/scan', files=files, params=params)

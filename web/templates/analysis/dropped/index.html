@@ -104,7 +104,7 @@
                     </td>
                     <td>
                         {% if config.vtupload %}
-                        <a class="btn btn-primary btn-small" href="{% url "vtupload" file.name file.sha256 %}">Submit to VirusTotal</a>
+                        <a class="btn btn-primary btn-small" href="{% url "vtupload" "dropped" analysis.info.id file.name file.sha256 %}">Submit to VirusTotal</a>
                         {% endif %}
                     </td>
                 </tr>
