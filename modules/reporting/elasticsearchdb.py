@@ -2,13 +2,12 @@
 # This file is part of Cuckoo Sandbox - http://www.cuckoosandbox.org
 # See the file 'docs/LICENSE' for copying permission.
 
-import datetime
 import logging
 import os
+import re
 
 from lib.cuckoo.common.abstracts import Report
 from lib.cuckoo.common.exceptions import CuckooDependencyError
-from lib.cuckoo.common.exceptions import CuckooReportError
 from lib.cuckoo.common.objects import File
 
 try:
@@ -17,7 +16,9 @@ try:
 except ImportError as e:
     HAVE_ELASTICSEARCH = False
 
-logging.getLogger("elasticsearch").setLevel(logging.WARNING)
+log = logging.getLogger(__name__)
+log.setLevel(logging.WARNING)
+
 
 class ElasticsearchDB(Report):
     """Stores report in Elastic Search."""
@@ -150,4 +151,26 @@ class ElasticsearchDB(Report):
             self.es.indices.create(index=self.index_name, body=settings)
 
         # Store the report and retrieve its object id.
-        self.es.index(index=self.index_name, doc_type="analysis", id=results["info"]["id"], body=report)
+        try:
+            self.es.index(index=self.index_name, doc_type="analysis", id=results["info"]["id"], body=report)
+        except Exception as cept:
+            error_saved = True
+            while error_saved:
+                desc = cept.message.split(",")[-1]
+                if "date" in desc:
+                    keys = re.findall(r'\[([^]]*)\]', desc)[0].split(".")
+                    subresult = {}
+                    for name in reversed(keys):
+                        subresult = {name: subresult}
+                try:
+                    del results[subresult]
+                    try:
+                        self.es.index(index=self.index_name, doc_type="analysis", id=results["info"]["id"], body=report)
+                        error_saved = False
+                    except Exception as cept:
+                        log.error("Failed to save results: %s", cept)
+                except KeyError as cept:
+                    log.error("Failed to delete key: %s", subresult)
+                    error_saved = False
+
+
