@@ -118,7 +118,7 @@ def process(task):
                                 delcmd += "['{}']".format(k)
 
                             try:
-                                exec (compile(delcmd, '', 'exec')) in locals()
+                                exec(compile(delcmd, '', 'exec')) in locals()
 
                             except Exception as cept:
                                 log.error(cept)
