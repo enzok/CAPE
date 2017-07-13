@@ -9,6 +9,7 @@ import logging
 import argparse
 import zlib
 import json
+import re
 
 log = logging.getLogger()
 
@@ -34,7 +35,7 @@ else:
     sys.exit(1)
 
 if repconf.elasticsearchdb.enabled and repconf.elasticsearchdb.searchonly:
-    from elasticsearch import Elasticsearch
+    from elasticsearch import Elasticsearch, ElasticsearchException
     baseidx = repconf.elasticsearchdb.index
     es = Elasticsearch(hosts=[{"host": repconf.elasticsearchdb.host,
                                "port": repconf.elasticsearchdb.port, }],
@@ -81,8 +82,7 @@ def process(task):
                 except Exception as err:
                     log.debug("Error decompressing virustotal results: %s", err)
                     pass
-
-            if "virustotal" in results and results["virustotal"] and "positives" in results["virustotal"] and "total" in results["virustotal"]:
+            if "virustotal" in results and all(key in results["virustotal"] for key in ("positives", "total")):
                 report["virustotal_summary"] = "{}/{}".format(results["virustotal"]["positives"],
                                                               results["virustotal"]["total"])
             log.debug(report)
@@ -97,7 +97,43 @@ def process(task):
                 es.indices.create(index=index_name, body=settings)
 
             # Store the report
-            es.index(index=index_name, doc_type="analysis", id=report["task_id"], body=report)
+            try:
+                es.index(index=index_name, doc_type="analysis", id=report["info"]["id"], body=report)
+            except ElasticsearchException as cept:
+                log.warning(cept)
+                error_saved = True
+                dropdead = 1
+                while error_saved and dropdead < 20:
+                    if "mapper_parsing_exception" in cept.args[1]:
+                        reason = cept.args[2]['error']['reason']
+                        keys = re.findall(r'\[([^]]*)\]', reason)[0].split(".")
+
+                        if "yara" in keys and "date" in keys:
+                            for rule in report['target']['file']['yara']:
+                                if "date" in rule['meta']:
+                                    del rule['meta']['date']
+                        else:
+                            delcmd = "del report"
+                            for k in keys:
+                                delcmd += "['{}']".format(k)
+
+                            try:
+                                exec (compile(delcmd, '', 'exec')) in locals()
+
+                            except Exception as cept:
+                                log.error(cept)
+                                error_saved = False
+
+                        try:
+                            es.index(index=index_name, doc_type="analysis", id=report["info"]["id"], body=report)
+                            error_saved = False
+                        except ElasticsearchException as cept:
+                            dropdead += 1
+                            log.error(cept)
+
+                    else:
+                        log.error("Failed to save results to elasticsearch db.")
+                        error_saved = False
 
 
 def init_logging(tid=0, debug=False):

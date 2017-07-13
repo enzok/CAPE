@@ -11,7 +11,7 @@ from lib.cuckoo.common.exceptions import CuckooDependencyError
 from lib.cuckoo.common.objects import File
 
 try:
-    from elasticsearch import Elasticsearch
+    from elasticsearch import Elasticsearch, ElasticsearchException
     HAVE_ELASTICSEARCH = True
 except ImportError as e:
     HAVE_ELASTICSEARCH = False
@@ -154,27 +154,39 @@ class ElasticsearchDB(Report):
         # Store the report and retrieve its object id.
         try:
             self.es.index(index=self.index_name, doc_type="analysis", id=report["info"]["id"], body=report)
-        except Exception as cept:
-            log.error(cept)
+        except ElasticsearchException as cept:
+            log.warning(cept)
             error_saved = True
-            while error_saved:
-                desc = cept.message.split(",")[-1]
-                if "date" in desc:
-                    keys = re.findall(r'\[([^]]*)\]', desc)[0].split(".")
-                    subresult = {}
-                    for name in reversed(keys):
-                        subresult = {name: subresult}
-                    try:
-                        del report[subresult]
+            dropdead = 1
+            while error_saved and dropdead < 20:
+                if "mapper_parsing_exception" in cept.args[1]:
+                    reason = cept.args[2]['error']['reason']
+                    keys = re.findall(r'\[([^]]*)\]', reason)[0].split(".")
+
+                    if "yara" in keys and "date" in keys:
+                        for rule in report['target']['file']['yara']:
+                            if "date" in rule['meta']:
+                                del rule['meta']['date']
+                    else:
+                        delcmd = "del report"
+                        for k in keys:
+                            delcmd += "['{}']".format(k)
+
                         try:
-                            self.es.index(index=self.index_name, doc_type="analysis", id=report["info"]["id"],
-                                          body=report)
-                            error_saved = False
+                            exec (compile(delcmd, '', 'exec')) in locals()
+
                         except Exception as cept:
-                            log.error("Failed to save results: %s", cept)
-                    except KeyError as cept:
-                        log.error("Failed to delete key: %s", subresult)
+                            log.error(cept)
+                            error_saved = False
+
+                    try:
+                        self.es.index(index=self.index_name, doc_type="analysis", id=report["info"]["id"], body=report)
                         error_saved = False
+                    except ElasticsearchException as cept:
+                        dropdead += 1
+                        log.error(cept)
+
                 else:
-                    log.error("%s contains invalid field type", desc)
+                    log.error("Failed to save results to elasticsearch db.")
+                    error_saved = False
 
