@@ -105,6 +105,7 @@ def process(task):
                         except IndexError as cept:
                             log.error("Failed to save results to elasticsearch db.")
                             error_saved = False
+                            continue
 
                         if "yara" in keys and "date" in keys:
                             for rule in report['target']['file']['yara']:
