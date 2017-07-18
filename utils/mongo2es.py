@@ -69,8 +69,7 @@ def process(task):
             report["network"] = results.get("network")
             report["malfamily"] = results.get("malfamily", "")
             report["signatures"] = results.get("signatures")
-            if results["static"] and "strings" in results["static"]:
-                report["strings"] = results.get("static", "").get("strings")
+            report["strings"] = results.get("strings")
             report["cape"] = results.get("cape", "")
             if report["cape"]:
                 try:
