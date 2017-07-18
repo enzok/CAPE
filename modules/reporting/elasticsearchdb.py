@@ -137,7 +137,8 @@ class ElasticsearchDB(Report):
             report["malfamily"] = results.get("malfamily", "")
             report["cape"] = results.get("cape", "")
             report["signatures"] = results.get("signatures")
-            report["strings"] = results.get("static", "").get("strings")
+            if results["static"] and results["static"]["strings"]:
+                report["strings"] = results.get("static", "").get("strings")
 
 
         # Create index and set maximum fields limit to 5000
@@ -157,6 +158,10 @@ class ElasticsearchDB(Report):
             dropdead = 1
             while error_saved and dropdead < 20:
                 if "mapper_parsing_exception" in cept.args[1] or "illegal_argument_exception" in cept.args[1]:
+                    if not cept.args[2]:
+                        log.error("Failed to save results to elasticsearch db.")
+                        error_saved = False
+
                     reason = cept.args[2]['error']['reason']
                     keys = re.findall(r'\[([^]]*)\]', reason)[0].split(".")
 
