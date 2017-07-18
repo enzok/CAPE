@@ -150,8 +150,8 @@ def init_logging(debug=False):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("id", type=str, help="Starting ID of the analysis to migrate")
-    parser.add_argument("count", type=str, help="Number of IDs to migrate")
+    parser.add_argument("id", type=int, help="Starting ID of the analysis to migrate")
+    parser.add_argument("count", type=int, help="Number of IDs to migrate")
     parser.add_argument("-d", "--debug", help="Display debug messages", action="store_true", required=False)
     args = parser.parse_args()
 
@@ -165,7 +165,7 @@ def main():
     tid = args.id
 
     while count > 0:
-        task = Database().view_task(int(tid))
+        task = Database().view_task(tid)
         try:
             if task:
                 process(task)
@@ -176,6 +176,7 @@ def main():
             log.exception("Did not migrate task: %s", err)
 
         count += 1
+        tid += 1
 
 if __name__ == "__main__":
     cfg = Config()
