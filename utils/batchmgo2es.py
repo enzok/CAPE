@@ -163,8 +163,9 @@ def main():
         sys.exit(1)
 
     tid = args.id
+    i = 0
 
-    while count > 0:
+    while i < count:
         task = Database().view_task(tid)
         try:
             if task:
@@ -175,7 +176,7 @@ def main():
         except Exception as err:
             log.exception("Did not migrate task: %s", err)
 
-        count += 1
+        i += 1
         tid += 1
 
 if __name__ == "__main__":
