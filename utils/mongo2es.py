@@ -68,6 +68,8 @@ def process(task):
                     pass
             report["network"] = results.get("network")
             report["malfamily"] = results.get("malfamily", "")
+            report["signatures"] = results.get("signatures")
+            report["strings"] = results.get("static", "").get("strings")
             report["cape"] = results.get("cape", "")
             if report["cape"]:
                 try:
@@ -75,16 +77,7 @@ def process(task):
                 except Exception as err:
                     log.debug("Error decompressing CAPE results: %s", err)
                     pass
-            report["virustotal"] = results.get("virustotal")
-            if report["virustotal"]:
-                try:
-                    report["virustotal"] = json.loads(zlib.decompress(report["virustotal"]))
-                except Exception as err:
-                    log.debug("Error decompressing virustotal results: %s", err)
-                    pass
-            if "virustotal" in results and all(key in results["virustotal"] for key in ("positives", "total")):
-                report["virustotal_summary"] = "{}/{}".format(results["virustotal"]["positives"],
-                                                              results["virustotal"]["total"])
+
             log.debug(report)
 
             # Create index and set maximum fields limit to 5000

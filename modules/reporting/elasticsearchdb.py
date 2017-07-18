@@ -136,12 +136,9 @@ class ElasticsearchDB(Report):
             report["network"] = results.get("network")
             report["malfamily"] = results.get("malfamily", "")
             report["cape"] = results.get("cape", "")
-            report["virustotal"] = results.get("virustotal")
+            report["signatures"] = results.get("signatures")
+            report["strings"] = results.get("static", "").get("strings")
 
-        # Other info we want Quick access to from the web UI
-        if "virustotal" in results and all(key in results["virustotal"] for key in ("positives", "total")):
-            report["virustotal_summary"] = "%s/%s" % (results["virustotal"]["positives"],
-                                                      results["virustotal"]["total"])
 
         # Create index and set maximum fields limit to 5000
         settings = {}
