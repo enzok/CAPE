@@ -99,7 +99,12 @@ def process(task):
                 while error_saved and dropdead < 20:
                     if "mapper_parsing_exception" in cept.args[1] or "illegal_argument_exception" in cept.args[1]:
                         reason = cept.args[2]['error']['reason']
-                        keys = re.findall(r'\[([^]]*)\]', reason)[0].split(".")
+
+                        try:
+                            keys = re.findall(r'\[([^]]*)\]', reason)[0].split(".")
+                        except IndexError as cept:
+                            log.error("Failed to save results to elasticsearch db.")
+                            error_saved = False
 
                         if "yara" in keys and "date" in keys:
                             for rule in report['target']['file']['yara']:
