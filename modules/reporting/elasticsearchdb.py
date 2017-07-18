@@ -137,7 +137,7 @@ class ElasticsearchDB(Report):
             report["malfamily"] = results.get("malfamily", "")
             report["cape"] = results.get("cape", "")
             report["signatures"] = results.get("signatures")
-            if results["static"] and results["static"]["strings"]:
+            if results["static"] and "strings" in results["static"]:
                 report["strings"] = results.get("static", "").get("strings")
 
 
