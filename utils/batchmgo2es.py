@@ -97,7 +97,7 @@ def process(task):
                 error_saved = True
                 dropdead = 1
                 while error_saved and dropdead < 20:
-                    if "mapper_parsing_exception" in cept.args[1]:
+                    if "mapper_parsing_exception" in cept.args[1] or "illegal_argument_exception" in cept.args[1]:
                         reason = cept.args[2]['error']['reason']
                         keys = re.findall(r'\[([^]]*)\]', reason)[0].split(".")
 
