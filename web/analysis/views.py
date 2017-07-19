@@ -1174,7 +1174,15 @@ def full_memory_dump_strings(request, analysis_number):
 
 def perform_search(term, value):
     if enabledconf["mongodb"] and enabledconf["elasticsearchdb"] and essearch and not term:
-        return es.search(index=fullidx, doc_type="analysis", q="%s*" % value, sort='task_id:desc')["hits"]["hits"]
+        numhits = es.search(index=fullidx,
+                            doc_type="analysis",
+                            q="_count/%s*" % value,
+                            size=0)['hits']['total']
+        return es.search(index=fullidx,
+                         doc_type="analysis",
+                         q="%s*" % value,
+                         sort='task_id:desc',
+                         size=numhits)["hits"]["hits"]
     term_map = {
         "name" : "target.file.name",
         "type" : "target.file.type",
