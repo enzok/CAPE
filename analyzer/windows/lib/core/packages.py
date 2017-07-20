@@ -33,7 +33,7 @@ def choose_package(file_type, file_name, exports):
             "Microsoft Office Word" in file_type or \
             "Microsoft OOXML" in file_type or \
             "MIME entity" in file_type or \
-            file_name.endswith((".doc", ".dot", ".docx", ".dotx", ".docm", ".dotm", ".docb", ".rtf", ".mht", ".mso")):
+            file_name.endswith((".doc", ".dot", ".docx", ".dotx", ".docm", ".dotm", ".docb", ".rtf", ".mso")):
         return "doc"
     elif "Microsoft Office Excel" in file_type or \
             "Microsoft Excel" in file_type or \
@@ -66,13 +66,11 @@ def choose_package(file_type, file_name, exports):
         return "eml"
     elif file_name.endswith(".js") or file_name.endswith(".jse"):
         return "js"
-    elif file_name.endswith((".htm", ".html")):
+    elif "HTML" in file_type or file_name.endswith((".htm", ".html", ".mht", ".mhtml")):
         return "html"
     elif file_name.endswith(".hta"):
         return "hta"
     elif file_name.endswith(".wsf") or file_type == "XML document text":
         return "wsf"
-    elif "HTML" in file_type:
-        return "html"
     else:
-        return "ie"
+        return "generic"
