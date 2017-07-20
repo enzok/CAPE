@@ -90,6 +90,7 @@ class SubmitCAPE(Report):
         detections = set()
 
         self.task_options = self.task["options"]
+
         if self.task_options and 'enable_cape=yes' not in self.task_options:
             log.info("Cape submission disabled.")
             return
@@ -251,7 +252,6 @@ class SubmitCAPE(Report):
         if 'Cerber' in detections:
             package = 'Cerber'	
             
-        self.task_options = self.task["options"]
         # we want to switch off automatic process dumps in CAPE submissions
         if self.task_options and 'procdump=1' in self.task_options:
             self.task_options = self.task_options.replace(u"procdump=1", u"procdump=0", 1)
