@@ -136,6 +136,11 @@ class ElasticsearchDB(Report):
             report["network"] = results.get("network")
             report["malfamily"] = results.get("malfamily", "")
             report["cape"] = results.get("cape", "")
+            cape_result = results.get("CAPE", "")
+            if cape_result:
+                for cape in cape_result:
+                    if "cape_config" in report["CAPE"]:
+                        report["CAPE"] = cape
             report["signatures"] = results.get("signatures")
             report["strings"] = results.get("strings")
 
