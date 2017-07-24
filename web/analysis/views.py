@@ -1176,7 +1176,7 @@ def perform_search(term, value):
     if enabledconf["mongodb"] and enabledconf["elasticsearchdb"] and essearch and not term:
         numhits = es.search(index=fullidx,
                             doc_type="analysis",
-                            q="_count/%s*" % value,
+                            q="%s*" % value,
                             size=0)['hits']['total']
         return es.search(index=fullidx,
                          doc_type="analysis",
