@@ -71,9 +71,14 @@ def process(task):
             report["signatures"] = results.get("signatures")
             report["strings"] = results.get("strings", "")
             report["cape"] = results.get("cape", "")
-            if report["cape"]:
+            report["cape"] = results.get("cape", "")
+            report["CAPE"] = results.get("CAPE", "")
+            if report["CAPE"]:
                 try:
-                    report["cape"] = json.loads(zlib.decompress(report["cape"]))
+                    cape_result = json.loads(zlib.decompress(report["CAPE"]))
+                    for cape in cape_result:
+                        if "cape_config" in report["CAPE"]:
+                            report["CAPE"] = cape
                 except Exception as err:
                     log.debug("Error decompressing CAPE results: %s", err)
                     pass
