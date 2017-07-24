@@ -139,7 +139,7 @@ class ElasticsearchDB(Report):
             cape_result = results.get("CAPE", "")
             if cape_result:
                 for cape in cape_result:
-                    if "cape_config" in report["CAPE"]:
+                    if "cape_config" in cape:
                         report["CAPE"] = cape
             report["signatures"] = results.get("signatures")
             report["strings"] = results.get("strings")

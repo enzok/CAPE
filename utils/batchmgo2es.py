@@ -76,7 +76,7 @@ def process(task):
                 try:
                     decape_result = json.loads(zlib.decompress(cape_result))
                     for cape in decape_result:
-                        if "cape_config" in report["CAPE"]:
+                        if "cape_config" in cape:
                             report["CAPE"] = cape
                 except Exception as err:
                     log.debug("Error decompressing CAPE results: %s", err)
