@@ -71,7 +71,6 @@ def process(task):
             report["signatures"] = results.get("signatures")
             report["strings"] = results.get("strings", "")
             report["cape"] = results.get("cape", "")
-            report["cape"] = results.get("cape", "")
             report["CAPE"] = results.get("CAPE", "")
             if report["CAPE"]:
                 try:
