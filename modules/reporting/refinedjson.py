@@ -40,8 +40,6 @@ class RefinedJson(Report):
                     miniresults['signatures']['data'] = sig['data']
             if 'network' in results:
                 net = results['network']
-                del net['pcap_sha256']
-                del net['sorted_pcap_sha256']
                 mininet ={}
                 mininet['hosts'] = []
                 for host in net['hosts']:
@@ -61,7 +59,6 @@ class RefinedJson(Report):
                 miniresults['network'] = mininet
             if 'executed_commands' in results['behavior']['summary']:
                 miniresults['executed_commands'] = results['behavior']['summary']['executed_commands']
-
 
             path = os.path.join(self.reports_path, "refined-report.json")
             with codecs.open(path, "w", "utf-8") as report:
