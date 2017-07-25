@@ -21,6 +21,7 @@ class RefinedJson(Report):
                        "8.8.4.4",
                        "time.microsoft.com",
                        "teredo.ipv6.microsoft.com",
+                       "www.download.windowsupdate.com",
                        "ctldl.windowsupdate.com"]
 
         try:
@@ -34,10 +35,10 @@ class RefinedJson(Report):
             if 'malfamily' in results:
                 miniresults['malfamily'] = results['malfamily']
             if 'signatures' in results:
-                miniresults['signatures'] = {}
+                miniresults['signatures'] = []
                 for sig in results['signatures']:
-                    miniresults['signatures']['description'] = sig['description']
-                    miniresults['signatures']['data'] = sig['data']
+                    miniresults['signatures'].append({'description': sig['description'],
+                                                      'data': sig['data']})
             if 'network' in results:
                 net = results['network']
                 mininet ={}
@@ -50,11 +51,13 @@ class RefinedJson(Report):
                 mininet['smtp'] = net['smtp']
                 mininet['irc'] = net['irc']
 
+                '''
                 if "suricata" in results and results["suricata"]:
                     if "alerts" in results["suricata"] and len(results["suricata"]["alerts"]) > 0:
                         mininet["alerts"] = results["suricata"]["alerts"]
                     if "http" in results["suricata"] and len(results["suricata"]["http"]) > 0:
                         mininet["suri_http"] = results["suricata"]["http"]
+                '''
 
                 miniresults['network'] = mininet
             if 'executed_commands' in results['behavior']['summary']:
