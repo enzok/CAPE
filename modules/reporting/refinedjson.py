@@ -19,10 +19,13 @@ class RefinedJson(Report):
 
         host_filter = ["8.8.8.8",
                        "8.8.4.4",
-                       "time.microsoft.com",
+                       "time.windows.com",
                        "teredo.ipv6.microsoft.com",
                        "www.download.windowsupdate.com",
-                       "ctldl.windowsupdate.com"]
+                       "ctldl.windowsupdate.com",
+                       "acroipm2.adobe.com",
+                       "acroipm.adobe.com",
+                       "files.acrobat.com"]
 
         try:
             miniresults = {}
