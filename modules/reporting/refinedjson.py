@@ -22,7 +22,6 @@ class RefinedJson(Report):
                        "time.windows.com",
                        "teredo.ipv6.microsoft.com",
                        "www.download.windowsupdate.com",
-                       "ctldl.windowsupdate.com",
                        "acroipm2.adobe.com",
                        "acroipm.adobe.com",
                        "files.acrobat.com",
