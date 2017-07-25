@@ -25,7 +25,8 @@ class RefinedJson(Report):
                        "ctldl.windowsupdate.com",
                        "acroipm2.adobe.com",
                        "acroipm.adobe.com",
-                       "files.acrobat.com"]
+                       "files.acrobat.com",
+                       "ctldl.windowsupdate.com"]
 
         try:
             miniresults = {}
