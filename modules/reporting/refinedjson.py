@@ -5,7 +5,7 @@ import codecs
 from lib.cuckoo.common.abstracts import Report
 from lib.cuckoo.common.exceptions import CuckooReportError
 
-class MiniJson(Report):
+class RefinedJson(Report):
     """Saves a subset of analysis results in JSON format."""
 
     def run(self, results):
