@@ -29,6 +29,8 @@ class RefinedJson(Report):
             if 'file' in results['target']:
                 miniresults['file'] = results['target']['file']
                 del miniresults['file']['yara']
+                del miniresults['file']['path']
+                del miniresults['file']['guest_paths']
                 miniresults['file']['yara'] = []
                 for rule in results['target']['file']['yara']:
                     miniresults['file']['yara'].append({'name': rule['name']})
