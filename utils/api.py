@@ -291,6 +291,7 @@ def tasks_report(task_id, report_format="json"):
     formats = {
         "json": "report.json",
         "minijson": "mini-report.json",
+        "refinedjson": "refined-report.json",
         "textsummary": "summary-report.txt",
         "html": "report.html",
         "htmlsummary": "summary-report.html",

@@ -466,6 +466,7 @@
     <Compile Include="modules\processing\__init__.py" />
     <Compile Include="modules\reporting\jsondump.py" />
     <Compile Include="modules\reporting\minijson.py" />
+    <Compile Include="modules\reporting\refinedjson.py" />
     <Compile Include="modules\reporting\textsummary.py" />
     <Compile Include="modules\reporting\mmdef.py" />
     <Compile Include="modules\reporting\mongodb.py" />

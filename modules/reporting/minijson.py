@@ -37,6 +37,15 @@ class MiniJson(Report):
                 miniresults['encryptedbuffers'] = results['behavior']['encryptedbuffers']
             if 'executed_commands' in results['behavior']['summary']:
                 miniresults['executed_commands'] = results['behavior']['summary']['executed_commands']
+            if "suricata" in results and results["suricata"]:
+                if "tls" in results["suricata"] and len(results["suricata"]["tls"]) > 0:
+                    miniresults["suri_tls_cnt"] = len(results["suricata"]["tls"])
+                if "alerts" in results["suricata"] and len(results["suricata"]["alerts"]) > 0:
+                    miniresults["suri_alert_cnt"] = len(results["suricata"]["alerts"])
+                if "files" in results["suricata"] and len(results["suricata"]["files"]) > 0:
+                    miniresults["suri_file_cnt"] = len(results["suricata"]["files"])
+                if "http" in results["suricata"] and len(results["suricata"]["http"]) > 0:
+                    miniresults["suri_http_cnt"] = len(results["suricata"]["http"])
 
             path = os.path.join(self.reports_path, "mini-report.json")
             with codecs.open(path, "w", "utf-8") as report:

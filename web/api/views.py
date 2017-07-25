@@ -1222,6 +1222,7 @@ def tasks_report(request, task_id, report_format="json"):
     formats = {
         "json": "report.json",
         "minijson": "mini-report.json",
+        "refinedjson": "refined-report.json",
         "textsummary": "summary-report.txt",
         "html": "report.html",
         "htmlsummary": "summary-report.html",
@@ -1239,6 +1240,9 @@ def tasks_report(request, task_id, report_format="json"):
                 content = "application/json; charset=UTF-8"
                 ext = "json"
             elif report_format == "minijson":
+                content = "application/json; charset=UTF-8"
+                ext = "json"
+            elif report_format == "refinedjson":
                 content = "application/json; charset=UTF-8"
                 ext = "json"
             elif report_format == "textsummary":

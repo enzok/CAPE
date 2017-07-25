@@ -1107,6 +1107,7 @@ def filereport(request, task_id, category):
     formats = {
         "json": "report.json",
         "minijson": "mini-report.json",
+        "refinedjson": "refined-report.json",
         "textsummary": "summary-report.txt",
         "html": "report.html",
         "htmlsummary": "summary-report.html",
