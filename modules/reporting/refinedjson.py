@@ -5,7 +5,7 @@ import codecs
 from lib.cuckoo.common.abstracts import Report
 from lib.cuckoo.common.exceptions import CuckooReportError
 
-class MiniJson(Report):
+class RefinedJson(Report):
     """Saves a subset of analysis results in JSON format."""
 
     def run(self, results):
@@ -21,6 +21,7 @@ class MiniJson(Report):
                        "8.8.4.4",
                        "time.microsoft.com",
                        "teredo.ipv6.microsoft.com",
+                       "www.download.windowsupdate.com",
                        "ctldl.windowsupdate.com"]
 
         try:
@@ -28,21 +29,22 @@ class MiniJson(Report):
             if 'file' in results['target']:
                 miniresults['file'] = results['target']['file']
                 del miniresults['file']['yara']
+                del miniresults['file']['path']
+                del miniresults['file']['guest_paths']
                 miniresults['file']['yara'] = []
                 for rule in results['target']['file']['yara']:
                     miniresults['file']['yara'].append({'name': rule['name']})
             if 'malfamily' in results:
                 miniresults['malfamily'] = results['malfamily']
             if 'signatures' in results:
-                miniresults['signatures'] = {}
+                miniresults['signatures'] = []
                 for sig in results['signatures']:
-                    miniresults['signatures']['description'] = sig['description']
-                    miniresults['signatures']['data'] = sig['data']
+                    miniresults['signatures'].append({'description': sig['description'],
+                                                      'data': sig['data']})
             if 'network' in results:
                 net = results['network']
-                del net['pcap_sha256']
-                del net['sorted_pcap_sha256']
                 mininet ={}
+                mininet['hosts'] = []
                 for host in net['hosts']:
                     if host['ip'] in host_filter or host['hostname'] in host_filter:
                         continue
@@ -51,16 +53,17 @@ class MiniJson(Report):
                 mininet['smtp'] = net['smtp']
                 mininet['irc'] = net['irc']
 
+                '''
                 if "suricata" in results and results["suricata"]:
                     if "alerts" in results["suricata"] and len(results["suricata"]["alerts"]) > 0:
                         mininet["alerts"] = results["suricata"]["alerts"]
                     if "http" in results["suricata"] and len(results["suricata"]["http"]) > 0:
                         mininet["suri_http"] = results["suricata"]["http"]
+                '''
 
                 miniresults['network'] = mininet
             if 'executed_commands' in results['behavior']['summary']:
                 miniresults['executed_commands'] = results['behavior']['summary']['executed_commands']
-
 
             path = os.path.join(self.reports_path, "refined-report.json")
             with codecs.open(path, "w", "utf-8") as report:
