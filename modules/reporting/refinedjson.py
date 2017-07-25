@@ -43,6 +43,7 @@ class RefinedJson(Report):
                 del net['pcap_sha256']
                 del net['sorted_pcap_sha256']
                 mininet ={}
+                mininet['hosts'] = []
                 for host in net['hosts']:
                     if host['ip'] in host_filter or host['hostname'] in host_filter:
                         continue
