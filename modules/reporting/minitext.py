@@ -32,18 +32,18 @@ class MinitextSummary(Report):
                 outbuf += "SHA256: " + results['target']['file']['sha256'] + "\n"
                 outbuf += "ssdeep: " + results['target']['file']['ssdeep'] + "\n\n"
 
-                outbuf += "Yara signature:\n"
+                outbuf += "Yara signature -\n"
                 for sig in results['target']['file']['yara']:
                     outbuf += "  " + sig['name'] + "\n"
                 outbuf += "\n"
 
             if 'malfamily' in results:
-                outbuf += "Malfamily: " + results['malfamily'] + "\n\n"
+                outbuf += "Malfamily - " + results['malfamily'] + "\n\n"
             else:
-                outbuf += "Malfamily: unknown \n\n"
+                outbuf += "Malfamily - unknown \n\n"
 
             if 'signatures' in results:
-                outbuf += "Signatures: \n"
+                outbuf += "Signatures -\n"
                 for sig in results['signatures']:
                     outbuf += "  " + sig['name'] + ": " + sig['description'] + "\n"
                     for data in sig['data']:
@@ -52,7 +52,7 @@ class MinitextSummary(Report):
 
 
             if 'executed_commands' in results['behavior']['summary']:
-                outbuf += "Executed commands:\n"
+                outbuf += "Executed commands -\n"
                 cmds = []
                 for ec in results['behavior']['summary']['executed_commands']:
                     newcmd = ec.strip('"')
@@ -63,24 +63,20 @@ class MinitextSummary(Report):
                 outbuf += "\n"
 
             if 'network' in results:
-                outbuf += "Network:\n"
-                outbuf += "  Hosts:\n"
+                outbuf += "Network -\n"
+                outbuf += "  Hosts -\n"
                 for host in results['network']['hosts']:
                     if host['ip'] in host_filter or host['hostname'] in host_filter:
                         continue
                     outbuf += "    " + host['hostname'] + ", " + host['inaddrarpa'] + ": "
                     outbuf += host['ip'] + " " + host['country_name'] + "\n"
                 outbuf += "\n"
-                outbuf += "  ICMP:\n"
-                for icmp in results['network']['icmp']:
-                    outbuf += "    dst: " + icmp['dst'] + ", data: " + icmp['data'] + "\n"
-                outbuf += "\n"
-                outbuf += "  HTTP:\n"
+                outbuf += "  HTTP -\n"
                 for http in results['network']['http']:
                     outbuf += "    uri: " + http['uri'] + "\n"
                     outbuf += "    data: " + http['data'].replace("\r\n", "\n          ")
                 outbuf += "\n"
-                outbuf += "  SMTP:\n"
+                outbuf += "  SMTP -\n"
                 for smtp in results['network']['smtp']:
                     outbuf += "    dst: " + smtp['dst'] + "\n"
                     tmpdata = smtp['raw'].replace("\r\n", "\n          ")
@@ -88,6 +84,10 @@ class MinitextSummary(Report):
                     tmpdata = tmpdata.replace("\r", "\r          ")
                     outbuf += "    data: " + tmpdata + "\n"
                 outbuf += "\n"
+
+            outbuf.replace("http:", "hxxp:")
+            outbuf.replace("HTTP:", "HXXP:")
+            outbuf.replace("www.", "www[.]")
 
             path = os.path.join(self.reports_path, "minitext-report.txt")
             with codecs.open(path, "w", "utf-8") as report:
