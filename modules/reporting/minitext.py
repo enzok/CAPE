@@ -46,10 +46,7 @@ class MinitextSummary(Report):
                 outbuf += "Signatures -\n"
                 for sig in results['signatures']:
                     outbuf += "  " + sig['name'] + ": " + sig['description'] + "\n"
-                    for data in sig['data']:
-                        outbuf += "    {}\n".format(data)
                 outbuf += "\n"
-
 
             if 'executed_commands' in results['behavior']['summary']:
                 outbuf += "Executed commands -\n"
