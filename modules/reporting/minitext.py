@@ -46,7 +46,8 @@ class MinitextSummary(Report):
                 outbuf += "Signatures: \n"
                 for sig in results['signatures']:
                     outbuf += "  " + sig['name'] + ": " + sig['description'] + "\n"
-                    outbuf += "  " + sig['data'] + ": " + sig['data'] + "\n"
+                    for data in sig['data']:
+                        outbuf += "    {}\n".format(data)
                 outbuf += "\n"
 
 
