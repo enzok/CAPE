@@ -27,14 +27,15 @@ from lib.cuckoo.common.exceptions import CuckooDemuxError
 log = logging.getLogger(__name__)
 
 demux_extensions_list = [
-        "", ".exe", ".dll", ".com", ".jar", ".pdf", ".msi", ".bin", ".scr", ".zip", ".tar", ".gz", ".tgz", ".rar", ".htm", ".html", ".hta",
+        "", ".exe", ".dll", ".com", ".jar", ".pdf", ".msi", ".bin", ".scr", ".zip", ".tar", ".gz", ".tgz", ".rar",
+        ".htm", ".html", ".hta", ".iso",
         ".doc", ".dot", ".docx", ".dotx", ".docm", ".dotm", ".docb", ".mht", ".mso", ".js", ".jse", ".vbs", ".vbe",
         ".xls", ".xlt", ".xlm", ".xlsx", ".xltx", ".xlsm", ".xltm", ".xlsb", ".xla", ".xlam", ".xll", ".xlw",
         ".ppt", ".pot", ".pps", ".pptx", ".pptm", ".potx", ".potm", ".ppam", ".ppsx", ".ppsm", ".sldx", ".sldm", ".wsf",
     ]
 
 archive_extensions_list = [
-        "", ".bin", ".zip", ".tar", ".gz", ".tgz", ".rar", ".ace", ".bup", ".eml", ".msg", ".mso",
+        "", ".bin", ".zip", ".tar", ".gz", ".tgz", ".rar", ".ace", ".bup", ".eml", ".msg", ".mso", ".iso"
     ]
 
 def demux_office(filename, password):
