@@ -293,6 +293,7 @@ def tasks_report(task_id, report_format="json"):
         "minijson": "mini-report.json",
         "refinedjson": "refined-report.json",
         "textsummary": "summary-report.txt",
+        "minitext": "minitext-report.txt",
         "html": "report.html",
         "htmlsummary": "summary-report.html",
         "pdf": "report.pdf",

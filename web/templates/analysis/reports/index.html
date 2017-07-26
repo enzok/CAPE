@@ -24,6 +24,12 @@
             <td style="text-align: right;"><a class="btn btn-primary btn-small" href="{% url "filereport" analysis.info.id "textsummary" %}">Download</a></td>
         </tr>
       {% endif %}
+      {% if config.minitext %}
+        <tr>
+            <th>Mini Text Report</th>
+            <td style="text-align: right;"><a class="btn btn-primary btn-small" href="{% url "filereport" analysis.info.id "minitext" %}">Download</a></td>
+        </tr>
+      {% endif %}
       {% if config.reporthtml %}
         <tr>
             <th>HTML Report</th>

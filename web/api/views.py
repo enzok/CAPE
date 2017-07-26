@@ -1224,6 +1224,7 @@ def tasks_report(request, task_id, report_format="json"):
         "minijson": "mini-report.json",
         "refinedjson": "refined-report.json",
         "textsummary": "summary-report.txt",
+        "minitext": "minitext-report.txt",
         "html": "report.html",
         "htmlsummary": "summary-report.html",
         "pdf": "report.pdf",
@@ -1246,6 +1247,9 @@ def tasks_report(request, task_id, report_format="json"):
                 content = "application/json; charset=UTF-8"
                 ext = "json"
             elif report_format == "textsummary":
+                content = "application/text; charset=UTF-8"
+                ext = "txt"
+            elif report_format == "minitext":
                 content = "application/text; charset=UTF-8"
                 ext = "txt"
             elif report_format.startswith("html"):
