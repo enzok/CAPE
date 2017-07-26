@@ -11,6 +11,7 @@ import logging
 from bz2 import BZ2File
 from zipfile import ZipFile
 from sflock import unpack
+from sflock.exception import UnpackException
 
 try:
     from rarfile import RarFile
@@ -352,7 +353,10 @@ def demux_all(filename, options):
                 os.mkdir(target_path)
             
             tmp_dir = tempfile.mkdtemp(prefix='cuckoozip_', dir=target_path)
-            unpacked = unpack(filepath=filename, password=password)
+            try:
+                unpacked = unpack(filepath=filename, password=password)
+            except UnpackException:
+                unpacked = unpack(filepath=filename, password="")
             retlist = get_filenames([], tmp_dir, unpacked.children)
             if retlist:
                 unpacked.extract(tmp_dir)
@@ -406,11 +410,35 @@ def demux_sample(filename, package, options):
     if "PE32" in magic or "MS-DOS executable" in magic:
         return [ filename ]
 
-    #add .ace extension to ACE files or unace will fail
+    # add .ace extension to ACE files or unace will fail
     if "ACE" in magic or "ACE archive" in magic:
         if not filename.endswith(".ace"):
             os.rename(filename, filename + ".ace")
             filename += ".ace"
+
+    # clear password for .iso files
+    if "ISO 9660" in magic:
+        if 'password' in options:
+            fields = options.split(",")
+            for field in fields:
+                try:
+                    key, value = field.split("=", 1)
+                    if key == "password":
+                        if newoptions:
+                            newoptions += ','
+                        newoptions += 'password='
+                    else:
+                        if newoptions:
+                            newoptions += ","
+                        newoptions += "{}={}".format(key, val)
+                except:
+                    pass
+        else:
+            if options:
+                newoptions = options + ","
+            newoptions += "password="
+        if newoptions:
+            options = newoptions
 
     retlist = demux_all(filename, options)
 
