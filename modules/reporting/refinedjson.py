@@ -42,8 +42,7 @@ class RefinedJson(Report):
             if 'signatures' in results:
                 miniresults['signatures'] = []
                 for sig in results['signatures']:
-                    miniresults['signatures'].append({'description': sig['description'],
-                                                      'data': sig['data']})
+                    miniresults['signatures'].append({'description': sig['description']})
             if 'network' in results:
                 net = results['network']
                 mininet ={}

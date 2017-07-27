@@ -25,22 +25,17 @@ class MinitextSummary(Report):
                        "ctldl.windowsupdate.com"]
 
         try:
+            if 'malfamily' in results:
+                outbuf += "Malfamily - " + results['malfamily'] + "\n\n"
+            else:
+                outbuf += "Malfamily - unknown \n\n"
+
             if 'file' in results['target']:
                 outbuf += "Name: " + results['target']['file']['name'] + "\n"
                 outbuf += "MD5: " + results['target']['file']['md5'] + "\n"
                 outbuf += "SHA1: " + results['target']['file']['sha1'] + "\n"
                 outbuf += "SHA256: " + results['target']['file']['sha256'] + "\n"
                 outbuf += "ssdeep: " + results['target']['file']['ssdeep'] + "\n\n"
-
-                outbuf += "Yara signature -\n"
-                for sig in results['target']['file']['yara']:
-                    outbuf += "  " + sig['name'] + "\n"
-                outbuf += "\n"
-
-            if 'malfamily' in results:
-                outbuf += "Malfamily - " + results['malfamily'] + "\n\n"
-            else:
-                outbuf += "Malfamily - unknown \n\n"
 
             if 'signatures' in results:
                 outbuf += "Signatures -\n"
