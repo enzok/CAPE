@@ -1570,10 +1570,6 @@ class Static(Processing):
                 package = self.results["info"]["package"]
 
             thetype = File(self.file_path).get_type()
-            if HAVE_PEFILE and ("PE32" in thetype or "MS-DOS executable" in thetype):
-                static = PortableExecutable(self.file_path, self.results).run()
-                if static and "Mono" in thetype:
-                    static.update(DotNETExecutable(self.file_path, self.results).run())
             mmbot_opts = {}
             if HAVE_MMBOT:
                 mmbot_opts['benign_path'] = self.options.get("benign_path",
@@ -1582,6 +1578,10 @@ class Static(Processing):
                                                                 os.path.join(CUCKOO_ROOT, "data", "mmbot", "malicious"))
                 mmbot_opts['model_path'] = self.options.get("model_path",
                                                                 os.path.join(CUCKOO_ROOT, "data", "mmbot", "model"))
+            if HAVE_PEFILE and ("PE32" in thetype or "MS-DOS executable" in thetype):
+                static = PortableExecutable(self.file_path, self.results).run()
+                if static and "Mono" in thetype:
+                    static.update(DotNETExecutable(self.file_path, self.results).run())
             elif "PDF" in thetype or self.task["target"].endswith(".pdf") or package == "pdf":
                 static = PDF(self.file_path).run()
             elif package in ("doc", "ppt", "xls", "pub"):
