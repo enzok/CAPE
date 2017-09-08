@@ -1245,7 +1245,7 @@ class Office(object):
         if not os.path.exists(self.file_path):
             return None
         results = self._parse(self.file_path)
-        if "Macro" in results["office"]:
+        if "office" in results and "Macro" in results["office"]:
             results["office"]["mmbot"] = self.mmbot(self.file_path, self.opts)
         return results
 
