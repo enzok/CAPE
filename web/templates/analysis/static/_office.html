@@ -1,6 +1,25 @@
 {% load key_tags %}
 <section id="static_analysis">
     {% if analysis.static and analysis.static.office %}
+        {% if analysis.static.office.mmbot %}
+            <div>
+                <div id="mmbot_results">
+                    <h4>Malicious Macro Bot Results</h4>
+                    <table class="table table-striped table-bordered">
+                        <colgroup>
+                            <col width="250" />
+                            <col width="*" />
+                        </colgroup>
+                        {% for key, value in analysis.static.office.mmbot.items|dictsort:"0.lower" %}
+                            <tr>
+                                <td>{{key}}</td>
+                                <td>{{value}}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        {% endif %}
         {% if analysis.static.office.Metadata %}
             {% if analysis.static.office.Metadata.SummaryInformation %}
                 {% if analysis.static.office.Metadata.SummaryInformation.isXML %}
