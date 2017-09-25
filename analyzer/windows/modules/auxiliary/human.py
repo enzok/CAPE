@@ -91,6 +91,7 @@ def foreach_child(hwnd, lparam):
         "cancel",
         "do not accept the agreement",
         "i would like to help make reader even better",
+        "no"
         # german
         "abbrechen",
         "online nach losung suchen",
