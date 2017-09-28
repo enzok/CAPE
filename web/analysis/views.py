@@ -1622,7 +1622,7 @@ def configdownload(request, task_id, cape_name):
                         with open(filepath, 'w') as outfile:
                             cape_conf = cape["cape_config"]
                             for key in cape_conf:
-                                outfile.write("{}\t{}\n".format(key, cape_conf[key]))
+                                outfile.write("{}\t{}\n".format(key, cape_conf[key][0]))
 
                         resp = StreamingHttpResponse(FileWrapper(open(filepath), 8192), content_type=cd)
                         resp["Content-Length"] = os.path.getsize(filepath)
