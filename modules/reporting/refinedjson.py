@@ -53,7 +53,7 @@ class RefinedJson(Report):
                     mininet['hosts'].append(host)
                 mininet['http'] = []
                 for http in net['http']:
-                    if any(host in http['uri'] for host in host_filter):
+                    if http['host'] in host_filter:
                         continue
                     httpdict = http
                     httpdict['uri'] = http['uri']

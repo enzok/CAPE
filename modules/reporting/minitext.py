@@ -65,7 +65,7 @@ class MinitextSummary(Report):
                 outbuf += "\n"
                 outbuf += "  HTTP -\n"
                 for http in results['network']['http']:
-                    if any(host in http["uri"] for host in host_filter):
+                    if http["host"] in host_filter:
                         continue
                     outbuf += "    uri: " + http['uri'] + "\n"
                     outbuf += "    data: " + http['data'].replace("\r\n", "\n          ")
