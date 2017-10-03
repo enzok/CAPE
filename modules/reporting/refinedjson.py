@@ -51,7 +51,14 @@ class RefinedJson(Report):
                     if host['ip'] in host_filter or host['hostname'] in host_filter:
                         continue
                     mininet['hosts'].append(host)
-                mininet['http'] = net['http']
+                mininet['http'] = []
+                for http in net['http']:
+                    if any(host in http['uri'] for host in host_filter):
+                        continue
+                    httpdict = http
+                    httpdict['uri'] = http['uri']
+                    httpdict['data'] = http['data']
+                    mininet['http'].append(httpdict)
                 mininet['smtp'] = net['smtp']
                 mininet['irc'] = net['irc']
 
