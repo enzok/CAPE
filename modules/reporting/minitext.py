@@ -22,6 +22,7 @@ class MinitextSummary(Report):
                        "acroipm2.adobe.com",
                        "acroipm.adobe.com",
                        "files.acrobat.com",
+                       "ie9cvlist.ie.microsoft.com",
                        "ctldl.windowsupdate.com"]
 
         try:
