@@ -29,16 +29,25 @@ class Ursnif_APIs(Signature):
     def __init__(self, *args, **kwargs):
         Signature.__init__(self, *args, **kwargs)
         self.decompMZ = set()
+        self.uri_paths = None
 
-    filter_apinames = set(["RtlDecompressBuffer"])
+    filter_apinames = set(["RtlDecompressBuffer", "HttpOpenRequestA"])
 
     def on_call(self, call, process):
-        buf = self.get_argument(call, "UncompressedBuffer")
-        if buf.startswith("MZ"):
-            try:
-                self.decompMZ.add(str(process["module_path"]).lower())
-            except:
-                pass
+        if call['api'] == "RtlDecompressBuffer":
+            buf = self.get_argument(call, "UncompressedBuffer")
+            if buf.startswith("MZ"):
+                try:
+                    self.decompMZ.add(str(process["module_path"]).lower())
+                except:
+                    pass
+        if call['api'] == "HttpOpenRequestA":
+            path = self.get_argument(call, "Path")
+            if path.startswith('/images/') and (path.endswith(".gif") or path.endswith(".jpeg")):
+                try:
+                    self.uri_paths = True
+                except:
+                    pass
 
     def on_complete(self):
         badness = 0
@@ -74,6 +83,9 @@ class Ursnif_APIs(Signature):
                     if all(z in mpath for z in tmp):
                         badness += 4
                         break
+
+        if self.uri_paths:
+            badness += 4
 
         keypat = r".*\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\EnableSPDY3_0$"
         if self.check_write_key(pattern=keypat, regex=True):
