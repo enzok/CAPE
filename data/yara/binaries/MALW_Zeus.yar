@@ -5,7 +5,7 @@
 
 import "pe"
 
-rule Windows_Malware : Zeus_1134
+rule Zeus_1134
     {
             meta:
                     author = "Xylitol xylitol@malwareint.com"
