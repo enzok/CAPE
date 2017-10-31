@@ -45,3 +45,5 @@ data/feeds/*
 
 #Ignore Cuckoo configs
 conf/*
+
+.vs/*
