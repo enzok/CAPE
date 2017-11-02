@@ -16,7 +16,7 @@ rule Ursnif
         $c2 = {8B 70 EC 33 70 F8 33 70 08 33 30 83 C0 04 33 F1 81 F6 B9 79 37 9E C1 C6 0B 89 70 08 41 81 F9 84 00 00 00 72 DB}
 
         $d1 = "MSVCcvidMRLE"
-
+        
     condition:
         uint16(0) == 0x5A4D and (all of ($a*)) or ((all of ($b*)) and (all of ($c*)) or (all of ($d*)))
 }
