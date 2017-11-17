@@ -1319,6 +1319,11 @@ def tasks_iocs(request, task_id, detail=None):
         return jsonize(check, response=True)
 
     buf = {}
+    if repconf.jsondump.get("enabled") and not buf:
+        jfile = os.path.join(CUCKOO_ROOT, "storage", "analyses",
+                             "%s" % task_id, "reports", "report.json")
+        with open(jfile, "r") as jdata:
+            buf = json.load(jdata)
     if repconf.mongodb.get("enabled") and not buf:
         buf = results_db.analysis.find_one({"info.id": int(task_id)})
     if es_as_db and not buf:
@@ -1334,11 +1339,7 @@ def tasks_iocs(request, task_id, detail=None):
     if buf is None:
         resp = {"error": True, "error_value": "Sample not found in database"}
         return jsonize(resp, response=True)
-    if repconf.jsondump.get("enabled") and not buf:
-        jfile = os.path.join(CUCKOO_ROOT, "storage", "analyses",
-                             "%s" % task_id, "reports", "report.json")
-        with open(jfile, "r") as jdata:
-            buf = json.load(jdata)
+
     if not buf:
         resp = {"error": True,
                 "error_value": "Unable to retrieve report to parse for IOCs"}
@@ -1364,8 +1365,10 @@ def tasks_iocs(request, task_id, detail=None):
     if "target" in buf.keys():
         data["target"] = buf["target"]
         if data["target"]["category"] == "file":
-            del data["target"]["file"]["path"]
-            del data["target"]["file"]["guest_paths"]
+            if "path" in data["target"]["file"]:
+                del data["target"]["file"]["path"]
+            if "guest_paths" in data["target"]["file"]:
+                del data["target"]["file"]["guest_paths"]
     data["network"] = {}
     if "network" in buf.keys() and buf["network"]:
         data["network"]["traffic"] = {}
