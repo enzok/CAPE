@@ -1493,7 +1493,7 @@ def tasks_iocs(request, task_id, detail=None):
             data["files"]["read"] = buf["behavior"]["summary"]["read_files"]
         if "read_keys" in buf["behavior"]["summary"]:
             data["registry"]["read"] = buf["behavior"]["summary"]["read_keys"]
-        if "resolved_apis" in buf["behavior"]["summary"]["resolved_apis"]:
+        if "resolved_apis" in buf["behavior"]["summary"]:
             data["resolved_apis"] = buf["behavior"]["summary"]["resolved_apis"]
 
     if buf["network"] and "http" in buf["network"]:
