@@ -1336,6 +1336,7 @@ def tasks_iocs(request, task_id, detail=None):
             buf = tmp[-1]["_source"]
         else:
             buf = None
+
     if buf is None:
         resp = {"error": True, "error_value": "Sample not found in database"}
         return jsonize(resp, response=True)
@@ -1492,6 +1493,8 @@ def tasks_iocs(request, task_id, detail=None):
             data["files"]["read"] = buf["behavior"]["summary"]["read_files"]
         if "read_keys" in buf["behavior"]["summary"]:
             data["registry"]["read"] = buf["behavior"]["summary"]["read_keys"]
+        if "resolve_apis" in buf["behavior"]["summary"]["resolved_apis"]:
+            data["resolved_apis"] = buf["behavior"]["summary"]["resolved_apis"]
 
     if buf["network"] and "http" in buf["network"]:
         data["network"]["http"] = {}
