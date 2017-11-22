@@ -1563,6 +1563,8 @@ def zipdownload(request, category, task_id, dlfile):
             path = os.path.join(CUCKOO_ROOT, "storage", "analyses", task_id, "procdump", dlfile)
         elif category == "CAPE":
             path = os.path.join(CUCKOO_ROOT, "storage", "analyses", task_id, "CAPE", dlfile)
+        elif category == "suricata":
+            path = os.path.join(CUCKOO_ROOT, "storage", "analyses", task_id, "logs", "files", "file." + dlfile + "*")
 
         bin_path = path
         zip_file = os.path.join(settings.TEMP_PATH, "zip-upload", file_name)
