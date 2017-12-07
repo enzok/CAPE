@@ -302,9 +302,9 @@ def index(request):
                 base_dir = tempfile.mkdtemp(prefix='cuckoovtdl',dir=settings.VTDL_PATH)
                 hashlist = []
                 if "," in vtdl:
-                    hashlist=vtdl.split(",")
+                    hashlist=vtdl.replace(" ", "").strip().split(",")
                 else:
-                    hashlist.append(vtdl)
+                    hashlist=vtdl.split()
                 onesuccess = False
 
                 for h in hashlist:
