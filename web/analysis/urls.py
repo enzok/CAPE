@@ -16,6 +16,7 @@ urlpatterns = [
     url(r"^antivirus/(?P<task_id>\d+)/$",views.antivirus, name='antivirus'),
     url(r"^shrike/(?P<task_id>\d+)/$", views.shrike, name='shrike'),
     url(r"^remove/(?P<task_id>\d+)/$", views.remove, name='remove'),
+    url(r"^reschedule/(?P<task_id>\d+)/$", views.reschedule, name='reschedule'),
     url(r"^chunk/(?P<task_id>\d+)/(?P<pid>\d+)/(?P<pagenum>\d+)/$", views.chunk, name='chunk'),
     url(r"^filtered/(?P<task_id>\d+)/(?P<pid>\d+)/(?P<category>\w+)/(?P<apilist>[!]?[A-Za-z_0-9,%]*)/$", views.filtered_chunk, name='filtered_chunk'),
     url(r"^search/(?P<task_id>\d+)/$", views.search_behavior, name='search_behavior'),

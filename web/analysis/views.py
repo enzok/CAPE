@@ -1637,3 +1637,21 @@ def configdownload(request, task_id, cape_name):
     else:
         return render(request, "error.html",
                       {"error": "Could not retrieve results for task {} from db.".format(task_id)})
+
+
+@conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
+def reschedule(request, task_id):
+    db = Database()
+    task = db.view_task(task_id)
+
+    if not task:
+        resp = {"error": "Task ID does not exist in the database"}
+        return render(request, "error.html", resp)
+
+    if db.reschedule(task_id):
+        resp = {"message": "Task ID {} has been rescheduled".format(task_id)}
+    else:
+        resp = {"error": "An error occured while trying to reschedule Task ID {0}".format(task_id)}
+        return render(request, "error.html", resp)
+
+    return render(request, "success_simple.html", resp)
