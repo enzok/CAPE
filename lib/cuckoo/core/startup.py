@@ -795,16 +795,37 @@ def init_routing():
     #if cuckoo.routing.inetsim_interface and cuckoo.routing.inetsim_interface !=  cuckoo.routing.tor_interface:
     # Check if inetsim interface exists, if yes then enable nat
     if cuckoo.routing.inetsim_interface:
-        if not rooter("nic_available", cuckoo.routing.tor_interface):
+        if not rooter("nic_available", cuckoo.routing.inetsim_interface):
             raise CuckooStartupError(
-                "The network interface that has been configured as tor "
+                "The network interface that has been configured as inetsim "
                 "line is not available."
             )
 
         # Disable & enable NAT on this network interface. Disable it just
         # in case we still had the same rule from a previous run.
-        rooter("disable_nat", cuckoo.routing.tor_interface)
-        rooter("enable_nat", cuckoo.routing.tor_interface)
+        rooter("disable_nat", cuckoo.routing.inetsim_interface)
+        rooter("enable_nat", cuckoo.routing.inetsim_interface)
+
+        # Populate routing table with entries from main routing table.
+        if cuckoo.routing.auto_rt:
+            rooter("flush_rttable", cuckoo.routing.rt_table)
+            rooter("init_rttable", cuckoo.routing.rt_table,
+                   cuckoo.routing.internet)
+
+    # Check if hostonly interface exists, if yes then enable nat, if interface is not the same as tor
+    #if cuckoo.routing.hostonly_interface and cuckoo.routing.hostonly_interface !=  cuckoo.routing.tor_interface:
+    # Check if hostonly interface exists, if yes then enable nat
+    if cuckoo.routing.hostonly_interface:
+        if not rooter("nic_available", cuckoo.routing.hostonly_interface):
+            raise CuckooStartupError(
+                "The network interface that has been configured as hostonly "
+                "line is not available."
+            )
+
+        # Disable & enable NAT on this network interface. Disable it just
+        # in case we still had the same rule from a previous run.
+        rooter("disable_nat", cuckoo.routing.hostonly_interface)
+        rooter("enable_nat", cuckoo.routing.hostonly_interface)
 
         # Populate routing table with entries from main routing table.
         if cuckoo.routing.auto_rt:

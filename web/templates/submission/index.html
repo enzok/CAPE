@@ -183,6 +183,7 @@ $(document).ready( function() {
                             {% if tor %}
                                 <option value="tor" >tor (tor anonymized onion network)</option>
                             {% endif %}
+                            <option value="hostonly">inetsim - responds only to HTTP queries for well known IP lookup domains)</option>
                             {% for vpn in vpns %}
                                 <option value="{{ vpn.name }}"{% if route == vpn.name %} selected{% endif %}>{{ vpn.description }} (VPN, {{ vpn.interface }})</option>
                             {% endfor %}

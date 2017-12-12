@@ -468,6 +468,7 @@ def index(request):
                                    "route": cfg.routing.route,
                                    "internet": cfg.routing.internet,
                                    "inetsim": cfg.routing.inetsim,
+                                   "hostonly": cfg.routing.hostonly,
                                    "tor": cfg.routing.tor,
                                    "gateways": settings.GATEWAYS,
                                    "config": enabledconf})

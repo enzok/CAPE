@@ -514,6 +514,8 @@ class AnalysisManager(threading.Thread):
             self.rt_table = None
         elif self.route == "inetsim":
             self.interface = self.cfg.routing.inetsim_interface
+        elif self.route == "hostonly":
+            self.interface = self.cfg.routing.hostonly_interface
         elif self.route == "tor":
             self.interface = self.cfg.routing.tor_interface
         elif self.route == "internet" and self.cfg.routing.internet != "none":
@@ -556,6 +558,10 @@ class AnalysisManager(threading.Thread):
             rooter("inetsim_enable", self.machine.ip, str(self.cfg.routing.inetsim_server),
                 str(self.cfg.routing.inetsim_dnsport), str(self.cfg.resultserver.port))
 
+        if self.route == "hostonly":
+            rooter("hostonly_enable", self.machine.ip, str(self.cfg.routing.hostonly_server),
+                   str(self.cfg.routing.hostonly_dnsport), str(self.cfg.resultserver.port))
+
         if self.route == "tor":
             rooter("tor_enable", self.machine.ip, str(self.cfg.resultserver.port),
                 str(self.cfg.routing.tor_dnsport), str(self.cfg.routing.tor_proxyport))
@@ -586,6 +592,10 @@ class AnalysisManager(threading.Thread):
         if self.route == "inetsim":
           rooter("inetsim_disable", self.machine.ip, self.cfg.routing.inetsim_server,
                 str(self.cfg.routing.inetsim_dnsport), str(self.cfg.resultserver.port))
+
+        if self.route == "hostonly":
+            rooter("hostonly_disable", self.machine.ip, self.cfg.routing.hostonly_server,
+                   str(self.cfg.routing.hostonly_dnsport), str(self.cfg.resultserver.port))
 
         if self.route == "tor":
             rooter("tor_disable", self.machine.ip, str(self.cfg.resultserver.port),

@@ -217,6 +217,50 @@ def tor_disable(ipaddr, resultserver_port, dns_port, proxy_port):
        print sto
        print ste
 
+def hostonly_enable(ipaddr, inetsim_ip, dns_port, resultserver_port):
+    """Enable hijacking of all traffic and send it to hostonly InetSIM."""
+    log.info("Enabling hostonly inetsim route.")
+    run(settings.iptables, "-t", "nat", "-I", "PREROUTING", "--source", ipaddr,
+        "-p", "tcp", "--syn", "!", "--dport", resultserver_port, "-j", "DNAT",
+        "--to-destination", "{}".format(inetsim_ip))
+    run(settings.iptables, "-I", "1", "OUTPUT", "-m", "conntrack", "--ctstate",
+        "INVALID", "-j", "DROP")
+    run(settings.iptables, "-I", "2", "OUTPUT", "-m", "state", "--state",
+        "INVALID", "-j", "DROP")
+    run(settings.iptables, "-t", "nat", "-A", "PREROUTING", "-p",
+        "tcp", "--dport", "53", "--source", ipaddr, "-j", "DNAT",
+        "--to-destination", "{}:{}".format(inetsim_ip, dns_port))
+    run(settings.iptables, "-t", "nat", "-A", "PREROUTING", "-p",
+        "udp", "--dport", "53", "--source", ipaddr, "-j", "DNAT",
+        "--to-destination", "{}:{}".format(inetsim_ip, dns_port))
+    if settings.verbose:
+        (sto, ste) =run(settings.iptables, "-t", "nat", "-v", "-L", "PREROUTING", "-n",
+                        "--line-number")
+        print sto
+        print ste
+
+def hostonly_disable(ipaddr, inetsim_ip, dns_port, resultserver_port):
+    """Disable hijacking of all traffic and send it to hostonly InetSIM."""
+    log.info("Disabling hostonly inetsim route.")
+    run(settings.iptables, "-D", "PREROUTING", "-t", "nat", "--source", ipaddr,
+        "-p", "tcp", "--syn", "!", "--dport", resultserver_port, "-j", "DNAT",
+        "--to-destination", "{}".format(inetsim_ip))
+    run(settings.iptables, "-D", "OUTPUT", "-m", "conntrack", "--ctstate",
+        "INVALID", "-j", "DROP")
+    run(settings.iptables, "-D", "OUTPUT", "-m", "state", "--state",
+        "INVALID", "-j", "DROP")
+    run(settings.iptables, "-D", "PREROUTING", "-t", "nat", "-p", "tcp",
+        "--dport", "53", "--source", ipaddr, "-j", "DNAT", "--to-destination",
+        "{}:{}".format(inetsim_ip, dns_port))
+    run(settings.iptables, "-D", "PREROUTING", "-t", "nat", "-p", "udp",
+        "--dport", "53", "--source", ipaddr, "-j", "DNAT", "--to-destination",
+        "{}:{}".format(inetsim_ip, dns_port))
+    if settings.verbose:
+        (sto, ste) = run(settings.iptables, "-t", "nat", "-v", "-L", "PREROUTING", "-n",
+                         "--line-number")
+        print sto
+        print ste
+
 handlers = {
     "nic_available": nic_available,
     "rt_available": rt_available,
@@ -234,6 +278,8 @@ handlers = {
     "srcroute_disable": srcroute_disable,
     "inetsim_enable": inetsim_enable,
     "inetsim_disable": inetsim_disable,
+    "hostonly_enable": hostonly_enable,
+    "hostonly_disable": hostonly_disable,
     "tor_enable": tor_enable,
     "tor_disable": tor_disable,
 }
