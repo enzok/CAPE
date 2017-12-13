@@ -315,11 +315,11 @@ def index(request):
                 onesuccess = False
 
                 for h in hashlist:
+                    if opt_filename:
+                        filename = base_dir + "/" + opt_filename
+                    else:
+                        filename = base_dir + "/" + h
                     if settings.VTDL_PRIV_KEY:
-                        if opt_filename:
-                            filename = base_dir + "/" + opt_filename
-                        else:
-                            filename = base_dir + "/" + h
                         url = 'https://www.virustotal.com/vtapi/v2/file/download'
                         params = {'apikey': settings.VTDL_PRIV_KEY, 'hash': h}
                     else:
@@ -374,9 +374,12 @@ def index(request):
             hash = request.POST.get("resubmit").strip()
             if not hash or len(hash) != 64:
                 return render(request, "error.html", {"error": "You specified an invalid hash!"})
-
+            if opt_filename:
+                fname = opt_filename
+            else:
+                fname = hash
             base_dir = tempfile.mkdtemp(prefix='cuckooresubmit', dir="/tmp/")
-            filename = "{}/{}".format(base_dir, hash)
+            filename = "{}/{}".format(base_dir, fname)
 
             url = "https://{}:{}/files/get/{}".format(settings.CUCKOO_HOST, settings.CUCKOO_PORT, hash)
 
