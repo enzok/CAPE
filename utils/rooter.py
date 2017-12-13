@@ -227,12 +227,7 @@ def hostonly_enable(ipaddr, inetsim_ip, dns_port, resultserver_port):
         "INVALID", "-j", "DROP")
     run(settings.iptables, "-I", "2", "OUTPUT", "-m", "state", "--state",
         "INVALID", "-j", "DROP")
-    run(settings.iptables, "-t", "nat", "-A", "PREROUTING", "-p",
-        "tcp", "--dport", "53", "--source", ipaddr, "-j", "DNAT",
-        "--to-destination", "{}:{}".format(inetsim_ip, dns_port))
-    run(settings.iptables, "-t", "nat", "-A", "PREROUTING", "-p",
-        "udp", "--dport", "53", "--source", ipaddr, "-j", "DNAT",
-        "--to-destination", "{}:{}".format(inetsim_ip, dns_port))
+    dns_forward("-A", ipaddr, inetsim_ip, dns_port)
     if settings.verbose:
         (sto, ste) =run(settings.iptables, "-t", "nat", "-v", "-L", "PREROUTING", "-n",
                         "--line-number")
@@ -249,12 +244,7 @@ def hostonly_disable(ipaddr, inetsim_ip, dns_port, resultserver_port):
         "INVALID", "-j", "DROP")
     run(settings.iptables, "-D", "OUTPUT", "-m", "state", "--state",
         "INVALID", "-j", "DROP")
-    run(settings.iptables, "-D", "PREROUTING", "-t", "nat", "-p", "tcp",
-        "--dport", "53", "--source", ipaddr, "-j", "DNAT", "--to-destination",
-        "{}:{}".format(inetsim_ip, dns_port))
-    run(settings.iptables, "-D", "PREROUTING", "-t", "nat", "-p", "udp",
-        "--dport", "53", "--source", ipaddr, "-j", "DNAT", "--to-destination",
-        "{}:{}".format(inetsim_ip, dns_port))
+    dns_forward("-D", ipaddr, inetsim_ip, dns_port)
     if settings.verbose:
         (sto, ste) = run(settings.iptables, "-t", "nat", "-v", "-L", "PREROUTING", "-n",
                          "--line-number")
