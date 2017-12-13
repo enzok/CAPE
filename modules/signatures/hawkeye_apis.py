@@ -94,8 +94,11 @@ class HawkEye_APIs(Signature):
                     self.badness += 10
             for word in self.keywords:
                 if buf.startswith(word):
-                    self.sockets[sock]["data"].append(buf)
-                    self.badsocks.add(sock)
+                    try:
+                        self.sockets[sock]["data"].append(buf)
+                        self.badsocks.add(sock)
+                    except KeyError as e:
+                        continue
 
         elif call["api"] == "NtCreateEvent":
             evname = self.get_argument(call, "EventName")
