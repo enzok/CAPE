@@ -703,23 +703,24 @@ def init_routing():
                 continue
 
             if not hasattr(vpn, name):
-                raise CuckooStartupError("Could not find VPN configuration for %s" % name)
+                raise CuckooStartupError(
+                    "Could not find VPN configuration for %s" % name
+                )
 
             entry = vpn.get(name)
-            add = 1
-            if not rooter("nic_available", entry.interface):
-                raise CuckooStartupError(
-                   "The network interface that has been configured for "
-                    "VPN %s is not available." % entry.name
-                )
-                add = 0
+            #add = 1
+            #if not rooter("nic_available", entry.interface):
+                #raise CuckooStartupError(
+                #   "The network interface that has been configured for "
+                #    "VPN %s is not available." % entry.name
+                #)
+            #    add = 0
             if not rooter("rt_available", entry.rt_table):
                 raise CuckooStartupError(
                     "The routing table that has been configured for "
                     "VPN %s is not available." % entry.name
                 )
-            if add:
-                vpns[entry.name] = entry
+            vpns[entry.name] = entry
 
             # Disable & enable NAT on this network interface. Disable it just
             # in case we still had the same rule from a previous run.
@@ -791,7 +792,9 @@ def init_routing():
 
 
     # Check if inetsim interface exists, if yes then enable nat, if interface is not the same as tor
-    if cuckoo.routing.inetsim_interface and cuckoo.routing.inetsim_interface != cuckoo.routing.tor_interface:
+    #if cuckoo.routing.inetsim_interface and cuckoo.routing.inetsim_interface !=  cuckoo.routing.tor_interface:
+    # Check if inetsim interface exists, if yes then enable nat
+    if cuckoo.routing.inetsim_interface:
         if not rooter("nic_available", cuckoo.routing.inetsim_interface):
             raise CuckooStartupError(
                 "The network interface that has been configured as inetsim "
@@ -810,7 +813,9 @@ def init_routing():
                    cuckoo.routing.internet)
 
     # Check if hostonly interface exists, if yes then enable nat, if interface is not the same as tor
-    if cuckoo.routing.hostonly_interface and cuckoo.routing.inetsim_interface != cuckoo.routing.tor_interface:
+    #if cuckoo.routing.hostonly_interface and cuckoo.routing.hostonly_interface !=  cuckoo.routing.tor_interface:
+    # Check if hostonly interface exists, if yes then enable nat
+    if cuckoo.routing.hostonly_interface:
         if not rooter("nic_available", cuckoo.routing.hostonly_interface):
             raise CuckooStartupError(
                 "The network interface that has been configured as hostonly "
