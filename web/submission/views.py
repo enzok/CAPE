@@ -73,7 +73,10 @@ def index(request):
         enforce_timeout = bool(request.POST.get("enforce_timeout", False))
         referrer = validate_referrer(request.POST.get("referrer", None))
         tags = request.POST.get("tags", None)
-
+        for option in options.split(","):
+            if option.startswith("filename="):
+                opt_filename = option.split("filename=")[1]
+                break
         task_gateways = []
         ipaddy_re = re.compile(r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
 
@@ -185,8 +188,11 @@ def index(request):
     
                 # Moving sample from django temporary file to Cuckoo temporary storage to
                 # let it persist between reboot (if user like to configure it in that way).
-                path = store_temp_file(sample.read(),
-                                       sample.name)
+                if opt_filename:
+                    filename = opt_filename
+                else:
+                    filename = sample.name
+                path = store_temp_file(sample.read(), filename.decode('utf-8', errors="ignore"))
     
                 for gw in task_gateways:
                     options = update_options(gw, orig_options)
@@ -308,8 +314,11 @@ def index(request):
                 onesuccess = False
 
                 for h in hashlist:
-                    filename = base_dir + "/" + h
                     if settings.VTDL_PRIV_KEY:
+                        if opt_filename:
+                            filename = base_dir + "/" + opt_filename
+                        else:
+                            filename = base_dir + "/" + h
                         url = 'https://www.virustotal.com/vtapi/v2/file/download'
                         params = {'apikey': settings.VTDL_PRIV_KEY, 'hash': h}
                     else:
