@@ -100,7 +100,7 @@ def index(request):
         if request.POST.get("tor"):
             if options:
                 options += ","
-            options += "tor=yes"
+            options += "route=tor"
 
         if request.POST.get("process_dump"):
             if options:

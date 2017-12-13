@@ -524,22 +524,11 @@ class AnalysisManager(threading.Thread):
         elif self.route in vpns:
             self.interface = vpns[self.route].interface
             self.rt_table = vpns[self.route].rt_table
-            #startup the configured vpn
-            rooter("vpn_enable", self.route)
-            timeout = 0
-            while timeout < 30:
-                if not rooter("nic_available", self.interface):
-                    time.sleep(1)
-                    timeout += 1
-                    log.info("Waiting for VPN interface '%s' to be enabled.",
-                              self.interface)
-                else:
-                    log.info("Enabled VPN interface '%s'", self.interface)
-                    break
         else:
             log.warning("Unknown network routing destination specified, "
                         "ignoring routing for this analysis: %r", self.route)
-            self.interface = None
+            self.route = "inetsim"
+            self.interface = self.cfg.routing.inetsim_interface
             self.rt_table = None
 
         # Check if the network interface is still available. If a VPN dies for
@@ -550,8 +539,8 @@ class AnalysisManager(threading.Thread):
                 "not available at the moment, switching to route=none mode.",
                 self.interface
             )
-            self.route = "none"
-            self.interface = None
+            self.route = "inetsim"
+            self.interface = self.cfg.routing.inetsim_interface
             self.rt_table = None
 
         if self.route == "inetsim":
@@ -582,14 +571,9 @@ class AnalysisManager(threading.Thread):
         if self.interface:
             rooter("forward_disable", self.machine.interface,
                    self.interface, self.machine.ip)
-            log.info("Disabled route '%s'", self.route)
 
         if self.rt_table:
             rooter("srcroute_disable", self.rt_table, self.machine.ip)
-
-        if self.route in vpns:
-            rooter("vpn_disable", self.route)
-            time.sleep(1)
 
         if self.route == "inetsim":
           rooter("inetsim_disable", self.machine.ip, self.cfg.routing.inetsim_server,
@@ -602,6 +586,8 @@ class AnalysisManager(threading.Thread):
         if self.route == "tor":
             rooter("tor_disable", self.machine.ip, str(self.cfg.resultserver.port),
                 str(self.cfg.routing.tor_dnsport), str(self.cfg.routing.tor_proxyport))
+
+        log.info("Disabled route '%s'", self.route)
 
 class Scheduler:
     """Tasks Scheduler.
@@ -697,13 +683,11 @@ class Scheduler:
 
             # Drop forwarding rule to each VPN.
             for vpn in vpns.values():
-                rooter("forward_disable", machine.interface,
-                       vpn.interface, machine.ip)
+                rooter("forward_disable", machine.interface, vpn.interface, machine.ip)
 
             # Drop forwarding rule to the internet / dirty line.
             if self.cfg.routing.internet != "none":
-                rooter("forward_disable", machine.interface,
-                       self.cfg.routing.internet, machine.ip)
+                rooter("forward_disable", machine.interface, self.cfg.routing.internet, machine.ip)
 
     def stop(self):
         """Stop scheduler."""
