@@ -129,6 +129,16 @@ def srcroute_disable(rt_table, ipaddr):
     run(settings.ip, "rule", "del", "from", ipaddr, "table", rt_table)
     run(settings.ip, "route", "flush", "cache")
 
+def dns_forward(action, vm_ip, dns_ip, dns_port="53"):
+    """Route DNS requests from the VM to a custom DNS on a separate network."""
+    run(settings.iptables, "-t", "nat", action, "PREROUTING", "-p", "tcp",
+        "--dport", "53", "--source", vm_ip, "-j", "DNAT",
+        "--to-destination", "%s:%s" % (dns_ip, dns_port))
+
+    run(settings.iptables, "-t", "nat", action, "PREROUTING", "-p", "udp",
+        "--dport", "53", "--source", vm_ip, "-j", "DNAT",
+        "--to-destination", "%s:%s" % (dns_ip, dns_port))
+
 def inetsim_enable(ipaddr, inetsim_ip, dns_port, resultserver_port):
    """Enable hijacking of all traffic and send it to InetSIM."""
    log.info("Enabling inetsim route.")
@@ -139,12 +149,7 @@ def inetsim_enable(ipaddr, inetsim_ip, dns_port, resultserver_port):
        "INVALID", "-j", "DROP")
    run(settings.iptables, "-I", "2", "OUTPUT", "-m", "state", "--state",
        "INVALID", "-j", "DROP")
-   run(settings.iptables, "-t", "nat", "-A", "PREROUTING", "-p",
-       "tcp", "--dport", "53", "--source", ipaddr, "-j", "DNAT",
-       "--to-destination", "{}:{}".format(inetsim_ip, dns_port))
-   run(settings.iptables, "-t", "nat", "-A", "PREROUTING", "-p",
-       "udp", "--dport", "53", "--source", ipaddr, "-j", "DNAT",
-       "--to-destination", "{}:{}".format(inetsim_ip, dns_port))
+   dns_forward("-A", ipaddr, inetsim_ip, dns_port)
    if settings.verbose:
        (sto, ste) =run(settings.iptables, "-t", "nat", "-v", "-L", "PREROUTING", "-n",
            "--line-number") 
@@ -161,12 +166,7 @@ def inetsim_disable(ipaddr, inetsim_ip, dns_port, resultserver_port):
        "INVALID", "-j", "DROP")
    run(settings.iptables, "-D", "OUTPUT", "-m", "state", "--state",
        "INVALID", "-j", "DROP")
-   run(settings.iptables, "-D", "PREROUTING", "-t", "nat", "-p", "tcp",
-       "--dport", "53", "--source", ipaddr, "-j", "DNAT", "--to-destination",
-       "{}:{}".format(inetsim_ip, dns_port))
-   run(settings.iptables, "-D", "PREROUTING", "-t", "nat", "-p", "udp",
-       "--dport", "53", "--source", ipaddr, "-j", "DNAT", "--to-destination",
-       "{}:{}".format(inetsim_ip, dns_port))
+   dns_forward("-D", ipaddr, inetsim_ip, dns_port)
    if settings.verbose:
        (sto, ste) = run(settings.iptables, "-t", "nat", "-v", "-L", "PREROUTING", "-n",
            "--line-number") 
