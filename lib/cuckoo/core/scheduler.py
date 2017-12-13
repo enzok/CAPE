@@ -570,6 +570,8 @@ class AnalysisManager(threading.Thread):
             rooter("forward_enable", self.machine.interface,
                    self.interface, self.machine.ip)
 
+        log.info("Enabled interface '%s'", self.interface)
+
         if self.rt_table:
             rooter("srcroute_enable", self.rt_table, self.machine.ip)
 
@@ -580,7 +582,7 @@ class AnalysisManager(threading.Thread):
         if self.interface:
             rooter("forward_disable", self.machine.interface,
                    self.interface, self.machine.ip)
-            log.info("Disabled VPN interface '%s'", self.interface)
+            log.info("Disabled interface '%s'", self.interface)
 
         if self.rt_table:
             rooter("srcroute_disable", self.rt_table, self.machine.ip)
