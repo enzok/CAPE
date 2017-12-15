@@ -19,7 +19,7 @@ rule Ursnif
 
         $decrypt32_1 = {A3 ?? B2 ?? ?? 3D ?? ?? ?? ?? 74 29 8B 53 0C 8B 43 10 6A 01 56 03 D7 E8 ?? ?? 00 00 C7 45 FC 0C 00 00 00 EB 10}
         $decrypt64_1 = {89 0D C6 57 03 00 81 ?? ?? ?? ?? ?? 74 28 8B 4F 0C 8B 57 10 44 8D 45 0D 48 03 CE 45 8B CE E8 ?? ?? 02 00 BB 0C 00 00 00 EB 0C}
-        $decrypt64_2 = {44 89 1D 4C 67 03 00 41 81 ?? ?? ?? ?? ?? 74 28 8B 4F 0C 8B 57 10 44 8D 45 0E 48 03 CE 45 8B CE E8 ?? ?? 0n2 00 BB 0C 00 00 00 EB 0C}
+        $decrypt64_2 = {44 89 1D 4C 67 03 00 41 81 ?? ?? ?? ?? ?? 74 28 8B 4F 0C 8B 57 10 44 8D 45 0E 48 03 CE 45 8B CE E8 ?? ?? 02 00 BB 0C 00 00 00 EB 0C}
 
     condition:
         uint16(0) == 0x5A4D and (any of ($decrypt32*)) or (any of ($decrypt64*)) or ((all of ($b*)) and $c1 or $d1) or (all of ($a*))
