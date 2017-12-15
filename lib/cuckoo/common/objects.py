@@ -408,6 +408,7 @@ class File:
                     "name": match.rule,
                     "meta": match.meta,
                     "strings": list(strings),
+                    "addresses": addresses,
                 })
 
         except Exception as e:
