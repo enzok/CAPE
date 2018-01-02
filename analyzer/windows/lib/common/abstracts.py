@@ -155,7 +155,7 @@ class Package(object):
         # Setup pre-defined registry keys.
         self.init_regkeys(self.REGKEYS)
 
-        p = Process()
+        p = Process(options=self.options, config=self.config)
         if not p.execute(path=path, args=args, suspended=suspended, kernel_analysis=kernel_analysis):
             raise CuckooPackageError("Unable to execute the initial process, "
                                      "analysis aborted.")
@@ -192,7 +192,7 @@ class Package(object):
 
         suspended = True
 
-        p = Process()
+        p = Process(options=self.options, config=self.config)
         if not p.execute(path=path, args=args, suspended=suspended, kernel_analysis=False):
             raise CuckooPackageError("Unable to execute the initial process, "
                                      "analysis aborted.")
