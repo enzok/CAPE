@@ -3,7 +3,6 @@
 # See the file 'docs/LICENSE' for copying permission.
 
 import tempfile
-from json import loads
 
 from lib.common.abstracts import Package
 
@@ -14,27 +13,15 @@ class Applet(Package):
         ("ProgramFiles", "Internet Explorer", "iexplore.exe"),
     ]
 
-    def make_html(self, path, class_name, param_list):
-        params = ""
-
-        if param_list:
-            params = loads(param_list)
-            for name in params:
-                params += """
-                <param name="%s" value="%s" />
-                """ % (name, param_list[name])
-        html_start = """
+    def make_html(self, path, class_name):
+        html = """
         <html>
             <body>
                 <applet archive="%s" code="%s" width="1" height="1">
-        """ % (path, class_name)
-        html_end = """
                 </applet>
             </body>
         </html>
-        """
-
-        html = html_start + params + html_end
+        """ % (path, class_name)
 
         _, file_path = tempfile.mkstemp(suffix=".html")
         with open(file_path, "w") as file_handle:
@@ -45,6 +32,5 @@ class Applet(Package):
     def start(self, path):
         browser = self.get_path("browser")
         class_name = self.options.get("class")
-        param_list = self.options.get("applet_params")
-        html_path = self.make_html(path, class_name, param_list)
+        html_path = self.make_html(path, class_name)
         return self.execute(browser, "\"%s\"" % html_path, html_path)
