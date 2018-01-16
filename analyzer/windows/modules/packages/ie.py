@@ -95,12 +95,7 @@ class IE(Package):
         ],
     ]
 
-    def start(self, path):
+    def start(self, url):
         iexplore = self.get_path("Internet Explorer")
 
-        if not path.endswith((".htm", ".html", ".mht", ".mhtml")):
-            shutil.copy(path, path + ".html")
-            path += ".html"
-            log.info("Submitted file is missing extension, adding .html")
-
-        return self.execute(iexplore, "\"%s\"" % path, path)
+        return self.execute(iexplore, "\"%s\"" % url, url)
