@@ -143,6 +143,7 @@ class ElasticsearchDB(Report):
                         report["CAPE"] = cape
             report["signatures"] = results.get("signatures")
             report["strings"] = results.get("strings")
+            report["comments"] = results["info"].get("comments", "")
             report["mmbot"] = results.get("static", {}).get("office", {}).get("mmbot", {})
 
 
