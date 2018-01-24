@@ -3,7 +3,7 @@
    and  open to any user or organization, as long as you use it under this license.
 */
 
-private rule is__Mirai_gen7 {
+private rule is__Mirai_gen7_a {
 	meta:
 		description = "Generic detection for MiraiX version 7"
 		reference = "http://blog.malwaremustdie.org/2016/08/mmd-0056-2016-linuxmirai-just.html"
@@ -51,6 +51,6 @@ rule Mirai_Okiru {
 	condition:
     		all of them
 		and is__elf_oki
-		and is__Mirai_gen7
+		and is__Mirai_gen7_a
 		and filesize < 100KB 
 }
