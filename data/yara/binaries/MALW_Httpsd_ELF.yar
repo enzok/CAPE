@@ -83,7 +83,7 @@ rule Linux_Httpsd_malware_i686 {
 
 	condition:
 		all of them
-        	and is__elf
+        	and is__elf_http
 		and is__LinuxHttpsdStrings
 		and filesize < 200KB 
 }
