@@ -39,7 +39,7 @@ private rule is__LinuxHttpsdStrings {
 }
 
 
-private rule is__elf {
+private rule is__elf_http {
 
 	meta:
 		author = "@mmorenog,@yararules"
@@ -64,7 +64,7 @@ rule Linux_Httpsd_malware_ARM {
 
 	condition:
 		all of them
-        	and is__elf
+        	and is__elf_http
 		and is__LinuxHttpsdStrings
 		and filesize < 200KB 
 }

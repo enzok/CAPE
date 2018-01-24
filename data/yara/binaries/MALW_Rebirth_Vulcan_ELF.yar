@@ -59,7 +59,7 @@ private rule is__bot_Rebirth_gen3 {
         	6 of them
 }
 
-private rule is__elf {
+private rule is__elf_vul {
 	meta:
 		author = "@mmorenog,@yararules"
 	strings:
@@ -78,7 +78,7 @@ rule MALW_Rebirth_Vulcan_ELF {
 		$spec02 = "Vulcan" fullword nocase wide ascii
 	condition:
                 all of them
-		and is__elf
+		and is__elf_vul
 		and is__str_Rebirth_gen3
 		and is__hex_Rebirth_gen3
 		and is__bot_Rebirth_gen3

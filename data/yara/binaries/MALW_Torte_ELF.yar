@@ -4,7 +4,7 @@
 */
 
 
-private rule is__elf
+private rule is__elf_tor
 {
     meta:
 		author = "@mmorenog,@yararules"
@@ -41,7 +41,7 @@ rule ELF_Linux_Torte : Linux ELF
         $s11 = "_ZSt20__throw_out_of_rangePKc@@GLIBCXX_3.4"
         
         condition:
-        is__elf and all of ($s*)
+        is__elf_tor and all of ($s*)
 }
 
 

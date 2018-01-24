@@ -24,7 +24,7 @@ private rule is__Mirai_gen7 {
         	5 of them
 }
 
-private rule is__elf {
+private rule is__elf_sat {
 
 	meta:
 		author = "@mmorenog,@yararules"
@@ -64,7 +64,7 @@ rule Mirai_Satori {
 
 	condition:
 		all of them
-		and is__elf
+		and is__elf_sat
 		and is__Mirai_gen7
 		and is__Mirai_Satori_gen
 		and filesize < 100KB 
