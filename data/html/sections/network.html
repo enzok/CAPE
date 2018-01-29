@@ -226,12 +226,12 @@
          </div>
         {% endif %}
 
-        {% if analysis.suricata.alerts %}
+        {% if results.suricata.alerts %}
         <div>
             {% if summary_report %}
                 <h4>Suricata Alerts</h4>
                 <div id="surialert">
-             {%else}
+             {% else %}
                 <h4><a href="javascript:showHide('surialert');">Suricata Alerts</a></h4>
                 <div id="surialert" style="display: none;">
             {% endif %}
@@ -246,36 +246,14 @@
                     <th>Category</th>
                     <th>Severity</th>
                 </tr>
-                {% for alert in analysis.suricata.alerts %}
+                {% for alert in results.suricata.alerts %}
                 <tr>
                     <td>{{alert.timestamp}}</td>
-                    <td>{{alert.dstip}}
-                        <a href="https://www.virustotal.com/en/ip-address/{{alert.dstip}}/information/">[VT]</a>
-                        {% if config.display_et_portal %}
-                            <a href="https://threatintel.proofpoint.com/search?q={{alert.dstip}}" target="_blank">[ET]</a>
-                        {% endif %}
-                        {% if config.display_pt_portal %}
-                            <a href="https://www.passivetotal.org/passive/{{alert.dstip}}" target="_blank">[PT]</a>
-                        {% endif %}
-                        {% if alert.moloch_dst_ip_url %}
-                            <a href={{alert.moloch_dst_ip_url}} target="_blank">[MLCH]</a>
-                        {% endif %}
-                    </td>
-                    <td>{{alert.dstport}}
-                        {% if alert.moloch_dst_port_url %}
-                            <a href={{alert.moloch_dst_port_url}} target="_blank">[MLCH]</a>
-                        {% endif %}
-                    </td>
+                    <td>{{alert.dstip}} </td>
+                    <td>{{alert.dstport}} </td>
                     <td>{{alert.protocol}}</td>
                     <td>{{alert.rev}}</td>
-                    <td>{{alert.signature}}
-                        {% if config.display_et_portal %}
-                            <a href="https://threatintel.proofpoint.com/search?q={{alert.signature}}" target="_blank">[ET]</a>
-                        {% endif %}
-                        {% if alert.moloch_msg_url %}
-                            <a href={{alert.moloch_msg_url}} target="_blank">[MLCH]</a>
-                        {% endif %}
-                    </td>
+                    <td>{{alert.signature}} </td>
                     <td>{{alert.category}}</td>
                     <td>{{alert.severity}}</td>
                 </tr>
