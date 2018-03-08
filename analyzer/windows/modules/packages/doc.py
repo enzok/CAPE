@@ -3,6 +3,7 @@
 # See the file 'docs/LICENSE' for copying permission.
 
 import os
+
 from lib.common.abstracts import Package
 from _winreg import HKEY_CURRENT_USER
 
@@ -61,9 +62,9 @@ class DOC(Package):
 
     def start(self, path):
         word = self.get_path_glob("Microsoft Office Word")
-
-        if not path.endswith((".doc", ".docx", ".docm")):
-            os.rename(path, path + ".doc")
-            path += ".doc"
+        if "." not in os.path.basename(path):
+            new_path = path + ".doc"
+            os.rename(path, new_path)
+            path = new_path
 
         return self.execute(word, "\"%s\" /q" % path, path)

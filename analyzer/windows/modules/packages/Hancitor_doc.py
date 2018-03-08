@@ -6,9 +6,8 @@ import os
 import shutil
 
 from lib.common.abstracts import Package
-import os
 
-class Injection_doc(Package):
+class Hancitor_doc(Package):
     """Word analysis package."""
     PATHS = [
         ("ProgramFiles", "Microsoft Office", "WINWORD.EXE"),
@@ -23,8 +22,8 @@ class Injection_doc(Package):
         """@param options: options dict."""
         self.config = config
         self.options = options
-        self.options["dll"] = "Injection.dll"
-        self.options["dll_64"] = "Injection_x64.dll"
+        self.options["dll"] = "Hancitor.dll"
+        #self.options["dll_64"] = "Hancitor_x64.dll"
         
     def start(self, path):
         word = self.get_path("Microsoft Office Word")
