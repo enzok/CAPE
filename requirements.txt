@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 sqlalchemy
 jinja2
 markupsafe
@@ -24,6 +25,7 @@ elasticsearch
 java-random
 python-whois
 bs4
+pathos==0.2.1
 pefile2==1.2.11
 git+https://github.com/crackinglandia/pype32.git
 git+https://github.com/jsocol/django-ratelimit

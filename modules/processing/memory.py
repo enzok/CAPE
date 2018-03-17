@@ -10,7 +10,8 @@ try:
     import re2 as re
 except ImportError:
     import re
-
+from pathos.multiprocessing import Pool
+from shutil import copyfile
 from lib.cuckoo.common.abstracts import Processing
 from lib.cuckoo.common.config import Config
 from lib.cuckoo.common.constants import CUCKOO_ROOT
@@ -996,72 +997,49 @@ class VolatilityManager(object):
         """Get the OS profile"""
         return VolatilityAPI(self.memfile).imageinfo()["data"][0]["osprofile"]
 
-    def run(self, manager=None, vm=None):
+    def vol_runner(self, func, func_name):
+        return dict(name=func_name, output=func())
+
+    def run(self):
         results = {}
 
         # Exit if options were not loaded.
         if not self.voptions:
             return
 
-        # Check if theres a memory profile configured in the machinery config.
-        profile = Config(manager).get(vm).get("mem_profile")
-        if profile == None:
-            profile = self.osprofile
+        vol = VolatilityAPI(self.memfile, self.osprofile)
+        funcs = []
+        pool = Pool()
+        for plugin_name in self.PLUGINS:
+            if isinstance(plugin_name, list):
+                plugin_name, profiles = plugin_name[0], plugin_name[1:]
+            else:
+                profiles = []
 
-        vol = VolatilityAPI(self.memfile, profile)
+            # Some plugins can only run in certain profiles (i.e., only in
+            # Windows XP/Vista/7, or only in x86 or x64).
+            osp = self.osprofile.lower()
+            for profile in profiles:
+                if osp.startswith(profile) or osp.endswith(profile):
+                    break
+            else:
+                if profiles:
+                    continue
 
-        # TODO: improve the load of volatility functions.
-        if self.voptions.pslist.enabled:
-            results["pslist"] = vol.pslist()
-        if self.voptions.psxview.enabled:
-            results["psxview"] = vol.psxview()
-        if self.voptions.callbacks.enabled:
-            results["callbacks"] = vol.callbacks()
-        if self.voptions.idt.enabled:
-            try:
-                results["idt"] = vol.idt()
-            except:
-                pass
-        if self.voptions.ssdt.enabled:
-            results["ssdt"] = vol.ssdt()
-        if self.voptions.gdt.enabled:
-            try:
-                results["gdt"] = vol.gdt()
-            except:
-                pass
-        if self.voptions.timers.enabled:
-            results["timers"] = vol.timers()
-        if self.voptions.messagehooks.enabled:
-            results["messagehooks"] = vol.messagehooks()
-        if self.voptions.getsids.enabled:
-            results["getsids"] = vol.getsids()
-        if self.voptions.privs.enabled:
-            results["privs"] = vol.privs()
-        if self.voptions.malfind.enabled:
-            results["malfind"] = vol.malfind()
-        if self.voptions.apihooks.enabled:
-            results["apihooks"] = vol.apihooks()
-        if self.voptions.dlllist.enabled:
-            results["dlllist"] = vol.dlllist()
-        if self.voptions.handles.enabled:
-            results["handles"] = vol.handles()
-        if self.voptions.ldrmodules.enabled:
-            results["ldrmodules"] = vol.ldrmodules()
-        if self.voptions.mutantscan.enabled:
-            results["mutantscan"] = vol.mutantscan()
-        if self.voptions.devicetree.enabled:
-            results["devicetree"] = vol.devicetree()
-        if self.voptions.svcscan.enabled:
-            results["svcscan"] = vol.svcscan()
-        if self.voptions.modscan.enabled:
-            results["modscan"] = vol.modscan()
-        if self.voptions.yarascan.enabled:
-            results["yarascan"] = vol.yarascan()
-        if self.voptions.sockscan.enabled and profile.lower().startswith("winxp"):
-            results["sockscan"] = vol.sockscan()
-        if self.voptions.netscan.enabled and (
-                profile.lower().startswith("win7") or profile.lower().startswith("vista")):
-            results["netscan"] = vol.netscan()
+            plugin = self.voptions.get(plugin_name)
+            if not plugin or not plugin.enabled:
+                log.debug("Skipping '%s' volatility module", plugin_name)
+                continue
+
+            if plugin_name in vol.plugins:
+                log.debug("Executing volatility '%s' module.", plugin_name)
+                funcs.append(dict(name=plugin_name, ret=pool.apply_async(getattr(vol,plugin_name))))
+
+        for func in funcs:
+            results[func["name"]] = func["ret"].get()
+
+        pool.close()
+        pool.join()
 
         self.find_taint(results)
         self.do_strings()
