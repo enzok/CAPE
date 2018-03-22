@@ -965,6 +965,30 @@ class VolatilityAPI(object):
 
 class VolatilityManager(object):
     """Handle several volatility results."""
+    PLUGINS = [
+        "pslist",
+        "psxview",
+        "callbacks",
+        ["idt", "x86"],
+        "ssdt",
+        ["gdt", "x86"],
+        "timers",
+        "messagehooks",
+        "getsids",
+        "privs",
+        "malfind",
+        "apihooks",
+        "dlllist",
+        "handles",
+        "ldrmodules",
+        "mutantscan",
+        "devicetree",
+        "svcscan",
+        "modscan",
+        "yarascan",
+        ["sockscan", "winxp"],
+        ["netscan", "vista", "win7"],
+    ]
 
     def __init__(self, memfile, osprofile=None):
         self.mask_pid = []
