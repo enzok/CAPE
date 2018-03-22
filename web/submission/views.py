@@ -140,6 +140,11 @@ def index(request):
                 options += ","
             options += "norefer=1"
 
+        if request.POST.get("save_memory"):
+            if options:
+                options += ","
+            options += "save_memory=yes"
+
         orig_options = options
 
         if gateway and gateway.lower() == "all":

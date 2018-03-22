@@ -1100,7 +1100,7 @@ class VolatilityManager(object):
     def cleanup(self):
         """Delete the memory dump (if configured to do so)."""
 
-        if self.voptions.basic.delete_memdump:
+        if self.voptions.basic.delete_memdump or (self.task_options and 'save_memory=yes' not in self.task_options):
             try:
                 os.remove(self.memfile)
             except OSError:
@@ -1141,6 +1141,9 @@ class Memory(Processing):
         """
         self.key = "memory"
         self.voptions = Config("memory")
+        self.task_options = None
+
+        self.task_options = self.task["options"]
 
         results = {}
         if "machine" not in self.task or not self.task["machine"] or not self.task["memory"]:
