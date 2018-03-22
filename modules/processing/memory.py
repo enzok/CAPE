@@ -1129,7 +1129,7 @@ class Memory(Processing):
             if self.memory_path and os.path.exists(self.memory_path):
                 try:
                     vol = VolatilityManager(self.memory_path)
-                    results = vol.run(manager=machine_manager, vm=task_machine)
+                    results = vol.run()
                 except Exception:
                     log.exception("Generic error executing volatility")
                     if self.voptions.basic.delete_memdump_on_exception:
