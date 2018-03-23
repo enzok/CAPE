@@ -1024,14 +1024,19 @@ class VolatilityManager(object):
     def vol_runner(self, func, func_name):
         return dict(name=func_name, output=func())
 
-    def run(self):
+    def run(self, manager=None, vm=None):
         results = {}
 
         # Exit if options were not loaded.
         if not self.voptions:
             return
 
-        vol = VolatilityAPI(self.memfile, self.osprofile)
+        # Check if theres a memory profile configured in the machinery config.
+        osprofile = Config(manager).get(vm).get("mem_profile")
+        if osprofile is None:
+            osprofile = self.osprofile
+
+        vol = VolatilityAPI(self.memfile, osprofile)
         funcs = []
         pool = Pool()
         for plugin_name in self.PLUGINS:
@@ -1042,7 +1047,7 @@ class VolatilityManager(object):
 
             # Some plugins can only run in certain profiles (i.e., only in
             # Windows XP/Vista/7, or only in x86 or x64).
-            osp = self.osprofile.lower()
+            osp = osprofile.lower()
             for profile in profiles:
                 if osp.startswith(profile) or osp.endswith(profile):
                     break
@@ -1057,7 +1062,7 @@ class VolatilityManager(object):
 
             if plugin_name in vol.plugins:
                 log.debug("Executing volatility '%s' module.", plugin_name)
-                funcs.append(dict(name=plugin_name, ret=pool.apply_async(getattr(vol,plugin_name))))
+                funcs.append(dict(name=plugin_name, ret=pool.apply_async(getattr(vol, plugin_name))))
 
         for func in funcs:
             results[func["name"]] = func["ret"].get()
@@ -1156,7 +1161,7 @@ class Memory(Processing):
             if self.memory_path and os.path.exists(self.memory_path):
                 try:
                     vol = VolatilityManager(self.memory_path)
-                    results = vol.run()
+                    results = vol.run(manager=machine_manager, vm=task_machine)
                 except Exception:
                     log.exception("Generic error executing volatility")
                     if self.voptions.basic.delete_memdump_on_exception:
