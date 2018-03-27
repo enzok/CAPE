@@ -65,17 +65,17 @@ class SubmitCAPE(Report):
             detections.add('Cerber')                            
             
         if cape_yara["name"] == "Ursnif":
-            parse_config64 = cape_yara["addresses"].get("parse_config64")
-            parse_config32 = cape_yara["addresses"].get("parse_config32")
-            if parse_config64:
+            decrypt_config64 = cape_yara["addresses"].get("decrypt_config64")
+            decrypt_config32 = cape_yara["addresses"].get("decrypt_config32")
+            if decrypt_config64:
                 for item in self.task_options_stack:
                     if 'bp0' in item:
                         self.task_options_stack.remove(item)
-                self.task_options_stack.append("bp0={0}".format(parse_config64))
+                self.task_options_stack.append("bp0={0}".format(decrypt_config64))
                 detections.add('Ursnif')
-            elif parse_config32:
+            elif decrypt_config32:
                 if not any('bp0' in s for s in self.task_options_stack):
-                    self.task_options_stack.append("bp0={0}".format(parse_config32))
+                    self.task_options_stack.append("bp0={0}".format(decrypt_config32))
                     detections.add('Ursnif')
 
             crypto64_1 = cape_yara["addresses"].get("crypto64_1")
@@ -105,6 +105,36 @@ class SubmitCAPE(Report):
             elif crypto32_2:
                 if not any('bp1' in s for s in self.task_options_stack):
                     ret_address = int(crypto32_2)
+                    self.task_options_stack.append("bp1={0}".format(str(ret_address)))
+                    detections.add('Ursnif')
+
+            crypto64_3 = cape_yara["addresses"].get("crypto64_3")
+            crypto32_3 = cape_yara["addresses"].get("crypto32_3")
+            if crypto64_3:
+                for item in self.task_options_stack:
+                    if 'bp1' in item:
+                        self.task_options_stack.remove(item)
+                ret_address = int(crypto64_3)
+                self.task_options_stack.append("bp1={0}".format(str(ret_address)))
+                detections.add('Ursnif')
+            elif crypto32_3:
+                if not any('bp1' in s for s in self.task_options_stack):
+                    ret_address = int(crypto32_3)
+                    self.task_options_stack.append("bp1={0}".format(str(ret_address)))
+                    detections.add('Ursnif')
+    
+            crypto64_4 = cape_yara["addresses"].get("crypto64_4")
+            crypto32_4 = cape_yara["addresses"].get("crypto32_4")
+            if crypto64_4:
+                for item in self.task_options_stack:
+                    if 'bp1' in item:
+                        self.task_options_stack.remove(item)
+                ret_address = int(crypto64_4)
+                self.task_options_stack.append("bp1={0}".format(str(ret_address)))
+                detections.add('Ursnif')
+            elif crypto32_4:
+                if not any('bp1' in s for s in self.task_options_stack):
+                    ret_address = int(crypto32_4)
                     self.task_options_stack.append("bp1={0}".format(str(ret_address)))
                     detections.add('Ursnif')
     
