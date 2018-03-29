@@ -34,3 +34,5 @@ pyvmomi>=6.0
 lxml
 imagehash
 upx
+pyparsing
+oletools

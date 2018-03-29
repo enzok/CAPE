@@ -3,7 +3,7 @@
 # See the file 'docs/LICENSE' for copying permission.
 
 import json
-import lib.cuckoo.common.office.olefile as olefile
+import oletools.thirdparty.olefile.olefile as olefile
 import lib.cuckoo.common.office.vbadeobf as vbadeobf
 import lib.cuckoo.common.decoders.darkcomet as darkcomet
 import lib.cuckoo.common.decoders.njrat as njrat
@@ -69,13 +69,13 @@ except:
 from lib.cuckoo.common.abstracts import Processing
 from lib.cuckoo.common.constants import CUCKOO_ROOT
 from lib.cuckoo.common.objects import File
-from lib.cuckoo.common.office.oleid import OleID
-from lib.cuckoo.common.office.olevba import detect_autoexec
-from lib.cuckoo.common.office.olevba import detect_hex_strings
-from lib.cuckoo.common.office.olevba import detect_patterns
-from lib.cuckoo.common.office.olevba import detect_suspicious
-from lib.cuckoo.common.office.olevba import filter_vba
-from lib.cuckoo.common.office.olevba import VBA_Parser
+from oletools.oleid import OleID
+from oletools.olevba import detect_autoexec
+from oletools.olevba import detect_hex_strings
+from oletools.olevba import detect_patterns
+from oletools.olevba import detect_suspicious
+from oletools.olevba import filter_vba
+from oletools.olevba import VBA_Parser
 from lib.cuckoo.common.utils import convert_to_printable, store_temp_file
 from lib.cuckoo.common.pdftools.pdfid import PDFiD, PDFiD2JSON
 from lib.cuckoo.common.peepdf.PDFCore import PDFParser
@@ -1544,7 +1544,7 @@ class WindowsScriptFile(object):
 
             # Decode JScript.Encode encoding.
             if language in ("jscript.encode", "vbscript.encode"):
-                source = EncodedScriptFile(filepath).decode(source)
+                source = EncodedScriptFile(self.filepath).decode(source)
 
             if (len(source) > 65536):
                 source = source[:65536] + "\r\n<truncated>"

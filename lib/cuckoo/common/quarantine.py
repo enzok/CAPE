@@ -7,7 +7,7 @@ import struct
 import hashlib
 from binascii import crc32
 
-import lib.cuckoo.common.office.olefile as olefile
+import oletools.thirdparty.olefile.olefile as olefile
 from lib.cuckoo.common.utils import store_temp_file
 
 def bytearray_xor(data, key):
