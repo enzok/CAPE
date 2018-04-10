@@ -171,24 +171,6 @@ $(document).ready( function() {
                                     </select>
                                 </div>
                                 {% endif %}
-                            <div class="form-group">
-                            <strong>Network routing through TOR, VPN, or Simulated Interenet</strong>
-                            </div>
-                            <div class="form-group">
-                            <select class="form-control" id="form_route" name="route">
-                            <option value="inetsim">inetsim (simulated Internet access)</option>
-                            {% if internet != "none" %}
-                                <option value="internet"{% if route == "internet" %} selected{% endif %}>Internet (dirty line, {{ internet }})</option>
-                            {% endif %}
-                            {% if tor %}
-                                <option value="tor" >tor (tor anonymized onion network)</option>
-                            {% endif %}
-                            <option value="hostonly">inetsim - responds only to HTTP queries for well known IP lookup domains)</option>
-                            {% for vpn in vpns %}
-                                <option value="{{ vpn.name }}"{% if route == vpn.name %} selected{% endif %}>{{ vpn.description }} (VPN, {{ vpn.interface }})</option>
-                            {% endfor %}
-                            </select>
-                            </div>
                                 <div class="form-group">
                                     <label for="form_timeout">Timeout</label>
                                     <input type="text" class="form-control" id="form_timeout" name="timeout" />

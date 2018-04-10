@@ -26,7 +26,6 @@ from lib.cuckoo.common.quarantine import unquarantine
 from lib.cuckoo.common.saztopcap import saz_to_pcap
 from lib.cuckoo.common.exceptions import CuckooDemuxError
 from lib.cuckoo.core.database import Database
-from lib.cuckoo.core.rooter import vpns
 
 # Conditional decorator for web authentication
 class conditional_login_required(object):
@@ -95,11 +94,6 @@ def index(request):
             if options:
                 options += ","
             options += "nohuman=yes"
-
-        if request.POST.get("route", None):
-            if options:
-                options += ","
-            options += "route={0}".format(request.POST.get("route", None))
 
         if request.POST.get("tor"):
             if options:
@@ -430,7 +424,6 @@ def index(request):
         else:
             return render(request, "error.html", {"error": "Error adding task to Cuckoo's database."})
     else:
-        cfg = Config("cuckoo")
         enabledconf = dict()
         enabledconf["vt"] = settings.VTDL_ENABLED
         enabledconf["kernel"] = settings.OPT_ZER0M0N
@@ -482,12 +475,6 @@ def index(request):
         return render(request, "submission/index.html",
                                   {"packages": sorted(packages),
                                    "machines": machines,
-                                   "vpns": vpns.values(),
-                                   "route": cfg.routing.route,
-                                   "internet": cfg.routing.internet,
-                                   "inetsim": cfg.routing.inetsim,
-                                   "hostonly": cfg.routing.hostonly,
-                                   "tor": cfg.routing.tor,
                                    "gateways": settings.GATEWAYS,
                                    "config": enabledconf})
 

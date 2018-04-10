@@ -22,7 +22,6 @@ try:
     from lib.cuckoo.core.startup import cuckoo_remove_pending_tasks, cuckoo_clean_tasks
     from lib.cuckoo.core.scheduler import Scheduler
     from lib.cuckoo.core.resultserver import ResultServer
-    from lib.cuckoo.core.startup import init_rooter, init_routing
 
     import bson
 
@@ -61,8 +60,6 @@ def cuckoo_init(quiet=False, debug=False, artwork=False, test=False):
     init_modules()
     init_tasks()
     init_yara()
-    init_rooter()
-    init_routing()
 
     # This is just a temporary hack, we need an actual test suite to integrate
     # with Travis-CI.
