@@ -704,7 +704,7 @@ class NetworkAnalysis(Processing):
         sorted_path = self.pcap_path.replace("dump.", "dump_sorted.")
         if Config().processing.sort_pcap:
             sort_pcap(self.pcap_path, sorted_path)
-            buf = Pcap(self.pcap_path).run()
+            buf = Pcap(self.pcap_path, self.dns_port).run()
             results = Pcap(sorted_path, self.dns_port).run()
             results["http"] = buf["http"]
             results["dns"] = buf["dns"]
