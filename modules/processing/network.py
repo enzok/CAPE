@@ -57,12 +57,12 @@ enabled_whitelist = Config("processing").network.dnswhitelist
 class Pcap:
     """Reads network data from PCAP file."""
 
-    def __init__(self, filepath, dns_port):
+    def __init__(self, filepath, smtp_port):
         """Creates a new instance.
         @param filepath: path to PCAP file
         """
         self.filepath = filepath
-        self.dns_port = dns_port
+        self.smtp_port = smtp_port
 
         # List of all hosts.
         self.hosts = []
@@ -219,7 +219,7 @@ class Pcap:
         if self._check_http(data):
             self._add_http(conn, data)
         # SMTP.
-        if conn["dport"] == self.dns_port or conn["dport"] == 25 or conn["dport"] == 587:
+        if conn["dport"] == self.smtp_port or conn["dport"] == 25 or conn["dport"] == 587:
             self._reassemble_smtp(conn, data)
         # IRC.
         if conn["dport"] != 21 and self._check_irc(data):
@@ -686,7 +686,7 @@ class NetworkAnalysis(Processing):
 
     def run(self):
         self.key = "network"
-        self.dns_port = self.options.get("dnsport", 25)
+        self.smtp_port = self.options.get("smtpport", 25)
 
         if not IS_DPKT:
             log.error("Python DPKT is not installed, aborting PCAP analysis.")
@@ -704,12 +704,12 @@ class NetworkAnalysis(Processing):
         sorted_path = self.pcap_path.replace("dump.", "dump_sorted.")
         if Config().processing.sort_pcap:
             sort_pcap(self.pcap_path, sorted_path)
-            buf = Pcap(self.pcap_path, self.dns_port).run()
-            results = Pcap(sorted_path, self.dns_port).run()
+            buf = Pcap(self.pcap_path, self.smtp_port).run()
+            results = Pcap(sorted_path, self.smtp_port).run()
             results["http"] = buf["http"]
             results["dns"] = buf["dns"]
         else:
-            results = Pcap(self.pcap_path, self.dns_port).run()
+            results = Pcap(self.pcap_path, self.smtp_port).run()
 
         # Save PCAP file hash.
         if os.path.exists(self.pcap_path):
