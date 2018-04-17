@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 sqlalchemy
 jinja2
 markupsafe
@@ -21,7 +20,6 @@ requests
 python-magic
 geoip
 pillow
-elasticsearch
 java-random
 python-whois
 bs4
@@ -33,6 +31,6 @@ git+https://github.com/kbandla/pydeep.git
 pyvmomi>=6.0
 lxml
 imagehash
-upx
 pyparsing
 oletools
+sflock
