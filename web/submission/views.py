@@ -198,7 +198,7 @@ def index(request):
                     filename = opt_filename
                 else:
                     filename = sample.name
-                path = store_temp_file(sample.read(), filename.decode('utf-8', errors="ignore"))
+                path = store_temp_file(sample.read(), filename)
     
                 for gw in task_gateways:
                     options = update_options(gw, orig_options)
