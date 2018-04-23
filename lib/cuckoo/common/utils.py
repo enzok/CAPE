@@ -1450,7 +1450,13 @@ def store_temp_file(filedata, filename, path=None):
     @param path: optional path for temp directory.
     @return: path to the temporary file.
     """
-    filename = get_filename_from_path(filename).encode("utf-8", "replace")
+
+    # Check if filename is alread Unicode, if it is don't encode
+    try:
+        filename.decode('utf-8')
+        filename = get_filename_from_path(filename).encode("utf-8", "replace")
+    except UnicodeDecodeError:
+        pass
 
     # Reduce length (100 is arbitrary).
     filename = filename[:100]
