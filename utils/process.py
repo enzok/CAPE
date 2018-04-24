@@ -34,11 +34,11 @@ if repconf.elasticsearchdb.enabled and not repconf.elasticsearchdb.searchonly:
     baseidx = repconf.elasticsearchdb.index
     fullidx = baseidx + "-*"
     es = Elasticsearch(
-         hosts = [{
+         hosts=[{
              "host": repconf.elasticsearchdb.host,
              "port": repconf.elasticsearchdb.port,
          }],
-         timeout = 300
+         timeout=300
      )
 
 def process(target=None, copy_path=None, task=None, report=False, auto=False):
@@ -138,7 +138,10 @@ def autoprocess(parallel=1):
     maxcount = cfg.cuckoo.max_analysis_count
     count = 0
     db = Database()
-    pool = multiprocessing.Pool(parallel, init_worker)
+
+    # Respawn a worker process every 1000 tasks just in case we
+    # have any memory leaks.
+    pool = multiprocessing.Pool(parallel, init_worker, maxtasksperchild=1000)
     pending_results = []
 
     try:
