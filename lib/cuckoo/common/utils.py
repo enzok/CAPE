@@ -1451,11 +1451,11 @@ def store_temp_file(filedata, filename, path=None):
     @return: path to the temporary file.
     """
 
-    # Check if filename is alread Unicode, if it is don't encode
+    # Check if filename is already Unicode, if it is don't encode
     try:
         filename.decode('utf-8')
         filename = get_filename_from_path(filename).encode("utf-8", "replace")
-    except UnicodeDecodeError:
+    except UnicodeEncodeError:
         pass
 
     # Reduce length (100 is arbitrary).
