@@ -27,6 +27,7 @@ class Zip(Package):
     PATHS = [
              ("SystemRoot", "system32", "cmd.exe"),
              ("SystemRoot", "system32", "wscript.exe"),
+             ("SystemRoot", "system32", "rundll32.exe"),
             ]
 
     def filtered_namelist(self, archive):
@@ -133,7 +134,7 @@ class Zip(Package):
     def start(self, path):
         root = os.environ["TEMP"]
         password = self.options.get("password")
-        exe_regex = re.compile('(\.exe|\.scr|\.msi|\.bat|\.lnk|\.js|\.jse|\.vbs|\.vbe|\.wsf)$',flags=re.IGNORECASE)
+        exe_regex = re.compile('(\.exe|\.dll|\.scr|\.msi|\.bat|\.lnk|\.js|\.jse|\.vbs|\.vbe|\.wsf)$',flags=re.IGNORECASE)
         office_regex = re.compile('(\.doc|\.xls|\.pub|\.ppt)$', flags=re.IGNORECASE)
         zipinfos = self.get_infos(path)
         self.extract_zip(path, root, password, 0)
@@ -206,6 +207,19 @@ class Zip(Package):
             self.set_keys()
             publisher = self.get_path_glob("Microsoft Office Publisher")
             return self.execute(publisher, "/o \"%s\"" % file_path, file_path)
+        elif file_name.lower().endswith(".dll"):
+            rundll32 = self.get_path_app_in_path("rundll32.exe")
+            function = self.options.get("function", "#1")
+            arguments = self.options.get("arguments")
+            loadername = self.options.get("loader")
+            dll_args = "\"{0}\",{1}".format(file_path, function)
+            if arguments:
+                dll_args += " {0}".format(arguments)
+            if loadername:
+                newname = os.path.join(os.path.dirname(rundll32), loadername)
+                shutil.copy(rundll32, newname)
+                rundll32 = newname
+            return self.execute(rundll32, dll_args, file_path)
         else:
             return self.execute(file_path, self.options.get("arguments"), file_path)
 
