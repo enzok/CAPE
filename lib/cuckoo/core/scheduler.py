@@ -74,8 +74,6 @@ class AnalysisManager(threading.Thread):
         self.binary = ""
         self.machine = None
         self.db = Database()
-        self.interface = None
-        self.rt_table = None
 
     def init_storage(self):
         """Initialize analysis storage folder."""
