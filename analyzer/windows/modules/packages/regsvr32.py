@@ -7,14 +7,22 @@ import shutil
 
 from lib.common.abstracts import Package
 
-class SQUIBLYDOO(Package):
-    """Squiblydoo analysis package."""
+class REGSVR32(Package):
+    """DLL analysis package."""
     PATHS = [
         ("SystemRoot", "system32", "regsvr32.exe"),
     ]
 
     def start(self, path):
         regsvr32 = self.get_path("regsvr32.exe")
-        args = "\"/i:{0}\" scrobj.dll".format(path)
+        arguments = self.options.get("arguments")
+
+        if arguments:
+            args = '{0} /i:\"{1}\"'.format(arguments, path)
+        else:
+            args = path
+
+        if arguments:
+            args += " {0}".format(arguments)
 
         return self.execute(regsvr32, args, path)

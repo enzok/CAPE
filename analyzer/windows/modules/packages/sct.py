@@ -7,7 +7,7 @@ import shutil
 
 from lib.common.abstracts import Package
 
-class Regsvr(Package):
+class SCT(Package):
     """Squiblydoo analysis package."""
     PATHS = [
         ("SystemRoot", "system32", "regsvr32.exe"),
