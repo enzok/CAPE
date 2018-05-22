@@ -15,6 +15,6 @@ class Regsvr(Package):
 
     def start(self, path):
         regsvr32 = self.get_path("regsvr32.exe")
-        args = '\"/i:{0} scrobj.dll\"'.format(path)
+        args = '\"/s /n /u /i:{0} scrobj.dll\"'.format(path)
 
         return self.execute(regsvr32, args, path)
