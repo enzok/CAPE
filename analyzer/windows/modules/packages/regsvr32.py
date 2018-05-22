@@ -7,8 +7,8 @@ import shutil
 
 from lib.common.abstracts import Package
 
-class SCT(Package):
-    """Squiblydoo analysis package."""
+class REGSVR32(Package):
+    """DLL analysis package."""
     PATHS = [
         ("SystemRoot", "system32", "regsvr32.exe"),
     ]
@@ -18,8 +18,11 @@ class SCT(Package):
         arguments = self.options.get("arguments")
 
         if arguments:
-            args = '{0} /i:\"{1}\" scrobj.dll'.format(arguments, path)
+            args = '{0} /i:\"{1}\"'.format(arguments, path)
         else:
-            args = '/i:\"{0}\" scrobj.dll'.format(path)
+            args = path
+
+        if arguments:
+            args += " {0}".format(arguments)
 
         return self.execute(regsvr32, args, path)
