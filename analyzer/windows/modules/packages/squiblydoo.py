@@ -18,8 +18,8 @@ class Regsvr(Package):
         arguments = self.options.get("arguments")
 
         if arguments:
-            args = '\"{0} /i:{1} scrobj.dll\"'.format(arguments, path)
+            args = '{0} /i:\"{1}\" scrobj.dll'.format(arguments, path)
         else:
-            args = '\"/i:{0} scrobj.dll\"'.format(path)
+            args = '/i:\"{0}\" scrobj.dll'.format(path)
 
         return self.execute(regsvr32, args, path)
