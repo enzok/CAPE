@@ -72,5 +72,7 @@ def choose_package(file_type, file_name, exports):
         return "hta"
     elif file_name.endswith(".wsf") or file_type == "XML document text":
         return "wsf"
+    elif file_name.endswith(".sct"):
+        return "sct"
     else:
         return "generic"
