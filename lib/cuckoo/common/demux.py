@@ -396,11 +396,7 @@ def demux_sample(filename, package, options):
     # this will allow for the ZIP package to be used to analyze binaries with included DLL dependencies
     # do the same if file= is specified in the options
     if package or "file=" in options:
-        if "rar" in package:
-            retlist = demux_rar(filename, options)
-            return retlist
-        else:
-            return [ filename ]
+        return [ filename ]
 
     # don't try to extract from Java archives or executables
     if "Java Jar" in magic or "Java archive" in magic:
