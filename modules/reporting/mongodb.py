@@ -14,7 +14,7 @@ MEGABYTE = 0x100000
 
 try:
     from pymongo import MongoClient
-    from pymongo.errors import ConnectionFailure, InvalidDocument
+    from pymongo.errors import ConnectionFailure, InvalidDocument, WriteError
     HAVE_MONGO = True
 except ImportError:
     HAVE_MONGO = False
@@ -217,6 +217,9 @@ class MongoDB(Report):
                             log.error(str(e))
                             log.error("Largest parent key: %s (%d MB)" % (parent_key, int(psize) / MEGABYTE))
                             size_filter = size_filter - MEGABYTE
+                    except WriteError as e:
+                        log.error("Failed to write document:  {}".format(e))
+                        error_saved = False
                     except Exception as e:
                         log.error("Failed to delete child key: %s" % str(e))
                         error_saved = False
