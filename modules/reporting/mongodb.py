@@ -14,10 +14,12 @@ MEGABYTE = 0x100000
 
 try:
     from pymongo import MongoClient
-    from pymongo.errors import ConnectionFailure, InvalidDocument
+    from pymongo.errors import ConnectionFailure, InvalidDocument, WriteError
+    import pymongo.errors
     HAVE_MONGO = True
 except ImportError:
     HAVE_MONGO = False
+
 
 log = logging.getLogger(__name__)
 
@@ -205,7 +207,7 @@ class MongoDB(Report):
                                     log.warn("results['%s']['%s'] deleted due to size: %s" % (parent_key, child_key, csize))
                                     del report[parent_key][j][child_key]
                         else:
-                            child_key, csize = self.debug_dict_size(report[parent_key])
+                            child_key, csize = self.debug_dict_size(report[parent_key])[0]
                             if csize > size_filter:
                                 log.warn("results['%s']['%s'] deleted due to size: %s" % (parent_key, child_key, csize))
                                 del report[parent_key][child_key]
@@ -217,9 +219,11 @@ class MongoDB(Report):
                             log.error(str(e))
                             log.error("Largest parent key: %s (%d MB)" % (parent_key, int(psize) / MEGABYTE))
                             size_filter = size_filter - MEGABYTE
+                    except WriteError as e:
+                        log.error("Failed to write document:  {}".format(e))
+                        error_saved = False
                     except Exception as e:
                         log.error("Failed to delete child key: %s" % str(e))
                         error_saved = False
 
         self.conn.close()
-    

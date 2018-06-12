@@ -29,6 +29,7 @@ git+https://github.com/crackinglandia/pype32.git
 git+https://github.com/jsocol/django-ratelimit
 git+https://github.com/kbandla/pydeep.git
 pyvmomi>=6.0
+elasticsearch
 lxml
 imagehash
 pyparsing

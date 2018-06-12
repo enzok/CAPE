@@ -85,7 +85,7 @@ class vSphere(Machinery):
         # Workaround for PEP-0476 issues in recent Python versions
         if self.options.vsphere.unverified_ssl:
             import ssl
-            sslContext = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+            sslContext = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
             sslContext.verify_mode = ssl.CERT_NONE
             self.connect_opts["sslContext"] = sslContext
             log.warn("Turning off SSL certificate verification!")

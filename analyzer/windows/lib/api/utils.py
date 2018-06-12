@@ -58,3 +58,16 @@ class Utils:
                 return False
         else:
             return False
+
+    def set_dns_server(self,dns):
+        """ Set a new dns server gw
+        @return: True/False on Success/Fail
+        """
+        if self.is_valid_ipv4(dns):
+            ret,out,err = self.cmd_wrapper('netsh interface ipv4 add dnsserver "Local Area Connection" %s index=1' % (dns))
+            if ret == 0:
+                return True
+            else:
+                return False
+        else:
+            return False

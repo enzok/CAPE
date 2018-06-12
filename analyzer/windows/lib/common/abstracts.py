@@ -139,10 +139,13 @@ class Package(object):
         dll_64 = self.options.get("dll_64")
         free = self.options.get("free")
         gw = self.options.get("setgw", None)
+        gwname = self.options.get("gwname", None)
 
         u = Utils()
         if gw:
             u.set_default_gw(gw)
+            if gwname and "inetsim" in gwname:
+                u.set_dns_server(gwname)
 
         suspended = True
         if free:
@@ -185,10 +188,13 @@ class Package(object):
         dll = self.options.get("dll")
         dll_64 = self.options.get("dll_64")
         gw = self.options.get("setgw", None)
+        gwname = self.options.get("gwname", None)
 
         u = Utils()
         if gw:
             u.set_default_gw(gw)
+            if gwname and "inetsim" in gwname:
+                u.set_dns_server(gwname)
 
         suspended = True
 

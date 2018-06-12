@@ -32,6 +32,7 @@ class OfficeMacroSuspicious(Signature):
                 if "Analysis" in self.results["static"]["office"]["Macro"]:
                     if "Suspicious" in self.results["static"]["office"]["Macro"]["Analysis"]:
                         for string, description in self.results["static"]["office"]["Macro"]["Analysis"]["Suspicious"]:
+                            string = string.replace(".", ",")
                             if string not in strings:
                                 strings.append(string)
                                 self.data.append({string : description})
