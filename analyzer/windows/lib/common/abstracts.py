@@ -143,11 +143,9 @@ class Package(object):
 
         u = Utils()
         if gw:
-            if not u.set_default_gw(gw):
-                raise CuckooPackageError("Unable to set default gateway {}".format(gw))
+            u.set_default_gw(gw)
             if gwname and "inetsim" in gwname:
-                if not u.set_dns_server(gw):
-                    raise CuckooPackageError("Unable to set DNS server {}".format(gw))
+                u.set_dns_server(gw)
 
         suspended = True
         if free:
