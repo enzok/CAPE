@@ -397,6 +397,9 @@ def index(request):
 
                 subsuccess = True
 
+                for gw in task_gateways:
+                    options = update_options(gw, orig_options)
+
                 for entry in task_machines:
                     task_ids_new = db.demux_sample_and_add_to_db(file_path=filename,
                                                                  package=package,
