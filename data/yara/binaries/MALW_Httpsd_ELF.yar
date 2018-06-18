@@ -38,7 +38,6 @@ private rule is__LinuxHttpsdStrings {
 		all of them
 }
 
-
 private rule is__elf_http {
 
 	meta:
