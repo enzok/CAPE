@@ -849,6 +849,8 @@ def ext_tasks_search(request):
                 records = results_db.analysis.find({"target.file.type": {"$regex": dataarg, "$options": "-i"}}).sort([["_id", -1]])
             elif option == "string":
                 records = results_db.analysis.find({"strings" : {"$regex" : dataarg, "$options" : "-1"}}).sort([["_id", -1]])
+            elif option == "trid":
+                records = results_db.analysis.find({"trid" : {"$regex" : dataarg, "$options" : "-1"}}).sort([["_id", -1]])
             elif option == "ssdeep":
                 records = results_db.analysis.find({"target.file.ssdeep": {"$regex": dataarg, "$options": "-i"}}).sort([["_id", -1]])
             elif option == "crc32":
@@ -917,6 +919,8 @@ def ext_tasks_search(request):
                 records = es.search(index=fullidx, doc_type="analysis", q="target.file.type: %s" % value)["hits"]["hits"]
             elif term == "string":
                 records = es.search(index=fullidx, doc_type="analysis", q="strings: %s" % value)["hits"]["hits"]
+            elif term == "trid":
+                records = es.search(index=fullidx, doc_type="analysis", q="trid: %s" % value)["hits"]["hits"]
             elif term == "ssdeep":
                 records = es.search(index=fullidx, doc_type="analysis", q="target.file.ssdeep: %s" % value)["hits"]["hits"]
             elif term == "crc32":
@@ -1489,6 +1493,8 @@ def tasks_iocs(request, task_id, detail=None):
                 tmpdict['md5'] = entry["md5"]
             if entry["yara"]:
                 tmpdict['yara'] = entry["yara"]
+            if entry["trid"]:
+                tmpdict['trid'] = entry["trid"]
             if entry["type"]:
                 tmpdict["type"] = entry["type"]
             if entry["guest_paths"]:
@@ -1535,6 +1541,11 @@ def tasks_iocs(request, task_id, detail=None):
         data["strings"] = buf["strings"]
     else:
         data["strings"] = ["No Strings"]
+
+    if "trid" in buf.keys():
+       data["trid"] = buf["trid"]
+    else:
+        data["trid"] = ["None matched"]
 
     resp = {"error": False, "data": data}
     return jsonize(resp, response=True)
