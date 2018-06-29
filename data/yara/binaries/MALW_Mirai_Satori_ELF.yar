@@ -15,7 +15,7 @@ private rule is__elf_sat {
 		$header at 0
 }
 
-rule is__Mirai_gen7a_sat {
+rule is__Mirai_gen7_sat {
         meta:
                 description = "Generic detection for MiraiX version 7"
                 reference = "http://blog.malwaremustdie.org/2016/08/mmd-0056-2016-linuxmirai-just.html"
