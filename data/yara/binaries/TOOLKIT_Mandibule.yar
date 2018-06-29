@@ -10,6 +10,15 @@
    		and  open to any user or organization, as long as you use it under this license.
 */
 
+private rule is__elf_mandibule {
+	meta:
+		author = "@mmorenog,@yararules"
+	strings:
+		$header = { 7F 45 4C 46 }
+	condition:
+		$header at 0
+}
+
 private rule is__str_mandibule_gen1 {
 	meta:
 		author = "unixfreaxjp"
@@ -62,6 +71,6 @@ rule TOOLKIT_Mandibule {
 	condition:
 		((is__str_mandibule_gen1) or (is__hex_mid_mandibule32))
 		or ((is__str_mandibule_gen1) or (is__hex_top_mandibule64))
-		and is__elf
+		and is__elf_mandibule
 		and filesize < 30KB 
 }
