@@ -19,7 +19,7 @@ private rule is__osx
     or uint32(0) == 0xfeedfacf  or uint32(0) == 0xcffaedfe
 }
 
-private rule is__elf {
+private rule is__elf_tinyshell {
 	meta:
 		author = "@mmorenog,@yararules"
 	strings:
@@ -108,7 +108,7 @@ rule MALW_TinyShell_backconnect_ELF {
     date = "2018-02-10"
     author = "@unixfreaxjp"
  condition:
-    is__elf
+    is__elf_tinyshell
     and priv01
     and ((priv02)
       or ((priv03)
@@ -121,7 +121,7 @@ rule MALW_TinyShell_backconnect_Gen {
     date = "2018-02-11"
     author = "@unixfreaxjp"
  condition:
-    ((is__elf) or  (is__osx))
+    ((is__elf_tinyshell) or  (is__osx))
     and priv01
     and priv02
     and filesize < 100KB
@@ -132,7 +132,7 @@ rule MALW_TinyShell_backdoor_Gen {
     date = "2018-02-11"
     author = "@unixfreaxjp"
  condition:
-    ((is__elf) or  (is__osx))
+    ((is__elf_tinyshell) or  (is__osx))
     and priv01
     and filesize > 20KB
 }

@@ -15,6 +15,27 @@ private rule is__elf_sat {
 		$header at 0
 }
 
+rule is__Mirai_gen7a_sat {
+        meta:
+                description = "Generic detection for MiraiX version 7"
+                reference = "http://blog.malwaremustdie.org/2016/08/mmd-0056-2016-linuxmirai-just.html"
+                author = "unixfreaxjp"
+                org = "MalwareMustDie"
+                date = "2018-01-05"
+
+        strings:
+                $st01 = "/bin/busybox rm" fullword nocase wide ascii
+                $st02 = "/bin/busybox echo" fullword nocase wide ascii
+                $st03 = "/bin/busybox wget" fullword nocase wide ascii
+                $st04 = "/bin/busybox tftp" fullword nocase wide ascii
+                $st05 = "/bin/busybox cp" fullword nocase wide ascii
+                $st06 = "/bin/busybox chmod" fullword nocase wide ascii
+                $st07 = "/bin/busybox cat" fullword nocase wide ascii
+
+        condition:
+                5 of them
+}
+
 private rule is__Mirai_Satori_gen {
 	meta:
 		description = "Detects Mirai Satori_gen"
@@ -44,7 +65,7 @@ rule Mirai_Satori {
 	condition:
 		all of them
 		and is__elf_sat
-		and is__Mirai_gen7
+		and is__Mirai_gen7_sat
 		and is__Mirai_Satori_gen
 		and filesize < 100KB 
 }
