@@ -17,17 +17,18 @@
 import struct
 from lib.cuckoo.common.abstracts import Signature
 
-IMAGE_DOS_SIGNATURE             = 0x5A4D
-IMAGE_NT_SIGNATURE              = 0x00004550
-OPTIONAL_HEADER_MAGIC_PE        = 0x10b
-OPTIONAL_HEADER_MAGIC_PE_PLUS   = 0x20b
-IMAGE_FILE_EXECUTABLE_IMAGE     = 0x0002
-PE_HEADER_LIMIT                 = 0x200
+IMAGE_DOS_SIGNATURE = 0x5A4D
+IMAGE_NT_SIGNATURE = 0x00004550
+OPTIONAL_HEADER_MAGIC_PE = 0x10b
+OPTIONAL_HEADER_MAGIC_PE_PLUS = 0x20b
+IMAGE_FILE_EXECUTABLE_IMAGE = 0x0002
+PE_HEADER_LIMIT = 0x200
 
-EXECUTABLE_FLAGS                = 0x10 | 0x20 | 0x40 | 0x80
-EXTRACTION_MIN_SIZE             = 0x1001
+EXECUTABLE_FLAGS = 0x10 | 0x20 | 0x40 | 0x80
+EXTRACTION_MIN_SIZE = 0x1001
 
-PLUGX_SIGNATURE		            = 0x5658
+PLUGX_SIGNATURE = 0x5658
+
 
 class CAPE_Compression(Signature):
     name = "Compression"
@@ -56,31 +57,36 @@ class CAPE_Compression(Signature):
             e_lfanew, = struct.unpack("<L", dos_header[60:64])
             if not e_lfanew or e_lfanew > PE_HEADER_LIMIT:
                 return
-            
-            nt_headers = buf[e_lfanew:e_lfanew+256]
 
-            #if ((pNtHeader->FileHeader.Machine == 0) || (pNtHeader->FileHeader.SizeOfOptionalHeader == 0 || pNtHeader->OptionalHeader.SizeOfHeaders == 0)) 
-            if struct.unpack("<H", nt_headers[4:6]) == 0 or struct.unpack("<H", nt_headers[20:22]) == 0 or struct.unpack("<H", nt_headers[84:86]) == 0:
+            nt_headers = buf[e_lfanew:e_lfanew + 256]
+
+            # if ((pNtHeader->FileHeader.Machine == 0) || (pNtHeader->FileHeader.SizeOfOptionalHeader == 0 || pNtHeader->OptionalHeader.SizeOfHeaders == 0))
+            if struct.unpack("<H", nt_headers[4:6]) == 0 or struct.unpack("<H",
+                                                                          nt_headers[20:22]) == 0 or struct.unpack("<H",
+                                                                                                                   nt_headers[
+                                                                                                                   84:86]) == 0:
                 return
 
-            #if (!(pNtHeader->FileHeader.Characteristics & IMAGE_FILE_EXECUTABLE_IMAGE)) 
+            # if (!(pNtHeader->FileHeader.Characteristics & IMAGE_FILE_EXECUTABLE_IMAGE))
             if (struct.unpack("<H", nt_headers[22:24])[0] & IMAGE_FILE_EXECUTABLE_IMAGE) == 0:
                 return
 
-            #if (pNtHeader->FileHeader.SizeOfOptionalHeader & (sizeof (ULONG_PTR) - 1)) 
+            # if (pNtHeader->FileHeader.SizeOfOptionalHeader & (sizeof (ULONG_PTR) - 1))
             if struct.unpack("<H", nt_headers[20:22])[0] & 3 != 0:
                 return
 
-            #if ((pNtHeader->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR32_MAGIC) && (pNtHeader->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR64_MAGIC))
-            if struct.unpack("<H", nt_headers[24:26])[0] != OPTIONAL_HEADER_MAGIC_PE and struct.unpack("<H", nt_headers[24:26])[0] != OPTIONAL_HEADER_MAGIC_PE_PLUS:
+            # if ((pNtHeader->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR32_MAGIC) && (pNtHeader->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR64_MAGIC))
+            if struct.unpack("<H", nt_headers[24:26])[0] != OPTIONAL_HEADER_MAGIC_PE and \
+                    struct.unpack("<H", nt_headers[24:26])[0] != OPTIONAL_HEADER_MAGIC_PE_PLUS:
                 return
 
             # To pass the above tests it should now be safe to assume it's a PE image
-            self.compressed_binary = True            
-            
+            self.compressed_binary = True
+
     def on_complete(self):
         if self.compressed_binary == True:
             return True
+
 
 class CAPE_Extraction(Signature):
     name = "Extraction"
@@ -90,15 +96,16 @@ class CAPE_Extraction(Signature):
     authors = ["kevoreilly"]
     minimum = "1.3"
     evented = True
-    
+
     def __init__(self, *args, **kwargs):
         Signature.__init__(self, *args, **kwargs)
 
-    filter_apinames = set(["NtAllocateVirtualMemory","NtProtectVirtualMemory","VirtualProtectEx"])
+    filter_apinames = set(["NtAllocateVirtualMemory", "NtProtectVirtualMemory", "VirtualProtectEx"])
 
     def on_call(self, call, process):
-    
-        if process["process_name"] == "WINWORD.EXE" or process["process_name"] == "EXCEL.EXE" or process["process_name"] == "POWERPNT.EXE":
+
+        if process["process_name"] == "WINWORD.EXE" or process["process_name"] == "EXCEL.EXE" or process[
+            "process_name"] == "POWERPNT.EXE":
             return False
         if call["api"] == "NtAllocateVirtualMemory":
             protection = int(self.get_raw_argument(call, "Protection"), 0)
@@ -119,6 +126,7 @@ class CAPE_Extraction(Signature):
             if handle == "0xffffffff" and protection & EXECUTABLE_FLAGS and size >= EXTRACTION_MIN_SIZE:
                 return True
 
+
 class CAPE_InjectionCreateRemoteThread(Signature):
     name = "InjectionCreateRemoteThread"
     description = "CAPE detection: Injection with CreateRemoteThread in a remote process"
@@ -134,7 +142,7 @@ class CAPE_InjectionCreateRemoteThread(Signature):
         self.write_detected = False
         self.remote_thread = False
 
-    filter_categories = set(["process","threading"])
+    filter_categories = set(["process", "threading"])
 
     def on_call(self, call, process):
         if process is not self.lastprocess:
@@ -160,37 +168,40 @@ class CAPE_InjectionCreateRemoteThread(Signature):
         elif (call["api"] == "VirtualAllocEx" or call["api"] == "NtAllocateVirtualMemory"):
             if self.get_argument(call, "ProcessHandle") in self.process_handles:
                 self.write_detected = True
-        elif (call["api"] == "NtWriteVirtualMemory" or call["api"] == "NtWow64WriteVirtualMemory64" or call["api"] == "WriteProcessMemory"):
+        elif (call["api"] == "NtWriteVirtualMemory" or call["api"] == "NtWow64WriteVirtualMemory64" or call[
+            "api"] == "WriteProcessMemory"):
             if self.get_argument(call, "ProcessHandle") in self.process_handles:
                 self.write_detected = True
                 addr = int(self.get_argument(call, "BaseAddress"), 16)
                 buf = self.get_argument(call, "Buffer")
                 if addr >= 0x7c900000 and addr < 0x80000000 and buf.startswith("\\xe9"):
                     self.description = "Code injection via WriteProcessMemory-modified NTDLL code in a remote process"
-                    #procname = self.get_name_from_pid(self.handle_map[handle])
-                    #desc = "{0}({1}) -> {2}({3})".format(process["process_name"], str(process["process_id"]),
+                    # procname = self.get_name_from_pid(self.handle_map[handle])
+                    # desc = "{0}({1}) -> {2}({3})".format(process["process_name"], str(process["process_id"]),
                     #                                     procname, self.handle_map[handle])
                     self.data.append({"Injection": desc})
                     return True
-        elif (call["api"] == "CreateRemoteThread" or call["api"].startswith("NtCreateThread") or call["api"].startswith("NtCreateThreadEx")):
+        elif (call["api"] == "CreateRemoteThread" or call["api"].startswith("NtCreateThread") or call["api"].startswith(
+                "NtCreateThreadEx")):
             handle = self.get_argument(call, "ProcessHandle")
             if handle in self.process_handles:
-                #procname = self.get_name_from_pid(self.handle_map[handle])
-                #desc = "{0}({1}) -> {2}({3})".format(process["process_name"], str(process["process_id"]),
+                # procname = self.get_name_from_pid(self.handle_map[handle])
+                # desc = "{0}({1}) -> {2}({3})".format(process["process_name"], str(process["process_id"]),
                 #                                     procname, self.handle_map[handle])
-                #self.data.append({"Injection": desc})
+                # self.data.append({"Injection": desc})
                 self.remote_thread = True
         elif call["api"].startswith("NtQueueApcThread"):
             if str(self.get_argument(call, "ProcessId")) in self.process_pids:
-                #self.description = "Code injection with NtQueueApcThread in a remote process"
-                #desc = "{0}({1}) -> {2}({3})".format(self.lastprocess["process_name"], str(self.lastprocess["process_id"]),
+                # self.description = "Code injection with NtQueueApcThread in a remote process"
+                # desc = "{0}({1}) -> {2}({3})".format(self.lastprocess["process_name"], str(self.lastprocess["process_id"]),
                 #                                     process["process_name"], str(process["process_id"]))
-                #self.data.append({"Injection": desc})
+                # self.data.append({"Injection": desc})
                 self.remote_thread = True
 
     def on_complete(self):
         if self.write_detected == True and self.remote_thread == True:
             return True
+
 
 class CAPE_InjectionProcessHollowing(Signature):
     name = "InjectionProcessHollowing"
@@ -205,7 +216,7 @@ class CAPE_InjectionProcessHollowing(Signature):
         Signature.__init__(self, *args, **kwargs)
         self.lastprocess = None
 
-    filter_categories = set(["process","threading"])
+    filter_categories = set(["process", "threading"])
 
     def on_call(self, call, process):
         if process is not self.lastprocess:
@@ -230,9 +241,11 @@ class CAPE_InjectionProcessHollowing(Signature):
             if self.get_argument(call, "ProcessHandle") in self.process_handles:
                 self.sequence = 1
         elif call["api"] == "NtGetContextThread" and self.sequence == 0:
-           if self.get_argument(call, "ThreadHandle") in self.thread_handles:
+            if self.get_argument(call, "ThreadHandle") in self.thread_handles:
                 self.sequence = 1
-        elif (call["api"] == "NtWriteVirtualMemory" or call["api"] == "NtWow64WriteVirtualMemory64" or call["api"] == "WriteProcessMemory" or call["api"] == "NtMapViewOfSection") and (self.sequence == 1 or self.sequence == 2):
+        elif (call["api"] == "NtWriteVirtualMemory" or call["api"] == "NtWow64WriteVirtualMemory64" or call[
+            "api"] == "WriteProcessMemory" or call["api"] == "NtMapViewOfSection") and (
+                self.sequence == 1 or self.sequence == 2):
             if self.get_argument(call, "ProcessHandle") in self.process_handles:
                 self.sequence = self.sequence + 1
         elif (call["api"] == "NtSetContextThread") and (self.sequence == 1 or self.sequence == 2):
@@ -242,17 +255,20 @@ class CAPE_InjectionProcessHollowing(Signature):
             handle = self.get_argument(call, "ThreadHandle")
             if handle in self.thread_handles:
                 desc = "{0}({1}) -> {2}({3})".format(process["process_name"], str(process["process_id"]),
-                                                     self.get_name_from_pid(self.thread_map[handle]), self.thread_map[handle])
+                                                     self.get_name_from_pid(self.thread_map[handle]),
+                                                     self.thread_map[handle])
                 self.data.append({"Injection": desc})
                 return True
         elif call["api"] == "NtResumeProcess" and (self.sequence == 2 or self.sequence == 3):
             handle = self.get_argument(call, "ProcessHandle")
             if handle in self.process_handles:
                 desc = "{0}({1}) -> {2}({3})".format(process["process_name"], str(process["process_id"]),
-                                                     self.get_name_from_pid(self.process_map[handle]), self.process_map[handle])
+                                                     self.get_name_from_pid(self.process_map[handle]),
+                                                     self.process_map[handle])
                 self.data.append({"Injection": desc})
                 return True
-      
+
+
 class CAPE_InjectionSetWindowLong(Signature):
     name = "InjectionSetWindowLong"
     description = "CAPE detection: Injection with SetWindowLong in a remote process"
@@ -266,13 +282,16 @@ class CAPE_InjectionSetWindowLong(Signature):
         Signature.__init__(self, *args, **kwargs)
         self.lastprocess = None
         self.sharedsections = ["\\basenamedobjects\\shimsharedmemory",
-                                "\\basenamedobjects\\windows_shell_global_counters",
-                                "\\basenamedobjects\\msctf.shared.sfm.mih",
-                                "\\basenamedobjects\\msctf.shared.sfm.amf",
-                                "\\basenamedobjects\\urlzonessm_administrator",
-                                "\\basenamedobjects\\urlzonessm_system"]
+                               "\\basenamedobjects\\windows_shell_global_counters",
+                               "\\basenamedobjects\\msctf.shared.sfm.mih",
+                               "\\basenamedobjects\\msctf.shared.sfm.amf",
+                               "\\basenamedobjects\\urlzonessm_administrator",
+                               "\\basenamedobjects\\urlzonessm_system"]
 
-    filter_apinames = set(["NtMapViewOfSection", "NtOpenSection", "NtCreateSection", "FindWindowA", "FindWindowW", "FindWindowExA", "FindWindowExW", "PostMessageA", "PostMessageW", "SendNotifyMessageA", "SendNotifyMessageW", "SetWindowLongA", "SetWindowLongW", "SetWindowLongPtrA", "SetWindowLongPtrW"])
+    filter_apinames = set(
+        ["NtMapViewOfSection", "NtOpenSection", "NtCreateSection", "FindWindowA", "FindWindowW", "FindWindowExA",
+         "FindWindowExW", "PostMessageA", "PostMessageW", "SendNotifyMessageA", "SendNotifyMessageW", "SetWindowLongA",
+         "SetWindowLongW", "SetWindowLongPtrA", "SetWindowLongPtrW"])
 
     def on_call(self, call, process):
         if process is not self.lastprocess:
@@ -294,7 +313,8 @@ class CAPE_InjectionSetWindowLong(Signature):
         elif call["api"].startswith("SetWindowLong") and call["status"] == True:
             if self.sharedmap == True and self.windowfound == True:
                 return True
-                
+
+
 class CAPE_Injection(Signature):
     name = "InjectionInterProcess"
     description = "CAPE detection: Injection (inter-process)"
@@ -319,10 +339,12 @@ class CAPE_Injection(Signature):
             phandle = self.get_argument(call, "ProcessHandle")
             pid = self.get_argument(call, "ProcessId")
             self.process_handles.add(phandle)
-        elif (call["api"] == "NtWriteVirtualMemory" or call["api"] == "NtWow64WriteVirtualMemory64" or call["api"] == "WriteProcessMemory" or call["api"] == "NtMapViewOfSection"):
+        elif (call["api"] == "NtWriteVirtualMemory" or call["api"] == "NtWow64WriteVirtualMemory64" or call[
+            "api"] == "WriteProcessMemory" or call["api"] == "NtMapViewOfSection"):
             if self.get_argument(call, "ProcessHandle") in self.process_handles:
                 return True
-      
+
+
 class CAPE_EvilGrab(Signature):
     name = "EvilGrab"
     description = "CAPE detection: EvilGrab"
@@ -344,7 +366,7 @@ class CAPE_EvilGrab(Signature):
             buf = self.get_argument(call, "SubKey")
             if buf == "Software\\rar":
                 self.reg_evilgrab_keyname = True
-            
+
         if call["api"] == "RegSetValueExA" or call["api"] == "RegSetValueExW":
             length = self.get_raw_argument(call, "BufferLength")
             if length > 0x10000 and self.reg_evilgrab_keyname == True:
@@ -355,6 +377,7 @@ class CAPE_EvilGrab(Signature):
             return True
         else:
             return False
+
 
 class CAPE_PlugX(Signature):
     name = "PlugX"
@@ -384,24 +407,25 @@ class CAPE_PlugX(Signature):
 
         if call["api"] == "memcpy":
             count = self.get_raw_argument(call, "count")
-            if (count == 0xae4)  or \
-               (count == 0xbe4)  or \
-               (count == 0x150c) or \
-               (count == 0x1510) or \
-               (count == 0x1516) or \
-               (count == 0x170c) or \
-               (count == 0x1b18) or \
-               (count == 0x1d18) or \
-               (count == 0x2540) or \
-               (count == 0x254c) or \
-               (count == 0x2d58) or \
-               (count == 0x36a4) or \
-               (count == 0x4ea4):
+            if (count == 0xae4) or \
+                    (count == 0xbe4) or \
+                    (count == 0x150c) or \
+                    (count == 0x1510) or \
+                    (count == 0x1516) or \
+                    (count == 0x170c) or \
+                    (count == 0x1b18) or \
+                    (count == 0x1d18) or \
+                    (count == 0x2540) or \
+                    (count == 0x254c) or \
+                    (count == 0x2d58) or \
+                    (count == 0x36a4) or \
+                    (count == 0x4ea4):
                 self.config_copy = True
 
     def on_complete(self):
         if self.config_copy == True and self.compressed_binary == True:
             return True
+
 
 class CAPE_Doppelganging(Signature):
     name = "Doppelganging"
@@ -415,8 +439,8 @@ class CAPE_Doppelganging(Signature):
     def __init__(self, *args, **kwargs):
         Signature.__init__(self, *args, **kwargs)
         self.lastprocess = None
-        
-    filter_categories = set(["process", "thread", "filesystem",])
+
+    filter_categories = set(["process", "thread", "filesystem", ])
 
     def on_call(self, call, process):
         if process is not self.lastprocess:
@@ -433,5 +457,355 @@ class CAPE_Doppelganging(Signature):
         elif call["api"] == "NtCreateProcessEx":
             if self.get_argument(call, "SectionHandle") == self.sectionhandle:
                 return True
-      
-            
+
+
+class CAPE_AntiDebugSetUnhandledExceptionFilter(Signature):
+    name = "SetUnhandledExceptionFilter"
+    description = "CAPE detection: Anti-Debug SetUnhandledExceptionFilter"
+    severity = 1
+    categories = ["anti-debug"]
+    authors = ["redsand"]
+    minimum = "1.3"
+    evented = True
+
+    def __init__(self, *args, **kwargs):
+        Signature.__init__(self, *args, **kwargs)
+
+    filter_apinames = set(["SetUnhandledExceptionFilter"])
+
+    def on_call(self, call, process):
+        if call["api"] == "SetUnhandledExceptionFilter":
+            return True
+
+
+class CAPE_AntiDebugAddVectoredExceptionHandler(Signature):
+    name = "AddVectoredExceptionHandler"
+    description = "CAPE detection: Anti-Debug AddVectoredExceptionHandler"
+    severity = 1
+    categories = ["anti-debug"]
+    authors = ["redsand"]
+    minimum = "1.3"
+    evented = True
+
+    def __init__(self, *args, **kwargs):
+        Signature.__init__(self, *args, **kwargs)
+
+    filter_apinames = set(["AddVectoredExceptionHandler"])
+
+    def on_call(self, call, process):
+        if call["api"] == "AddVectoredExceptionHandler":
+            return True
+
+
+# XXX: not sure this will work since NtSetInformationThread is looked up via LdrDll
+# also needs hooking and logging inside capemon
+"""
+class CAPE_AntiDebugNtSetInformationThread(Signature):
+    name = "NtSetInformationThread"
+    description = "CAPE detection: Anti-Debug NtSetInformationThread"
+    severity = 2
+    categories = ["anti-debug"]
+    authors = ["redsand"]
+    minimum = "1.3"
+    evented = True
+
+    def __init__(self, *args, **kwargs):
+        Signature.__init__(self, *args, **kwargs)
+
+    filter_apinames = set(["NtSetInformationThread"])
+
+    def on_call(self, call, process):
+        if call["api"] == "NtSetInformationThread":
+	   # check arg 2 if it equals 0x11, if so then trigger
+           return True
+"""
+
+# XXX: Currently does not work, needs hook monitor around NtCreateThreadEx
+"""
+class CAPE_AntiDebugNtCreateThreadEx(Signature):
+    name = "NtCreateThreadEx"
+    description = "CAPE detection: Anti-Debug NtCreateThreadEx"
+    severity = 1
+    categories = ["anti-debug"]
+    authors = ["redsand"]
+    minimum = "1.3"
+    evented = True
+
+    def __init__(self, *args, **kwargs):
+        Signature.__init__(self, *args, **kwargs)
+
+    filter_apinames = set(["NtCreateThreadEx"])
+
+    def on_call(self, call, process):
+        if call["api"] == "NtCreateThreadEx":
+           # check arg  CreateFlags & THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER == TRUE then we're hiding from the debugger
+           return True
+"""
+
+
+class CAPE_AntiDebugDebugActiveProcess(Signature):
+    name = "DebugActiveProcess"
+    description = "CAPE detection: Anti-Debug DebugActiveProcess"
+    severity = 2
+    categories = ["anti-debug"]
+    authors = ["redsand"]
+    minimum = "1.3"
+    evented = True
+
+    def __init__(self, *args, **kwargs):
+        Signature.__init__(self, *args, **kwargs)
+
+    filter_apinames = set(["DebugActiveProcess"])
+
+    def on_call(self, call, process):
+        if call["api"] == "DebugActiveProcess":
+            return True
+
+
+# XXX: THIS IS INCOMPLETE, SEE MISSING HOOK ON NtQueryInformationProcess
+class CAPE_AntiDebugCheckRemoteDebuggerPresent(Signature):
+    # https://www.apriorit.com/dev-blog/367-anti-reverse-engineering-protection-techniques-to-use-before-releasing-software
+    name = "CheckRemoteDebuggerPresent"
+    description = "CAPE detection: Anti-Debug CheckRemoteDebuggerPresent"
+    severity = 3
+    categories = ["anti-debug"]
+    authors = ["redsand"]
+    minimum = "1.3"
+    evented = True
+
+    def __init__(self, *args, **kwargs):
+        Signature.__init__(self, *args, **kwargs)
+
+    filter_apinames = set(["CheckRemoteDebuggerPresent", "NtQueryInformationProcess"])
+
+    def on_call(self, call, process):
+        if call["api"] == "CheckRemoteDebuggerPresent":
+            return True
+        elif call["api"] == "NtQueryInformationProcess":
+            # looks like capemon is missing hook on this function to inspect arguments
+            # need to verify the argument (_In_      UINT             ProcessInformationClass,) equals 7
+            # would like to also verify argument 3 ( _Out_     PVOID            ProcessInformation) is not null
+
+            # other examples to monitor are:
+            # - ProcessDebugObjectHandle 0x1E
+            # - ProcessDebugFlags 0x1F
+            # - ProcessBasicInformation 0x00
+
+            # dont trigger false positive
+            return False
+
+
+"""
+XXX: MISSING CHECK - redsand
+CONTEXT ctx = {};
+ctx.ContextFlags = CONTEXT_DEBUG_REGISTERS;
+SetThreadContext(GetCurrentThread(), &ctx);
+
+Check if Malware is clearing debug registers.  This function should be hooked and monitored as well
+Also hook NtSetContextThread as this is the underlying Nt WINAPI function.
+
+"""
+
+
+class CAPE_AntiDebugGetTickCount(Signature):
+    name = "GetTickCount"
+    description = "CAPE detection: Anti-Debug GetTickCount"
+    severity = 1
+    categories = ["anti-debug"]
+    authors = ["redsand"]
+    minimum = "1.3"
+    evented = True
+
+    def __init__(self, *args, **kwargs):
+        Signature.__init__(self, *args, **kwargs)
+
+    filter_apinames = set(["GetTickCount"])
+
+    def on_call(self, call, process):
+        if call["api"] == "GetTickCount":
+            return True
+
+
+class CAPE_AntiDebugOutputDebugString(Signature):
+    name = "OutputDebugString"
+    description = "CAPE detection: Anti-Debug OutputDebugString"
+    severity = 2
+    categories = ["anti-debug"]
+    authors = ["redsand"]
+    minimum = "1.3"
+    evented = True
+
+    def __init__(self, *args, **kwargs):
+        Signature.__init__(self, *args, **kwargs)
+        self.set_err = False
+        self.output = False
+
+    filter_apinames = set(["OutputDebugStringA", "OutputDebugStringW", "SetLastError", "GetLastError"])
+
+    def on_call(self, call, process):
+        if call["api"] == "OutputDebugStringA" or call["api"] == "OutputDebugStringW":
+            if self.set_err:
+                self.output = True
+            else:
+                self.output = False
+        elif call["api"] == "SetLastError":
+            self.output = False
+            self.set_err = True
+        elif call["api"] == "GetLastError":
+            if not self.set_err or not self.output:
+                self.set_err = self.output = False
+            elif self.set_err and self.output:
+                return True
+
+
+class CAPE_AnomalousDynamicFunctionLoading(Signature):
+    name = "AnomalousDynamicFunctionLoading"
+    description = "CAPE detection: Anomalous Dynamic Function Loading"
+    severity = 1
+    categories = ["anti-debug"]
+    authors = ["redsand"]
+    minimum = "1.3"
+    evented = True
+
+    def __init__(self, *args, **kwargs):
+        Signature.__init__(self, *args, **kwargs)
+        self.dll_loaded = False
+        self.loadctr = 0
+        self.list = []
+
+    filter_apinames = set(["LdrGetProcedureAddress", "LdrLoadDll"])
+
+    def on_call(self, call, process):
+        if call["api"] == "LdrLoadDll":
+            self.dll_loaded = True
+        elif self.dll_loaded and call["api"] == "LdrGetProcedureAddress":
+            self.loadctr += 1
+            self.data.append({"DynamicLoader": "%s/%s" % (
+            self.get_argument(call, "ModuleName"), self.get_argument(call, "FunctionName"))})
+
+    def on_complete(self):
+        if self.loadctr < 8:
+            return False
+        elif self.loadctr > 20:
+            self.severity = 2
+        return True
+
+
+class CAPE_MaliciousDynamicFunctionLoading(Signature):
+    name = "MaliciousDynamicFunctionLoading"
+    description = "CAPE detection: Possible Malicious Dynamic Function Loading"
+    severity = 1
+    categories = ["malware"]
+    authors = ["redsand"]
+    minimum = "1.3"
+    evented = True
+    malicious_functions = ["LookupAccountNameLocalW", "LookupAccountNameLocalA", "LookupAccountSidW",
+                           "LookupAccountSidA",
+                           "LookupAccountSidLocalW", "LookupAccountSidLocalA", "CoTaskMemAlloc", "CoTaskMemFree",
+                           "LookupAccountNameW", "LookupAccountNameA", "NetLocalGroupGetMembers", "SamConnect",
+                           "SamLookupNamesInDomain",
+                           "OpenProcessToken", "SetThreadToken", "DuplicateTokenEx", "AdjustTokenPrivileges",
+                           "OpenThreadToken",
+                           ]
+
+    def __init__(self, *args, **kwargs):
+        Signature.__init__(self, *args, **kwargs)
+        self.dll_loaded = False
+        self.loadctr = 0
+        self.list = []
+
+    filter_apinames = set(["LdrGetProcedureAddress", "LdrLoadDll"])
+
+    def on_call(self, call, process):
+        if call["api"] == "LdrLoadDll":
+            self.dll_loaded = True
+        elif self.dll_loaded and call["api"] == "LdrGetProcedureAddress":
+            arg = self.get_argument(call, "FunctionName")
+            if arg in self.malicious_functions:
+                self.data.append({"SuspiciousDynamicFunction": "%s/%s" % (
+                self.get_argument(call, "ModuleName"), self.get_argument(call, "FunctionName"))})
+
+    def on_complete(self):
+        if self.loadctr > 0:
+            return True
+
+
+class CAPE_AnomalousDeleteFile(Signature):
+    name = "AnomalousDeleteFile"
+    description = "CAPE detection: Anomalous File Deletion Behavior (10+)"
+    severity = 2
+    categories = ["malware"]
+    authors = ["redsand"]
+    minimum = "1.3"
+    evented = True
+
+    def __init__(self, *args, **kwargs):
+        Signature.__init__(self, *args, **kwargs)
+        self.loadctr = 0
+        self.list = []
+
+    filter_apinames = set(["NtDeleteFile", "DeleteFileA", "DeleteFileW"])
+
+    def on_call(self, call, process):
+        if call["api"] == "NtDeleteFile" or call["api"] == "DeleteFileA" or call["api"] == "DeleteFileW":
+            self.loadctr += 1
+            self.data.append({"DynamicLoader": "%s/%s" % (
+            self.get_argument(call, "ModuleName"), self.get_argument(call, "FunctionName"))})
+
+    def on_complete(self):
+        if self.loadctr > 10:
+            return True
+
+
+class CAPE_ThemeInitApiHookInject(Signature):
+    name = "ThemeInitApiHookInject"
+    description = "CAPE detection: Possible ThemeInitApiHook Injection"
+    severity = 1
+    categories = ["injection"]
+    authors = ["redsand"]
+    minimum = "1.3"
+    evented = True
+
+    def __init__(self, *args, **kwargs):
+        Signature.__init__(self, *args, **kwargs)
+        self.loadctr = 0
+        self.list = []
+
+    filter_apinames = set(["ThemeInitApiHook"])
+
+    def on_call(self, call, process):
+        if call["api"] == "ThemeInitApiHook":
+            self.loadctr += 1
+            self.data.append({"Injection": "%s/%s" % (
+            self.get_argument(call, "ModuleName"), self.get_argument(call, "FunctionName"))})
+
+    def on_complete(self):
+        if self.loadctr > 0:
+            return True
+
+
+class CAPE_MoveFileOnReboot(Signature):
+    name = "MoveFileOnReboot"
+    description = "CAPE detection: Scheduled File Move On Reboot"
+    severity = 1
+    categories = ["malware"]
+    authors = ["redsand"]
+    minimum = "1.3"
+    evented = True
+
+    def __init__(self, *args, **kwargs):
+        Signature.__init__(self, *args, **kwargs)
+        self.match = False
+
+    filter_apinames = set(["MoveFileWithProgressTransactedW", "MoveFileWithProgressTransactedA"])
+
+    def on_call(self, call, process):
+        if call["api"] == "MoveFileWithProgressTransactedW" or call["api"] == "MoveFileWithProgressTransactedA":
+            if self.get_raw_argument(call, "Flags") == 0x4:  # 0x00000004
+                self.data.append({"File Move on Reboot": "Old: %s -> New: %s" % (
+                self.get_argument(call, "ExistingFileName"), self.get_argument(call, "NewFileName"))})
+                self.match = True
+
+    def on_complete(self):
+        return self.match
+
