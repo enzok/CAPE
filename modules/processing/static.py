@@ -1148,7 +1148,7 @@ class Office(object):
                 metares = officeresults["Metadata"]
         except Exception as xcpt:
             metares["Metadata"] = dict()
-            log.error("Failed to parse Office ole meta data: %s", xcpt)
+            log.warning("Failed to parse Office ole meta data: %s", xcpt)
 
         if vba.detect_vba_macros():
             metares["HasMacros"] = "Yes"
