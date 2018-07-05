@@ -1127,24 +1127,28 @@ class Office(object):
         except:
             return results
 
-        officeresults = results["office"] = { }
+        officeresults = results["office"] = {}
 
         metares = officeresults["Metadata"] = dict()
-        if olefile.isOleFile(filepath):
-            ole = olefile.OleFileIO(filepath)
-            meta = ole.get_metadata()
-            # must be left this way or we won't see the results
-            officeresults["Metadata"] = meta.get_meta()
-            metares = officeresults["Metadata"]
-            # Fix up some output formatting
-            buf = self.convert_dt_string(metares["SummaryInformation"]["create_time"])
-            metares["SummaryInformation"]["create_time"] = buf
-            buf = self.convert_dt_string(metares["SummaryInformation"]["last_saved_time"])
-            metares["SummaryInformation"]["last_saved_time"] = buf
-            ole.close()
-        else:
-            officeresults["Metadata"] = self.get_xml_meta(self.file_path)
-            metares = officeresults["Metadata"]
+        try:
+            if olefile.isOleFile(filepath):
+                ole = olefile.OleFileIO(filepath)
+                meta = ole.get_metadata()
+                # must be left this way or we won't see the results
+                officeresults["Metadata"] = meta.get_meta()
+                metares = officeresults["Metadata"]
+                # Fix up some output formatting
+                buf = self.convert_dt_string(metares["SummaryInformation"]["create_time"])
+                metares["SummaryInformation"]["create_time"] = buf
+                buf = self.convert_dt_string(metares["SummaryInformation"]["last_saved_time"])
+                metares["SummaryInformation"]["last_saved_time"] = buf
+                ole.close()
+            else:
+                officeresults["Metadata"] = self.get_xml_meta(self.file_path)
+                metares = officeresults["Metadata"]
+        except Exception as xcpt:
+            metares["Metadata"] = dict()
+            log.error("Failed to parse Office ole meta data: %s", xcpt)
 
         if vba.detect_vba_macros():
             metares["HasMacros"] = "Yes"
