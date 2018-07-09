@@ -35,7 +35,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-private rule is_elf
+private rule is_elf_moose
 {
     strings:
         $header = { 7F 45 4C 46 }
@@ -78,5 +78,5 @@ rule moose
         $s33 = "kill %s"
 
     condition:
-        is_elf and all of them
+        is_elf_moose and all of them
 }

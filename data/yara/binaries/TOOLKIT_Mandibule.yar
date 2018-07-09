@@ -10,6 +10,15 @@
    		and  open to any user or organization, as long as you use it under this license.
 */
 
+private rule is__elf_mandibule {
+	meta:
+		author = "@mmorenog,@yararules"
+	strings:
+		$header = { 7F 45 4C 46 }
+	condition:
+		$header at 0
+}
+
 private rule is__str_mandibule_gen1 {
 	meta:
 		author = "unixfreaxjp"
@@ -17,8 +26,8 @@ private rule is__str_mandibule_gen1 {
 	strings:
 		$str01 = "shared arguments too big" fullword nocase wide ascii
 		$str02 = "self inject pid: %" fullword nocase wide ascii
-		$str03 = "injected shellcode at 0x%lx" fullword nocase wide ascii        	
-		$str04 = "target pid: %d" fullword nocase wide ascii        	
+		$str03 = "injected shellcode at 0x%lx" fullword nocase wide ascii
+		$str04 = "target pid: %d" fullword nocase wide ascii
 		$str05 = "mapping '%s' into memory at 0x%lx" fullword nocase wide ascii
 		$str06 = "shellcode injection addr: 0x%lx" fullword nocase wide ascii
 		$str07 = "loading elf at: 0x%llx" fullword nocase wide ascii
@@ -36,7 +45,7 @@ private rule is__hex_top_mandibule64 {
 		$hex03 = { 48 81 EC 18 02 00 00 89 7C 24 1C 48 89 74 } // pt
 		$hex04 = { 53 48 81 EC 70 01 01 00 48 89 7C 24 08 48 8D 44 24 20 48 05 00 00 } // ld
 	condition:
-                3 of them 
+                3 of them
 }
 
 private rule is__hex_mid_mandibule32 {
@@ -49,7 +58,7 @@ private rule is__hex_mid_mandibule32 {
 		$hex07 = { 81 C3 E8 29 00 00 C7 44 24 0C } // pt
 		$hex08 = { E8 C6 D5 FF FF 83 C4 0C 68 00 01 00 00 } // ld
 	condition:
-                3 of them 
+                3 of them
 }
 
 rule TOOLKIT_Mandibule {
@@ -62,6 +71,6 @@ rule TOOLKIT_Mandibule {
 	condition:
 		((is__str_mandibule_gen1) or (is__hex_mid_mandibule32))
 		or ((is__str_mandibule_gen1) or (is__hex_top_mandibule64))
-		and is__elf
+		and is__elf_mandibule
 		and filesize < 30KB 
 }
