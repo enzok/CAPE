@@ -57,6 +57,7 @@ if enabledconf["mongodb"]:
     results_db = pymongo.MongoClient(settings.MONGO_HOST, settings.MONGO_PORT)[settings.MONGO_DB]
 
 es_as_db = False
+essearch = False
 if enabledconf["elasticsearchdb"]:
     from elasticsearch import Elasticsearch
     essearch = Config("reporting").elasticsearchdb.searchonly
