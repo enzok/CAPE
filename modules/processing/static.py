@@ -1186,6 +1186,11 @@ class Office(object):
                             macrores["Analysis"]["IOCs"].append((pattern, match))
                     if hex_strs:
                         for encoded, decoded in hex_strs:
+                            try:
+                                decoded = decoded.decode('utf-8')
+                            except UnicodeDecodeError as xcpt:
+                                log.warn("Macro hex string - {}: {}".format(encoded, xcpt))
+                                decoded = encoded
                             macrores["Analysis"]["HexStrings"].append((encoded, decoded))
             # Delete and keys which had no results. Otherwise we pollute the
             # Django interface with null data.
