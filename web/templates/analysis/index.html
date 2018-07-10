@@ -64,7 +64,6 @@
                     <th width="3%">MalScore</th>
                     {% if config.expanded_dashboard %}
                     <th width="6%">MalFamily</th>
-                    <th width="3%">PCAP</th>
                     <th width="5%">ClamAV</th>
                     <th width="8%">Custom</th>
                     {% endif %}
@@ -190,15 +189,6 @@
                                 {% else %}
                                 None
                                 {% endif %}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="mono">
-                            {% if analysis.pcap_sha256 %}
-                            <a href="{% url "file" "pcap" analysis.id analysis.pcap_sha256 %}" target="_blank">PCAP</a>
-                            {% else %}
-                            None
-                            {% endif %}
                             </span>
                         </td>
                         <td>
@@ -331,7 +321,6 @@
                     {% endif %}
                     <th width="5%">MalScore</th>
                     <th width="10%">MalFamily</th>
-                    <th width="5%">PCAP</th>
                     <th width="10%">ClamAV</th>
                     <th width="5%">Custom</th>
                     {% if config.display_shrike %}
@@ -471,15 +460,6 @@
                         </td>
                         <td>
                             <span class="mono">
-                            {% if analysis.pcap_sha256 %}
-                            <a href="{% url "file" "pcap" analysis.id analysis.pcap_sha256 %}" target="_blank">PCAP</a>
-                            {% else %}
-                            None
-                            {% endif %}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="mono">
                             {% if analysis.clamav %}
                                 {{analysis.clamav}}
                             {% else %}
@@ -598,7 +578,6 @@
                     {% endif %}
                     <th width="5%">MalScore</th>
                     <th width="10%">MalFamily</th>
-                    <th width="5%">PCAP</th>
                     <th width="5%">Custom</th>
                     {% if config.display_shrike %}
                     <th width="5%">Shrike</th>
@@ -708,15 +687,6 @@
                         <span class="mono">
                             {% if analysis.malfamily %}
                             {{analysis.malfamily}}
-                            {% else %}
-                            None
-                            {% endif %}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="mono">
-                            {% if analysis.pcap_sha256 %}
-                            <a href="{% url "file" "pcap" analysis.id analysis.pcap_sha256 %}" target="_blank">PCAP</a>
                             {% else %}
                             None
                             {% endif %}
