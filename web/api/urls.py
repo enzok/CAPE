@@ -8,7 +8,6 @@ from api import views
 urlpatterns = [
     url(r"^$", views.index, name='api'),
     url(r"^tasks/create/file/$", views.tasks_create_file),
-    url(r"^tasks/create/quarantine/$", views.tasks_create_quarantine),
     url(r"^tasks/create/url/$", views.tasks_create_url),
     url(r"^tasks/create/vtdl/$", views.tasks_vtdl),
     url(r"^tasks/search/md5/(?P<md5>([a-fA-F\d]{32}))/$", views.tasks_search),
