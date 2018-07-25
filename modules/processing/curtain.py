@@ -347,30 +347,24 @@ class Curtain(Processing):
         # Determine oldest Curtain log and remove the rest
         curtLog = os.listdir("%s/curtain/" % self.analysis_path)
         curtLog.sort()
-
-        root = False
-        for curtain_log in curtLog[::-1]:
-            log.info(curtain_log)
-            try:
-                tree = ET.parse("%s/curtain/%s" % (self.analysis_path, curtain_log))
-                root = tree.getroot()
-                os.rename("%s/curtain/%s" % (self.analysis_path, curtain_log),
-                          "%s/curtain/curtain.log" % self.analysis_path)
-                break
-            except Exception as e:
-                # malformed file
-                pass
-
-        if root is False:
-            return
-
+        curtLog = curtLog[-1]
+        """
         # Leave only the most recent file
         for file in os.listdir("%s/curtain/" % self.analysis_path):
-            if file != "curtain.log":
+            if file != curtLog:
                 try:
                     os.remove("%s/curtain/%s" % (self.analysis_path, file))
                 except:
                     pass
+        """
+        log.info("%s/curtain/%s" % (self.analysis_path, curtLog))
+        os.rename("%s/curtain/%s" % (self.analysis_path, curtLog), "%s/curtain/curtain.log" % self.analysis_path)
+        
+        try:
+            tree = ET.parse("%s/curtain/curtain.log" % self.analysis_path)
+            root = tree.getroot()
+        except Exception as e:
+            raise CuckooProcessingError("Failed opening curtain.log: %s" % e.message)
 
         pids     = {}
         COUNTER  = 0
@@ -488,3 +482,4 @@ class Curtain(Processing):
                 pids[pid]["behaviors"] = behaviorTags
 
         return pids
+
