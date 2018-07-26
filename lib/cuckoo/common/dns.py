@@ -65,6 +65,7 @@ def resolve_thread(name):
 
 def gethostbyname(name):
     try:
+        name = name.encode('ascii', 'replace').replace('?', '_')
         ip = socket.gethostbyname(name)
     except socket.gaierror:
         ip = ""
