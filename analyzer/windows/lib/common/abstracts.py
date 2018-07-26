@@ -144,7 +144,7 @@ class Package(object):
         u = Utils()
         if gw:
             u.set_default_gw(gw)
-            if gwname and "inetsim" in gwname:
+            if gwname:
                 u.set_dns_server(gw)
 
         suspended = True

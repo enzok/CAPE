@@ -50,11 +50,12 @@ class Utils:
         @return: True/False on Success/Fail
         """
         if self.is_valid_ipv4(gw):
-            log.info("Setting default gateway: {}".format(gw))
             ret,out,err = self.cmd_wrapper("route change -p 0.0.0.0 mask 0.0.0.0 %s" % (gw))
             if ret == 0:
+                log.info("Setting default gateway: {}".format(gw))
                 return True
             else:
+                log.error("Failed to set default gateway: {}".format(gw))
                 return False
         else:
             return False
@@ -64,11 +65,12 @@ class Utils:
         @return: True/False on Success/Fail
         """
         if self.is_valid_ipv4(dns):
-            log.info("Setting DNS server: {}".format(dns))
             ret,out,err = self.cmd_wrapper("netsh interface ipv4 add dnsserver {} {} index=1".format('"Local Area Connection"', dns))
             if ret == 0:
+                log.info("Setting DNS server: {}".format(dns))
                 return True
             else:
+                log.error("Failed to set DNS server: {}".format(dns))
                 return False
         else:
             return False
