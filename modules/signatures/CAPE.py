@@ -140,7 +140,7 @@ class CAPE_Extraction(Signature):
 class CAPE_InjectionCreateRemoteThread(Signature):
     name = "InjectionCreateRemoteThread"
     description = "CAPE detection: Injection with CreateRemoteThread in a remote process"
-    severity = 1
+    severity = 3
     categories = ["injection"]
     authors = ["JoseMi Holguin", "nex", "Optiv", "kevoreilly", "KillerInstinct"]
     minimum = "1.3"
@@ -213,7 +213,7 @@ class CAPE_InjectionCreateRemoteThread(Signature):
 class CAPE_InjectionProcessHollowing(Signature):
     name = "InjectionProcessHollowing"
     description = "CAPE detection: Injection (Process Hollowing)"
-    severity = 1
+    severity = 3
     categories = ["injection"]
     authors = ["glysbaysb", "Optiv", "KillerInstinct"]
     minimum = "1.3"
@@ -272,7 +272,7 @@ class CAPE_InjectionProcessHollowing(Signature):
 class CAPE_InjectionSetWindowLong(Signature):
     name = "InjectionSetWindowLong"
     description = "CAPE detection: Injection with SetWindowLong in a remote process"
-    severity = 1
+    severity = 3
     categories = ["injection"]
     authors = ["kevoreilly"]
     minimum = "1.3"
@@ -314,7 +314,7 @@ class CAPE_InjectionSetWindowLong(Signature):
 class CAPE_Injection(Signature):
     name = "InjectionInterProcess"
     description = "CAPE detection: Injection (inter-process)"
-    severity = 1
+    severity = 3
     categories = ["injection"]
     authors = ["kevoreilly"]
     minimum = "1.3"
@@ -342,7 +342,7 @@ class CAPE_Injection(Signature):
 class CAPE_EvilGrab(Signature):
     name = "EvilGrab"
     description = "CAPE detection: EvilGrab"
-    severity = 1
+    severity = 3
     categories = ["malware"]
     authors = ["kevoreilly"]
     minimum = "1.3"
@@ -375,7 +375,7 @@ class CAPE_EvilGrab(Signature):
 class CAPE_PlugX(Signature):
     name = "PlugX"
     description = "CAPE detection: PlugX"
-    severity = 1
+    severity = 3
     categories = ["chinese", "malware"]
     families = ["plugx"]
     authors = ["kevoreilly"]
@@ -422,7 +422,7 @@ class CAPE_PlugX(Signature):
 class CAPE_Doppelganging(Signature):
     name = "Doppelganging"
     description = "CAPE detection: Process Doppelganging"
-    severity = 1
+    severity = 3
     categories = ["injection"]
     authors = ["kevoreilly"]
     minimum = "1.3"
