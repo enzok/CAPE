@@ -26,6 +26,7 @@ from lib.cuckoo.common.quarantine import unquarantine
 from lib.cuckoo.common.saztopcap import saz_to_pcap
 from lib.cuckoo.common.exceptions import CuckooDemuxError
 from lib.cuckoo.core.database import Database
+from lib.cuckoo.common.objects import File
 
 # Conditional decorator for web authentication
 class conditional_login_required(object):
@@ -232,8 +233,12 @@ def index(request):
                     pass
 
                 if not path:
-                    return render(request, "error.html",
-                                              {"error": "You uploaded an unsupported quarantine file."})
+                    return render(request, "error.html", {"error": "You uploaded an unsupported quarantine file."})
+
+                try:
+                    File(path).get_type()
+                except TypeError:
+                    return render(request, "error.html", {"error": "Error submitting file - bad file type"})
 
                 for gw in task_gateways:
                     options = update_options(gw, orig_options)

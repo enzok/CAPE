@@ -30,6 +30,7 @@ from lib.cuckoo.common.utils import store_temp_file, delete_folder
 from lib.cuckoo.common.utils import convert_to_printable, validate_referrer
 from lib.cuckoo.core.database import Database, Task
 from lib.cuckoo.core.database import TASK_REPORTED
+from lib.cuckoo.common.objects import File
 
 # Config variables
 apiconf = Config("api")
@@ -297,6 +298,13 @@ def tasks_create_file(request):
                     except:
                         pass
 
+                    try:
+                        File(path).get_type()
+                    except TypeError:
+                        resp = {"error": True,
+                            "error_value": "Error submitting file - bad file type"}
+                        return jsonize(resp, response=True)
+
                 else:
                     path = tmp_path
 
@@ -365,6 +373,13 @@ def tasks_create_file(request):
                     os.remove(tmp_path)
                 except:
                     pass
+
+                try:
+                    File(path).get_type()
+                except TypeError:
+                    resp = {"error": True,
+                            "error_value": "Error submitting file - bad file type"}
+                    return jsonize(resp, response=True)
             else:
                 path = tmp_path
 
