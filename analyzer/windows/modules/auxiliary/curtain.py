@@ -18,10 +18,10 @@ class Curtain(Thread, Auxiliary):
     def __init__(self, options={}, config=None):
         Thread.__init__(self)
         Auxiliary.__init__(self, options, config)
-        self.do_run = options.get("curtain", {}).get("enabled", False)
-        self.enabled = options.get("curtain", {}).get("enabled", False)
+        self.do_run = True
 
     def collectLogs(self):
+
         try:
             os.system("C:\\Windows\\System32\\wevtutil.exe query-events microsoft-windows-powershell/operational /rd:true /e:root /format:xml /uni:true > C:\\curtain.log")
         except Exception as e:
@@ -35,22 +35,26 @@ class Curtain(Thread, Auxiliary):
             log.error("Curtain log file not found!")
 
     def clearLogs(self):
+
         try:
             os.system("C:\\Windows\\System32\\wevtutil.exe clear-log microsoft-windows-powershell/operational")
         except Exception as e:
             log.error("Curtain - Error clearing PowerShell events - %s" % e)
 
     def run(self):
-        if self.enabled:
-            self.clearLogs()
-            while self.do_run:
-                self.collectLogs()
-                time.sleep(15)
-            return True
-        return False
+
+        self.clearLogs()
+
+        while self.do_run:
+
+            self.collectLogs()
+
+            time.sleep(15)
+
+        return True
 
     def stop(self):
-        if self.enabled:
-            self.collectLogs()
-            return True
-        return False
+
+        self.collectLogs()
+
+        return True
