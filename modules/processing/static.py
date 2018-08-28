@@ -1110,6 +1110,18 @@ class Office(object):
 
         return metares
 
+    def _get_meta(self, meta):
+        ret = dict()
+        ret["SummaryInformation"] = dict()
+        for prop in meta.SUMMARY_ATTRIBS:
+            value = getattr(meta, prop)
+            ret["SummaryInformation"][prop] = convert_to_printable(str(value))
+        ret["DocumentSummaryInformation"] = dict()
+        for prop in meta.DOCSUM_ATTRIBS:
+            value = getattr(meta, prop)
+            ret["DocumentSummaryInformation"][prop] = convert_to_printable(str(value))
+        return ret
+
     def _parse(self, filepath):
         """Parses an office document for static information.
         Currently (as per olefile) the following formats are supported:
@@ -1135,7 +1147,7 @@ class Office(object):
                 ole = olefile.OleFileIO(filepath)
                 meta = ole.get_metadata()
                 # must be left this way or we won't see the results
-                officeresults["Metadata"] = meta.get_meta()
+                officeresults["Metadata"] = self._get_meta(meta)
                 metares = officeresults["Metadata"]
                 # Fix up some output formatting
                 buf = self.convert_dt_string(metares["SummaryInformation"]["create_time"])
