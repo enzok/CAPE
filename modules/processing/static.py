@@ -1144,7 +1144,7 @@ class Office(object):
                 metares["SummaryInformation"]["last_saved_time"] = buf
                 ole.close()
             else:
-                officeresults["Metadata"] = self.get_xml_meta(self.file_path)
+                officeresults["Metadata"] = self.get_xml_meta(filepath)
                 metares = officeresults["Metadata"]
         except Exception as xcpt:
             metares["Metadata"] = dict()
