@@ -36,3 +36,7 @@ DEBUG = False
 # When DEBUG is True or when running tests, host validation is disabled; any
 # host will be accepted. Thus it's usually only necessary to set it in production.
 ALLOWED_HOSTS = ["*"]
+
+
+USE_TZ = True
+TIME_ZONE = 'UTC'
