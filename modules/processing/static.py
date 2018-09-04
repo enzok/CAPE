@@ -3,8 +3,6 @@
 # See the file 'docs/LICENSE' for copying permission.
 
 import json
-import oletools.thirdparty.olefile.olefile as olefile
-import lib.cuckoo.common.office.vbadeobf as vbadeobf
 import lib.cuckoo.common.decoders.darkcomet as darkcomet
 import lib.cuckoo.common.decoders.njrat as njrat
 import lib.cuckoo.common.decoders.nanocore as nanocore
@@ -21,12 +19,11 @@ import hashlib
 import zipfile
 
 from lxml import etree
+from datetime import datetime, date, time
 from lib.cuckoo.common.icon import PEGroupIconDir
 from PIL import Image
 from StringIO import StringIO
-from datetime import datetime, date, time, timedelta
 from subprocess import Popen, PIPE
-from lib.cuckoo.common.utils import convert_to_printable
 import struct
 
 try:
@@ -66,16 +63,33 @@ try:
 except:
     HAVE_WHOIS = False
 
+try:
+    from lib.cuckoo.common.office.vba2graph import vba2graph_from_vba_object, vba2graph_gen
+    HAVE_VBA2GRAPH = True
+except ImportError:
+    HAVE_VBA2GRAPH = False
+
+
 from lib.cuckoo.common.abstracts import Processing
 from lib.cuckoo.common.constants import CUCKOO_ROOT
 from lib.cuckoo.common.objects import File
-from oletools.oleid import OleID
-from oletools.olevba import detect_autoexec
-from oletools.olevba import detect_hex_strings
-from oletools.olevba import detect_patterns
-from oletools.olevba import detect_suspicious
-from oletools.olevba import filter_vba
-from oletools.olevba import VBA_Parser
+from lib.cuckoo.common.config import Config
+
+try:
+    import oletools.thirdparty.olefile.olefile as olefile
+    import lib.cuckoo.common.office.vbadeobf as vbadeobf
+    from oletools.oleid import OleID
+    from oletools.olevba import detect_autoexec
+    from oletools.olevba import detect_hex_strings
+    from oletools.olevba import detect_patterns
+    from oletools.olevba import detect_suspicious
+    from oletools.olevba import filter_vba
+    from oletools.olevba import VBA_Parser
+    HAVE_OLETOOLS = True
+except ImportError:
+    print("Ensure oletools are installed")
+    HAVE_OLETOOLS = False
+
 from lib.cuckoo.common.utils import convert_to_printable, store_temp_file
 from lib.cuckoo.common.pdftools.pdfid import PDFiD, PDFiD2JSON
 from lib.cuckoo.common.peepdf.PDFCore import PDFParser
@@ -88,7 +102,7 @@ except:
     HAVE_MMBOT = False
 
 log = logging.getLogger(__name__)
-
+processing_conf = Config("processing")
 
 # Obtained from
 # https://github.com/erocarrera/pefile/blob/master/pefile.py
@@ -1029,9 +1043,10 @@ class PDF(object):
 
 class Office(object):
     """Office Document Static Analysis"""
-    def __init__(self, file_path, options):
+    def __init__(self, file_path, options, results):
         self.file_path = file_path
         self.opts = options
+        self.results = results
 
     # Parse a string-casted datetime object that olefile returns. This will parse
     # multiple types of timestamps including when a date is provide without a
@@ -1215,6 +1230,16 @@ class Office(object):
             if macrores["Analysis"]["HexStrings"] == []:
                 del macrores["Analysis"]["HexStrings"]
 
+            if HAVE_VBA2GRAPH and processing_conf.vba2graph.enabled:
+                try:
+                    vba2graph_path = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(self.results["info"]["id"]), "vba2graph")
+                    if not os.path.exists(vba2graph_path):
+                        os.makedirs(vba2graph_path)
+                    vba_code = vba2graph_from_vba_object(filepath)
+                    if vba_code:
+                        vba2graph_gen(vba_code, vba2graph_path)
+                except Exception as e:
+                    log.debug(e)
         else:
             metares["HasMacros"] = "No"
 
@@ -1606,7 +1631,7 @@ class Static(Processing):
             elif "PDF" in thetype or self.task["target"].endswith(".pdf") or package == "pdf":
                 static = PDF(self.file_path).run()
             elif package in ("doc", "ppt", "xls", "pub"):
-                static = Office(self.file_path, mmbot_opts).run()
+                static = Office(self.file_path, mmbot_opts, self.results).run()
             elif "Java Jar" in thetype or "Java archive" in thetype or self.task["target"].endswith(".jar"):
                 decomp_jar = self.options.get("procyon_path", None)
                 if decomp_jar and not os.path.exists(decomp_jar):
