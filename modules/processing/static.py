@@ -1203,7 +1203,7 @@ class Office(object):
                             except UnicodeDecodeError as xcpt:
                                 log.warn("Macro hex string - {}: {}".format(encoded, xcpt))
                                 decoded = encoded
-                            macrores["Analysis"]["HexStrings"].append((encoded, decoded))
+                            macrores["Analysis"]["HexStrings"].append((encoded, convert_to_printable(decoded)))
             # Delete and keys which had no results. Otherwise we pollute the
             # Django interface with null data.
             if macrores["Analysis"]["AutoExec"] == []:
