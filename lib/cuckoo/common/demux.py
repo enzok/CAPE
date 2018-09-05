@@ -3,14 +3,13 @@
 # See the file 'docs/LICENSE' for copying permission.
 
 import os
-import subprocess
 import tempfile
 import gzip
 import tarfile
 import logging
+import subprocess
 from bz2 import BZ2File
 from zipfile import ZipFile
-from sflock import unpack
 
 try:
     from rarfile import RarFile
@@ -18,12 +17,20 @@ try:
 except ImportError:
     HAS_RARFILE = False
 
+try:
+    from sflock import unpack
+    HAS_SFLOCK = True
+except ImportError:
+    HAS_SFLOCK = False
+
+
 from lib.cuckoo.common.config import Config
 from lib.cuckoo.common.objects import File
 from lib.cuckoo.common.email_utils import find_attachments_in_email
 from lib.cuckoo.common.office.msgextract import Message
 from lib.cuckoo.common.exceptions import CuckooDemuxError
 
+logging.basicConfig()
 log = logging.getLogger(__name__)
 
 demux_extensions_list = [
@@ -37,6 +44,23 @@ archive_extensions_list = [
         "", ".bin", ".zip", ".tar", ".gz", ".tgz", ".rar", ".ace", ".bup", ".eml", ".msg", ".mso",
     ]
 
+
+def options2passwd(options):
+    password = False
+    if "password=" in options:
+        fields = options.split(",")
+        for field in fields:
+            try:
+                key, value = field.split("=", 1)
+                if key == "password":
+                    password = value
+                    break
+            except:
+                pass
+
+    return password
+
+
 def demux_office(filename, password):
     retlist = []
 
@@ -48,15 +72,15 @@ def demux_office(filename, password):
 
     if decryptor and os.path.exists(decryptor):
         basename = os.path.basename(filename)
-        target_path = os.path.join(tmp_path, "msoffice-crypt-tmp")
+        target_path = os.path.join(tmp_path, "cuckoo-tmp/msoffice-crypt-tmp")
         if not os.path.exists(target_path):
             os.mkdir(target_path)
         decrypted_name = os.path.join(target_path, basename)
 
         try:
             result = subprocess.call([decryptor, "-p", password, "-d", filename, decrypted_name])
-        except:
-            pass
+        except Exception as e:
+            raise CuckooDemuxError(e)
 
         if result == 0 or result == 2:
             retlist.append(decrypted_name)
@@ -83,16 +107,10 @@ def demux_zip(filename, options):
             return retlist
 
         extracted = []
-        password="infected"
-        fields = options.split(",")
-        for field in fields:
-            try:
-                key, value = field.split("=", 1)
-                if key == "password":
-                    password = value
-                    break
-            except:
-                pass
+        password = "infected"
+        tmp_pass = options2passwd(options)
+        if tmp_pass:
+            password = tmp_pass
 
         with ZipFile(filename, "r") as archive:
             infolist = archive.infolist()
@@ -122,18 +140,20 @@ def demux_zip(filename, options):
                 target_path = os.path.join(tmp_path, "cuckoo-zip-tmp")
                 if not os.path.exists(target_path):
                     os.mkdir(target_path)
-                tmp_dir = tempfile.mkdtemp(prefix='cuckoozip_',dir=target_path)
+                tmp_dir = tempfile.mkdtemp(prefix='cuckoozip_', dir=target_path)
 
                 for extfile in extracted:
                     try:
                         retlist.append(archive.extract(extfile, path=tmp_dir, pwd=password))
                     except:
                         retlist.append(archive.extract(extfile, path=tmp_dir))
-                    print ("Extracting from zip - {}/{}".format(tmp_dir, extfile))
+                    log.debug("Extracting from zip - {}/{}".format(tmp_dir, extfile))
+
     except:
         pass
 
     return retlist
+
 
 def demux_rar(filename, options):
     retlist = []
@@ -143,16 +163,10 @@ def demux_rar(filename, options):
 
     try:
         extracted = []
-        password="infected"
-        fields = options.split(",")
-        for field in fields:
-            try:
-                key, value = field.split("=", 1)
-                if key == "password":
-                    password = value
-                    break
-            except:
-                pass
+        password = "infected"
+        tmp_pass = options2passwd(options)
+        if tmp_pass:
+            password = tmp_pass
 
         with RarFile(filename, "r") as archive:
             infolist = archive.infolist()
@@ -185,7 +199,7 @@ def demux_rar(filename, options):
                 target_path = os.path.join(tmp_path, "cuckoo-rar-tmp")
                 if not os.path.exists(target_path):
                     os.mkdir(target_path)
-                tmp_dir = tempfile.mkdtemp(prefix='cuckoorar_',dir=target_path)
+                tmp_dir = tempfile.mkdtemp(prefix='cuckoorar_', dir=target_path)
 
                 for extfile in extracted:
                     # RarFile differs from ZipFile in that extract() doesn't return the path of the extracted file
@@ -200,6 +214,7 @@ def demux_rar(filename, options):
         pass
 
     return retlist
+
 
 def demux_tar(filename, options):
     retlist = []
@@ -238,7 +253,7 @@ def demux_tar(filename, options):
                 target_path = os.path.join(tmp_path, "cuckoo-tar-tmp")
                 if not os.path.exists(target_path):
                     os.mkdir(target_path)
-                tmp_dir = tempfile.mkdtemp(prefix='cuckootar_',dir=target_path)
+                tmp_dir = tempfile.mkdtemp(prefix='cuckootar_', dir=target_path)
 
                 for extfile in extracted:
                     fobj = archive.extractfile(extfile)
@@ -260,7 +275,7 @@ def demux_tar(filename, options):
                 target_path = os.path.join(tmp_path, "cuckoo-tar-tmp")
                 if not os.path.exists(target_path):
                     os.mkdir(target_path)
-                tmp_dir = tempfile.mkdtemp(prefix='cuckootar_',dir=target_path)
+                tmp_dir = tempfile.mkdtemp(prefix='cuckootar_', dir=target_path)
                 outpath = os.path.join(tmp_dir, gzfinal)
                 outfile = open(outpath, "wb")
                 outfile.write(fobj.read())
@@ -278,7 +293,7 @@ def demux_tar(filename, options):
                 target_path = os.path.join(tmp_path, "cuckoo-tar-tmp")
                 if not os.path.exists(target_path):
                     os.mkdir(target_path)
-                tmp_dir = tempfile.mkdtemp(prefix='cuckootar_',dir=target_path)
+                tmp_dir = tempfile.mkdtemp(prefix='cuckootar_', dir=target_path)
                 outpath = os.path.join(tmp_dir, gzfinal)
                 outfile = open(outpath, "wb")
                 outfile.write(fobj.read())
@@ -288,6 +303,7 @@ def demux_tar(filename, options):
             pass
 
     return retlist
+
 
 def demux_email(filename, options):
     retlist = []
@@ -303,6 +319,7 @@ def demux_email(filename, options):
 
     return retlist
 
+
 def demux_msg(filename, options):
     retlist = []
     try:
@@ -312,15 +329,20 @@ def demux_msg(filename, options):
 
     return retlist
 
+
 def get_filenames(retlist, tmp_dir, children):
-    for child in children:
-        at = child.astree()
-        if 'file' in at['type']:
-            retlist.append(os.path.join(tmp_dir, at['filename']))
-        elif 'container' in at['type']:
-            get_filenames(retlist, tmp_dir, child.children)
+    try:
+        for child in children:
+            at = child.astree()
+            if 'file' in at['type']:
+                retlist.append(os.path.join(tmp_dir, at['filename']))
+            elif 'container' in at['type']:
+                get_filenames(retlist, tmp_dir, child.children)
+    except Exception as err:
+        log.error("Error getting file names: {}".format(err))
 
     return retlist
+
 
 def demux_all(filename, options):
     retlist = []
@@ -330,35 +352,27 @@ def demux_all(filename, options):
         if ext not in archive_extensions_list:
             return retlist
 
-        extracted = []
-        password="infected"
-        fields = options.split(",")
-        for field in fields:
-            try:
-                key, value = field.split("=", 1)
-                if key == "password":
-                    password = value
-                    break
-            except:
-                pass
+        password = "infected"
+        tmp_pass = options2passwd(options)
+        if tmp_pass:
+            password = tmp_pass
 
-        options = Config()
-        tmp_path = options.cuckoo.get("tmppath", "/tmp")
-        target_path = os.path.join(tmp_path, "cuckoo-zip-tmp")
-        if not os.path.exists(target_path):
-            os.mkdir(target_path)
-        tmp_dir = tempfile.mkdtemp(prefix='cuckoozip_', dir=target_path)
         unpacked = unpack(filepath=filename, password=password)
+        if unpacked.children:
+            options = Config()
+            tmp_path = options.cuckoo.get("tmppath", "/tmp")
+            target_path = os.path.join(tmp_path, "cuckoo-zip-tmp")
+            if not os.path.exists(target_path):
+                os.mkdir(target_path)
+            tmp_dir = tempfile.mkdtemp(prefix='cuckoozip_', dir=target_path)
 
-        retlist = get_filenames([], tmp_dir, unpacked.children)
+            retlist = get_filenames([], tmp_dir, unpacked.children)
 
-        if retlist:
-            unpacked.extract(tmp_dir)
-            print ("Extracted from file - {}->{}".format(filename, retlist))
+            if retlist:
+                unpacked.extract(tmp_dir)
 
     except Exception as err:
-        print ("Error unpacking file: {} - {}".format(filename, err))
-        pass
+        log.error("Error unpacking file: {} - {}".format(filename, err))
 
     return retlist
 
@@ -370,47 +384,68 @@ def demux_sample(filename, package, options):
     If file is a password-protected Office doc and password is supplied, return path to decrypted doc
     """
 
-    magic = File(filename).get_type()
-
-    # if file is an Office doc and password is supplied, try to decrypt the doc
-    if "Microsoft" in magic or "Composite Document File" in magic or "CDFV2 Encrypted" in magic:
-        password = None
-        if "password=" in options:
-            fields = options.split(",")
-            for field in fields:
-                try:
-                    key, value = field.split("=", 1)
-                    if key == "password":
-                        password = value
-                        break
-                except:
-                    pass
-        if password:
-            return demux_office(filename, password)
-            print ("Extracting from Office doc - {}, password={}".format(filename, password))
-        else:
-            return [filename]
-            print ("Extracting from Office doc - {}".format(filename))
-
     # if a package was specified, then don't do anything special
     # this will allow for the ZIP package to be used to analyze binaries with included DLL dependencies
     # do the same if file= is specified in the options
     if package or "file=" in options:
-        return [ filename ]
+        return [filename]
+
+    # don't try to extract from office docs
+    magic = File(filename).get_type()
+
+    # if file is an Office doc and password is supplied, try to decrypt the doc
+    if "Microsoft" in magic or "Composite Document File" in magic or "CDFV2 Encrypted" in magic:
+        password = options2passwd(options)
+        if password:
+            return demux_office(filename, password)
+            log.debug("Extracting from Office doc - {}, password={}".format(filename, password))
+        else:
+            return [filename]
+            log.debug("Extracting from Office doc - {}".format(filename))
 
     # don't try to extract from Java archives or executables
-    if "Java Jar" in magic or "Java archive" in magic:
-        return [ filename ]
+    if "Java Jar" in magic:
+        return [filename]
     if "PE32" in magic or "MS-DOS executable" in magic:
-        return [ filename ]
+        return [filename]
 
-    retlist = demux_all(filename, options)
+    if HAS_SFLOCK:
+        # all in one unarchiver
+        retlist = demux_all(filename, options)
+    else:
+        # Fallback to legacy system
+        retlist = demux_zip(filename, options)
+        if not retlist:
+            retlist = demux_rar(filename, options)
+        if not retlist:
+            retlist = demux_tar(filename, options)
+        if not retlist:
+            retlist = demux_email(filename, options)
+        if not retlist:
+            retlist = demux_msg(filename, options)
+        # handle ZIPs/RARs inside extracted files
+        if retlist:
+            newretlist = []
+            for item in retlist:
+                zipext = demux_zip(item, options)
+                if zipext:
+                    newretlist.extend(zipext)
+                else:
+                    rarext = demux_rar(item, options)
+                    if rarext:
+                        newretlist.extend(rarext)
+                    else:
+                        tarext = demux_tar(item, options)
+                        if tarext:
+                            newretlist.extend(tarext)
+                        else:
+                            newretlist.append(item)
+            retlist = newretlist
 
     # if it wasn't a ZIP or an email or we weren't able to obtain anything interesting from either, then just submit the
     # original file
-
     if not retlist:
         retlist.append(filename)
-        print ("Not an archive file - {}".format(filename))
+        log.debug("Not an archive file - {}".format(filename))
 
     return retlist
