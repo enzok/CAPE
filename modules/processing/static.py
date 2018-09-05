@@ -1149,9 +1149,12 @@ class Office(object):
         """
 
         results = dict()
-        try:
-            vba = VBA_Parser(filepath)
-        except:
+        if HAVE_OLETOOLS:
+            try:
+                vba = VBA_Parser(filepath)
+            except:
+                return results
+        else:
             return results
 
         officeresults = results["office"] = {}
