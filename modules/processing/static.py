@@ -1236,6 +1236,9 @@ class Office(object):
             if macrores["Analysis"]["HexStrings"] == []:
                 del macrores["Analysis"]["HexStrings"]
 
+            if HAVE_MMBOT:
+                officeresults["mmbot"] = self.mmbot()
+
             if HAVE_VBA2GRAPH and processing_conf.vba2graph.enabled:
                 try:
                     vba2graph_path = os.path.join(CUCKOO_ROOT, "storage", "analyses",
@@ -1245,6 +1248,7 @@ class Office(object):
                     vba_code = vba2graph_from_vba_object(filepath)
                     if vba_code:
                         vba2graph_gen(vba_code, vba2graph_path)
+                        log.debug("Processed vba2graph.")
                 except Exception as e:
                     log.info(e)
         else:
@@ -1262,31 +1266,29 @@ class Office(object):
 
         return results
 
-    def mmbot(self, file_path, options):
+    def mmbot(self):
         """MaliciousMacroBot analysis.
         @return: malicious label and scores
         """
-        if not HAVE_MMBOT:
-            return None
+
+        results = dict()
 
         try:
-            results = dict()
             mmb = MaliciousMacroBot(self.opts["benign_path"],
                                     self.opts["malicious_path"],
                                     self.opts["model_path"],
                                     retain_sample_contents=False)
             initresult = mmb.mmb_init_model(modelRebuild=False)
-            predresult = mmb.mmb_predict(file_path)
+            predresult = mmb.mmb_predict(self.file_path)
             results = mmb.mmb_prediction_to_json(predresult)[0]
 
             if "malicious" in results["prediction"]:
                 link_path = os.path.join(self.opts["malicious_path"], os.path.basename(file_path))
                 if not os.path.isfile(link_path):
-                    os.symlink(file_path, link_path)
+                    os.symlink(self.file_path, link_path)
 
         except Exception as xcpt:
             log.error("Failed to run mmbot processing: %s", xcpt)
-            results = {''}
 
         log.debug(results)
         return results
@@ -1298,8 +1300,6 @@ class Office(object):
         if not os.path.exists(self.file_path):
             return None
         results = self._parse(self.file_path)
-        if "office" in results and "Macro" in results["office"]:
-            results["office"]["mmbot"] = self.mmbot(self.file_path, self.opts)
         return results
 
 class Java(object):
