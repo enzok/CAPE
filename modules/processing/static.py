@@ -476,7 +476,7 @@ class PortableExecutable(object):
         try:
             off = self.pe.get_overlay_data_start_offset()
         except:
-            log.error("Your version of pefile is out of date.  Please update to the latest version on https://github.com/erocarrera/pefile")
+            log.error("Your version of pefile is out of date. Please update to the latest version on https://github.com/erocarrera/pefile")
             return None
 
         if off is None:
@@ -525,7 +525,7 @@ class PortableExecutable(object):
         try:
             retstr = "0x{0:08x}".format(self.pe.generate_checksum())
         except:
-            log.warning("Detected outdated version of pefile.  Please update to the latest version at https://github.com/erocarrera/pefile")
+            log.warning("Detected outdated version of pefile. Please update to the latest version at https://github.com/erocarrera/pefile")
         return retstr
 
     def _get_osversion(self):
@@ -535,7 +535,8 @@ class PortableExecutable(object):
         if not self.pe:
             return None
 
-        return "{0}.{1}".format(self.pe.OPTIONAL_HEADER.MajorOperatingSystemVersion, self.pe.OPTIONAL_HEADER.MinorOperatingSystemVersion)
+        return "{0}.{1}".format(self.pe.OPTIONAL_HEADER.MajorOperatingSystemVersion,
+                                self.pe.OPTIONAL_HEADER.MinorOperatingSystemVersion)
 
     def _get_resources(self):
         """Get resources.
@@ -832,7 +833,8 @@ class PortableExecutable(object):
             ratconfig = nanocore_config
         posttime = datetime.now()
         timediff = posttime - pretime
-        self.add_statistic("config_decoder", "time", float("%d.%03d" % (timediff.seconds, timediff.microseconds / 1000)))
+        self.add_statistic("config_decoder", "time",
+                           float("%d.%03d" % (timediff.seconds, timediff.microseconds / 1000)))
 
         if ratname:
             results["rat"] = { }
@@ -964,7 +966,7 @@ class PDF(object):
                         try:
                             jslist, unescapedbytes, urlsfound, errors, ctxdummy = analyseJS(decoded_stream.strip())
                             jsdata = jslist[0]
-                        except Exception,e:
+                        except Exception as e:
                             continue
                         if len(errors):
                             continue
@@ -1200,7 +1202,8 @@ class Office(object):
                     ctr += 1
                     outputname = "Macro" + str(ctr)
                     macrores["Code"][outputname] = list()
-                    macrores["Code"][outputname].append((convert_to_printable(vba_filename),convert_to_printable(vba_code)))
+                    macrores["Code"][outputname].append((convert_to_printable(vba_filename),
+                                                         convert_to_printable(vba_code)))
                     autoexec = detect_autoexec(vba_code)
                     suspicious = detect_suspicious(vba_code)
                     iocs = vbadeobf.parse_macro(vba_code)
@@ -1235,7 +1238,8 @@ class Office(object):
 
             if HAVE_VBA2GRAPH and processing_conf.vba2graph.enabled:
                 try:
-                    vba2graph_path = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(self.results["info"]["id"]), "vba2graph")
+                    vba2graph_path = os.path.join(CUCKOO_ROOT, "storage", "analyses",
+                                                  str(self.results["info"]["id"]), "vba2graph")
                     if not os.path.exists(vba2graph_path):
                         os.makedirs(vba2graph_path)
                     vba_code = vba2graph_from_vba_object(filepath)
@@ -1645,9 +1649,9 @@ class Static(Processing):
             # oleid to fail us out silently, yeilding no static analysis
             # results for actual zip files.
             elif "Zip archive data, at least v2.0" in thetype:
-                static = Office(self.file_path, mmbot_opts).run()
+                static = Office(self.file_path, mmbot_opts, self.results).run()
             elif "Composite Document File V2 Document" in thetype or "Microsoft OOXML" in thetype:
-                static = Office(self.file_path, mmbot_opts).run()
+                static = Office(self.file_path, mmbot_opts, self.results).run()
             elif package == "wsf" or thetype == "XML document text" or self.task["target"].endswith(".wsf") or package == "hta":
                 static = WindowsScriptFile(self.file_path).run()
             elif package == "js" or package == "vbs":
