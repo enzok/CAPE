@@ -77,6 +77,12 @@ from lib.cuckoo.common.config import Config
 
 try:
     import olefile
+    HAVE_OLEFILE = True
+except ImportError:
+    HAVE_OLEFILE = False
+    print("Missed olefile dependency: pip install olefile")
+
+try:
     import lib.cuckoo.common.office.vbadeobf as vbadeobf
     from oletools.oleid import OleID
     from oletools.olevba import detect_autoexec
@@ -1163,7 +1169,7 @@ class Office(object):
 
         metares = officeresults["Metadata"] = dict()
         try:
-            if olefile.isOleFile(filepath):
+            if HAVE_OLEFILE and olefile.isOleFile(filepath):
                 ole = olefile.OleFileIO(filepath)
                 meta = ole.get_metadata()
                 # must be left this way or we won't see the results
