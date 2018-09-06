@@ -1283,7 +1283,7 @@ class Office(object):
             results = mmb.mmb_prediction_to_json(predresult)[0]
 
             if "malicious" in results["prediction"]:
-                link_path = os.path.join(self.opts["malicious_path"], os.path.basename(file_path))
+                link_path = os.path.join(self.opts["malicious_path"], os.path.basename(self.file_path))
                 if not os.path.isfile(link_path):
                     os.symlink(self.file_path, link_path)
 
