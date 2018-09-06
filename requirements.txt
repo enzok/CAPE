@@ -40,8 +40,9 @@ requests
 sqlalchemy
 # upx
 maec
-oletools==0.53.1
+oletools>=0.53.1
 networkx>=2.1
 regex
 graphviz>=0.8.4
 pydot>=1.2.4
+olefile

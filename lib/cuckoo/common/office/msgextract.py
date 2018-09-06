@@ -34,7 +34,7 @@ import glob
 import traceback
 from email.parser import Parser as EmailParser
 import email.utils
-import oletools.thirdparty.olefile.olefile as OleFile
+import olefile
 from lib.cuckoo.common.utils import store_temp_file
 
 def windowsUnicode(string):
@@ -94,9 +94,9 @@ class Attachment:
         return store_temp_file(self.data, filename)
 
 
-class Message(OleFile.OleFileIO):
+class Message(olefile.OleFileIO):
     def __init__(self, filename):
-        OleFile.OleFileIO.__init__(self, filename)
+        olefile.OleFileIO.__init__(self, filename)
 
     def _getStream(self, filename):
         if self.exists(filename):

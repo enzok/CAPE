@@ -76,7 +76,7 @@ from lib.cuckoo.common.objects import File
 from lib.cuckoo.common.config import Config
 
 try:
-    import oletools.thirdparty.olefile.olefile as olefile
+    import olefile
     import lib.cuckoo.common.office.vbadeobf as vbadeobf
     from oletools.oleid import OleID
     from oletools.olevba import detect_autoexec
