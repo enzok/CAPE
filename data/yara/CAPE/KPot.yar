@@ -2,8 +2,8 @@ rule KPot
 {
     meta:
         author = "enzo"
-        description = "KPot Stealer"
-        cape_type = "KPot Stealer"
+        description = "KPot Payload"
+        cape_type = "KPot Payload"
     strings:
         $str1 = "regbot.php"
         $str2 = ".bit"
