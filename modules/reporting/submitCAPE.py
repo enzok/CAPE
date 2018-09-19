@@ -229,6 +229,9 @@ class SubmitCAPE(Report):
                         if parent_package=='pdf':
                             detections.add('Injection_pdf')    
                             continue
+                        if parent_package=='js':
+                            detections.add('Injection_js')
+                            continue
                         detections.add('Injection')
                 
                 elif entry["name"] == "Extraction":
@@ -252,6 +255,9 @@ class SubmitCAPE(Report):
                         if parent_package=='jar':
                             detections.add('Extraction_jar')
                             continue
+                        if parent_package=='js':
+                            detections.add('Extraction_js')
+                            continue
                         detections.add('Extraction')
                 
                 elif entry["name"] == "Compression":
@@ -265,6 +271,9 @@ class SubmitCAPE(Report):
                         if parent_package=='doc':
                             detections.add('Compression_doc')    
                             continue                            
+                        if parent_package=='js':
+                            detections.add('Compression_js')
+                            continue
                         detections.add('Compression')
                     
                 elif entry["name"] == "Doppelganging":
