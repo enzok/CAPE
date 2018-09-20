@@ -60,24 +60,31 @@ def update_options(gw, orig_options):
     return options
 
 
-def download_file(content, request, db, task_ids, url, params, headers, service, filename, package, timeout, options, priority, machine, gateway, clock, custom, memory, enforce_timeout, referrer, tags, orig_options, task_gateways, task_machines):
+def download_file(content, request, db, task_ids, url, params, headers, service, filename, package, timeout, options,
+                  priority, machine, gateway, clock, custom, memory, enforce_timeout, referrer, tags, orig_options,
+                  task_gateways, task_machines):
+
     onesuccess = False
+
     if content is False:
         try:
             r = requests.get(url, params=params, headers=headers, verify=False)
         except requests.exceptions.RequestException as e:
-            return "error", render(request, "error.html", {"error": "Error completing connection to {1}: {0}".format(e, service)})
+            return "error", render(request, "error.html",
+                                   {"error": "Error completing connection to {1}: {0}".format(e, service)})
 
         if r.status_code == 200:
             content = r.content
         elif r.status_code == 403:
-            return "error", render(request, "error.html", {"error": "API key provided is not a valid {0} key or is not authorized for {0} downloads".format(service)})
+            return "error", render(request, "error.html",
+                                   {"error": "API key is not valid/authorized for {0} downloads".format(service)})
     try:
         f = open(filename, 'wb')
         f.write(content)
         f.close()
     except:
-        return "error", render(request, "error.html", {"error": "Error writing {} download file to temporary path".format(service)})
+        return "error", render(request, "error.html",
+                               {"error": "Error writing {} download file to temporary path".format(service)})
 
     onesuccess = True
 
@@ -85,9 +92,19 @@ def download_file(content, request, db, task_ids, url, params, headers, service,
         options = update_options(gw, orig_options)
 
         for entry in task_machines:
-            task_ids_new = db.demux_sample_and_add_to_db(file_path=filename, package=package, timeout=timeout, options=options, priority=priority,
-                                                         machine=entry, custom=custom, memory=memory, enforce_timeout=enforce_timeout, tags=tags, clock=clock)
+            task_ids_new = db.demux_sample_and_add_to_db(file_path=filename,
+                                                         package=package,
+                                                         timeout=timeout,
+                                                         options=options,
+                                                         priority=priority,
+                                                         machine=entry,
+                                                         custom=custom,
+                                                         memory=memory,
+                                                         enforce_timeout=enforce_timeout,
+                                                         tags=tags,
+                                                         clock=clock)
             task_ids.extend(task_ids_new)
+
     if not onesuccess:
         return "error", render(request, "error.html", {"error": "Provided hash not found on {}".format(service)})
     return "ok", task_ids
@@ -226,8 +243,10 @@ def index(request, resubmit_hash=False):
                 url = 'local'
                 params = {}
 
-                status, task_ids = download_file(content, request, db, task_ids, url, params, headers, "Local", filename, package, timeout, options, priority, machine, gateway,
-                                                 clock, custom, memory, enforce_timeout, referrer, tags, orig_options, task_gateways, task_machines)
+                status, task_ids = download_file(content, request, db, task_ids, url, params, headers, "Local",
+                                                 filename, package, timeout, options, priority, machine, gateway,
+                                                 clock, custom, memory, enforce_timeout, referrer, tags, orig_options,
+                                                 task_gateways, task_machines)
 
         elif "sample" in request.FILES:
             samples = request.FILES.getlist("sample")
@@ -238,11 +257,11 @@ def index(request, resubmit_hash=False):
                     if len(samples) != 1:
                         continue
 
-                    return render(request, "error.html",
-                                              {"error": "You uploaded an empty file."})
+                    return render(request, "error.html", {"error": "You uploaded an empty file."})
                 elif sample.size > settings.MAX_UPLOAD_SIZE:
                     return render(request, "error.html",
-                                              {"error": "You uploaded a file that exceeds the maximum allowed upload size specified in web/web/local_settings.py."})
+                                  {"error": "Uploaded file exceeds maximum size specified in "
+                                            "web/web/local_settings.py."})
     
                 # Moving sample from django temporary file to Cuckoo temporary storage to
                 # let it persist between reboot (if user like to configure it in that way).
@@ -257,8 +276,17 @@ def index(request, resubmit_hash=False):
 
                     for entry in task_machines:
                         try:
-                            task_ids_new = db.demux_sample_and_add_to_db(file_path=path, package=package, timeout=timeout, options=options, priority=priority,
-                                    machine=entry, custom=custom, memory=memory, enforce_timeout=enforce_timeout, tags=tags, clock=clock)
+                            task_ids_new = db.demux_sample_and_add_to_db(file_path=path,
+                                                                         package=package,
+                                                                         timeout=timeout,
+                                                                         options=options,
+                                                                         priority=priority,
+                                                                         machine=entry,
+                                                                         custom=custom,
+                                                                         memory=memory,
+                                                                         enforce_timeout=enforce_timeout,
+                                                                         tags=tags,
+                                                                         clock=clock)
                             task_ids.extend(task_ids_new)
                         except CuckooDemuxError as err:
                             return render(request, "error.html", {"error": err})
@@ -276,7 +304,8 @@ def index(request, resubmit_hash=False):
                                               {"error": "You uploaded an empty quarantine file."})
                 elif sample.size > settings.MAX_UPLOAD_SIZE:
                     return render(request, "error.html",
-                                              {"error": "You uploaded a quarantine file that exceeds the maximum allowed upload size specified in web/web/local_settings.py."})
+                                              {"error": "Uploaded quarantine file exceeds maximum size specified " 
+                                                        "in web/web/local_settings.py."})
     
                 # Moving sample from django temporary file to Cuckoo temporary storage to
                 # let it persist between reboot (if user like to configure it in that way).
@@ -301,8 +330,17 @@ def index(request, resubmit_hash=False):
                     options = update_options(gw, orig_options)
 
                     for entry in task_machines:
-                        task_ids_new = db.demux_sample_and_add_to_db(file_path=path, package=package, timeout=timeout, options=options, priority=priority,
-                                                                     machine=entry, custom=custom, memory=memory, enforce_timeout=enforce_timeout, tags=tags, clock=clock)
+                        task_ids_new = db.demux_sample_and_add_to_db(file_path=path,
+                                                                     package=package,
+                                                                     timeout=timeout,
+                                                                     options=options,
+                                                                     priority=priority,
+                                                                     machine=entry,
+                                                                     custom=custom,
+                                                                     memory=memory,
+                                                                     enforce_timeout=enforce_timeout,
+                                                                     tags=tags,
+                                                                     clock=clock)
                         task_ids.extend(task_ids_new)
         elif "pcap" in request.FILES:
             samples = request.FILES.getlist("pcap")
@@ -315,7 +353,8 @@ def index(request, resubmit_hash=False):
                                               {"error": "You uploaded an empty PCAP file."})
                 elif sample.size > settings.MAX_UPLOAD_SIZE:
                     return render(request, "error.html",
-                                              {"error": "You uploaded a PCAP file that exceeds the maximum allowed upload size specified in web/web/local_settings.py."})
+                                              {"error": "Uploaded PCAP file exceeds maximum size specified in "
+                                               "web/web/local_settings.py."})
 
                 # Moving sample from django temporary file to Cuckoo temporary storage to
                 # let it persist between reboot (if user like to configure it in that way).
@@ -361,13 +400,15 @@ def index(request, resubmit_hash=False):
                                          clock=clock)
                     if task_id:
                         task_ids.append(task_id)
-        elif settings.VTDL_ENABLED and "vtdl" in request.POST and request.POST.get("vtdl", False) and request.POST.get("vtdl")[0] != '':
+        elif settings.VTDL_ENABLED and "vtdl" in request.POST and request.POST.get("vtdl", False) \
+                and request.POST.get("vtdl")[0] != '':
             vtdl = request.POST.get("vtdl").strip()
             if (not settings.VTDL_PRIV_KEY and not settings.VTDL_INTEL_KEY) or not settings.VTDL_PATH:
                     return render(request, "error.html",
-                                  {"error": "You specified VirusTotal but must edit the file and specify your VTDL_PRIV_KEY or VTDL_INTEL_KEY variable and VTDL_PATH base directory"})
+                                  {"error": "VirusTotal submission requires a VTDL_PRIV_KEY or VTDL_INTEL_KEY "
+                                   "variable and VTDL_PATH base directory"})
             else:
-                base_dir = tempfile.mkdtemp(prefix='cuckoovtdl',dir=settings.VTDL_PATH)
+                base_dir = tempfile.mkdtemp(prefix='cuckoovtdl', dir=settings.VTDL_PATH)
                 hashlist = []
                 if "," in vtdl:
                     hashlist = vtdl.replace(" ", "").strip().split(",")
@@ -407,60 +448,6 @@ def index(request, resubmit_hash=False):
                                                          tags, orig_options, task_gateways, task_machines)
                 if status == "error":
                     return task_ids  # render message
-
-        elif "resubmit" in request.POST and request.POST.get("resubmit").strip():
-
-            subsuccess = False
-
-            hash = request.POST.get("resubmit").strip()
-            if not hash or len(hash) != 64:
-                return render(request, "error.html", {"error": "You specified an invalid hash!"})
-            if opt_filename:
-                fname = opt_filename
-            else:
-                fname = hash
-            base_dir = tempfile.mkdtemp(prefix='cuckooresubmit', dir="/tmp/")
-            filename = "{}/{}".format(base_dir, fname)
-
-            url = "https://{}:{}/files/get/{}".format(settings.CUCKOO_HOST, settings.CUCKOO_PORT, hash)
-
-            try:
-                r = requests.get(url, verify=False)
-            except requests.exceptions.RequestException as e:
-                return render(request, "error.html", {"error": "Error completing connection to Cuckoo: {0}".format(e)})
-            if r.status_code == 200:
-                try:
-                    f = open(filename, 'wb')
-                    f.write(r.content)
-                    f.close()
-                except:
-                    return render(request, "error.html",
-                                  {"error": "Error writing sample download file to temporary path"})
-
-                subsuccess = True
-
-                for gw in task_gateways:
-                    options = update_options(gw, orig_options)
-
-                for entry in task_machines:
-                    task_ids_new = db.demux_sample_and_add_to_db(file_path=filename,
-                                                                 package=package,
-                                                                 timeout=timeout,
-                                                                 options=options,
-                                                                 priority=priority,
-                                                                 machine=entry,
-                                                                 custom=custom,
-                                                                 memory=memory,
-                                                                 enforce_timeout=enforce_timeout,
-                                                                 tags=tags,
-                                                                 clock=clock)
-                    task_ids.extend(task_ids_new)
-
-            elif r.status_code == 404:
-                return render(request, "error.html", {"error": "Sample not found in Cuckoo db"})
-
-            if not subsuccess:
-                return render(request, "error.html", {"error": "Sample hash not found in Cuckoo db"})
 
         tasks_count = len(task_ids)
 
@@ -520,20 +507,19 @@ def index(request, resubmit_hash=False):
         machines.insert(0, ("", "First available"))
         machines.insert(1, ("all", "All"))
 
-        return render(request, "submission/index.html",
-                                  {"packages": sorted(packages),
-                                   "machines": machines,
-                                   "gateways": settings.GATEWAYS,
-                                   "config": enabledconf,
-                                   "resubmit": resubmit_hash,
-                                })
+        return render(request, "submission/index.html", {"packages": sorted(packages),
+                                                         "machines": machines,
+                                                         "gateways": settings.GATEWAYS,
+                                                         "config": enabledconf,
+                                                         "resubmit": resubmit_hash,
+                                                         })
 
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
 def status(request, task_id):
     task = Database().view_task(task_id)
     if not task:
         return render(request, "error.html",
-                                  {"error": "The specified task doesn't seem to exist."})
+                      {"error": "The specified task doesn't seem to exist."})
 
     completed = False
     if task.status == "reported":
@@ -544,6 +530,4 @@ def status(request, task_id):
         status = "processing"
 
     return render(request, "submission/status.html",
-                              {"completed": completed,
-                               "status": status,
-                               "task_id": task_id})
+                  {"completed": completed, "status": status, "task_id": task_id})
