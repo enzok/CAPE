@@ -177,6 +177,11 @@ def index(request, resubmit_hash=False):
                 options += ","
             options += "enable_cape=yes"
 
+        if request.POST.get("cuckoomon_dll"):
+            if options:
+                options += ","
+            options += "dll=cuckoomon.dll"
+
         if request.POST.get("kernel_analysis"):
             if options:
                 options += ","
