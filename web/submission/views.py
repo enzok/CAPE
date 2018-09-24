@@ -227,17 +227,22 @@ def index(request, resubmit_hash=False):
         status = "ok"
         if "hash" in request.POST and request.POST.get("hash", False) and request.POST.get("hash")[0] != '':
             resubmission_hash = request.POST.get("hash").strip()
-            paths = db.sample_path_by_hash(resubmission_hash)
-            if paths:
-                content = ""
-                content = submit_utils.get_file_content(paths)
-                if content is False:
-                    return render(request, "error.html", {"error": "Can't find {} on disk".format(resubmission_hash)})
+            tmp_paths = db.sample_path_by_hash(resubmission_hash)
+            storage_path = os.path.join(settings.CUCKOO_PATH, "storage", "binaries", resubmission_hash)
+            if tmp_paths:
+                content = submit_utils.get_file_content(tmp_paths)
+                if not content:
+                    content = submit_utils.get_file_content(storage_path)
+
+                    if not content:
+                        return render(request, "error.html",
+                                      {"error": "Can't find {} on disk".format(resubmission_hash)})
 
                 if opt_filename:
                     filename = opt_filename
                 else:
                     filename = resubmission_hash
+
                 path = store_temp_file(content, filename)
                 headers = {}
                 url = 'local'
