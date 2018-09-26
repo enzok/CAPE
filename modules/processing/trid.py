@@ -27,8 +27,9 @@ class TrID(Processing):
             trid_binary = self.options.get("identifier", "/home/cuckoo/trid/trid")
             definitions = self.options.get("definitions", "/home/cuckoo/trid/triddefs.trd")
 
-	    output = subprocess.check_output([ trid_binary, "-d:%s" % definitions, self.file_path], stderr=subprocess.STDOUT)
-	    strings = output.split('\n')
-	    # trim data
-	    strings = strings[6:-1]
+            output = subprocess.check_output([trid_binary, "-d:%s" % definitions, self.file_path],
+                                             stderr=subprocess.STDOUT)
+            strings = output.split('\n')
+            # trim data
+            strings = strings[6:-1]
         return strings
