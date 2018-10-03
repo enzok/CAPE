@@ -1234,6 +1234,7 @@ def perform_search(term, value):
         "suritlsfingerprint" : "suricata.tls.fingerprint",
         "clamav" : "target.file.clamav",
         "yaraname" : "target.file.yara.name",
+        "capeyara" : "target.file.cape_yara.name",
         "procmemyara" : "procmemory.yara.name",
         "virustotal" : "virustotal.results.sig",
         "comment" : "info.comments.Data",
