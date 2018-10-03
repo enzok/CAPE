@@ -372,6 +372,7 @@ class File:
             return results
 
         try:
+            rules = False
             try:
                 filepath = ""
                 filename = ""
@@ -387,29 +388,26 @@ class File:
                     log.warning(e.args[0])
                 else:
                     rules = yara.compile(rulepath)
-            matches = rules.match(self.file_path)
+            if rules:
+                matches = rules.match(self.file_path)
 
-            # This is ancient, and breaks CAPE, so removing.
-            #if getattr(yara, "__version__", None) == "1.7.7":
-            #    return self._yara_matches_177(matches)
+                results = []
 
-            results = []
+                for match in matches:
+                    strings = set()
+                    for s in match.strings:
+                        strings.add(self._yara_encode_string(s[2]))
 
-            for match in matches:
-                strings = set()
-                for s in match.strings:
-                    strings.add(self._yara_encode_string(s[2]))
+                    addresses = {}
+                    for s in match.strings:
+                        addresses[s[1].strip('$')] = s[0]
 
-                addresses = {}
-                for s in match.strings:
-                    addresses[s[1].strip('$')] = s[0]
-
-                results.append({
-                    "name": match.rule,
-                    "meta": match.meta,
-                    "strings": list(strings),
-                    "addresses": addresses,
-                })
+                    results.append({
+                        "name": match.rule,
+                        "meta": match.meta,
+                        "strings": list(strings),
+                        "addresses": addresses,
+                    })
 
         except Exception as e:
             errcode = e.message.split()[-1]
