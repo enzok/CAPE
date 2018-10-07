@@ -69,6 +69,11 @@ try:
 except ImportError:
     HAVE_VBA2GRAPH = False
 
+try:
+    from lib.cuckoo.common.graphs.binGraph.binGraph import generate_graphs as binGraph_gen
+    HAVE_BINGRAPH = True
+except ImportError:
+    HAVE_BINGRAPH = False
 
 from lib.cuckoo.common.abstracts import Processing
 from lib.cuckoo.common.constants import CUCKOO_ROOT
@@ -1324,7 +1329,7 @@ class Java(object):
         results = {}
 
         results["java"] = { }
-        
+
         if self.decomp_jar:
             f = open(self.file_path, "rb")
             data = f.read()
@@ -1642,6 +1647,15 @@ class Static(Processing):
                 if static and "Mono" in thetype:
                     static.update(DotNETExecutable(self.file_path, self.results).run())
             elif "PDF" in thetype or self.task["target"].endswith(".pdf") or package == "pdf":
+                if HAVE_BINGRAPH and processing_conf.binGraph.enabled:
+                    try:
+                        bingraph_path = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(self.results["info"]["id"]), "bingraph")
+                        if not os.path.exists(bingraph_path):
+                            os.makedirs(bingraph_path)
+                        binGraph_gen("", self.file_path, bingraph_path)
+                    except Exception as e:
+                        log.info(e)
+            elif "PDF" in thetype or self.task["target"].endswith(".pdf"):
                 static = PDF(self.file_path).run()
             elif package in ("doc", "ppt", "xls", "pub"):
                 static = Office(self.file_path, mmbot_opts, self.results).run()
