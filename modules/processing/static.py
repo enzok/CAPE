@@ -1646,7 +1646,6 @@ class Static(Processing):
                 static = PortableExecutable(self.file_path, self.results).run()
                 if static and "Mono" in thetype:
                     static.update(DotNETExecutable(self.file_path, self.results).run())
-            elif "PDF" in thetype or self.task["target"].endswith(".pdf") or package == "pdf":
                 if HAVE_BINGRAPH and processing_conf.binGraph.enabled:
                     try:
                         bingraph_path = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(self.results["info"]["id"]), "bingraph")
