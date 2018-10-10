@@ -871,8 +871,7 @@ def vba2graph_gen(input_vba_content, output_folder, input_file_name="vba2graph",
 
     vba_content_lines = vba_seperate_lines(input_vba_content)
     vba_content_lines_no_whitespace = vba_clean_whitespace(vba_content_lines)
-    vba_content_lines_no_metadata = vba_clean_metadata(
-        vba_content_lines_no_whitespace)
+    vba_content_lines_no_metadata = vba_clean_metadata( vba_content_lines_no_whitespace)
     vba_content_deobfuscated = vba_deobfuscation(vba_content_lines_no_metadata)
     vba_func_dict = vba_extract_functions(vba_content_deobfuscated)
     vba_prop_dict = vba_extract_properties(vba_content_lines_no_metadata)
@@ -884,11 +883,9 @@ def vba2graph_gen(input_vba_content, output_folder, input_file_name="vba2graph",
     # at this point, vba_func_dict should contain the code of functions and
     # properties, without comments or whitespaces.
     ##############################################################################
-k
     # ****************************************************************************
     # *                              Generate Graph                              *
     # ****************************************************************************
-k
     DG = create_call_graph(vba_func_dict)
     DG = find_keywords_in_graph(vba_func_dict, DG)
     DG = find_change_flow(vba_func_dict, DG)
