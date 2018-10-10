@@ -879,16 +879,16 @@ def vba2graph_gen(input_vba_content, output_folder, input_file_name="vba2graph",
 
     # treat properties like functions and merge both dictionaries
     vba_func_dict = dict(vba_func_dict.items() + vba_prop_dict.items())
-    logging.info(vba_func_dict)
+    logging.debug(vba_func_dict)
     ##############################################################################
     # at this point, vba_func_dict should contain the code of functions and
     # properties, without comments or whitespaces.
     ##############################################################################
-
+k
     # ****************************************************************************
     # *                              Generate Graph                              *
     # ****************************************************************************
-
+k
     DG = create_call_graph(vba_func_dict)
     DG = find_keywords_in_graph(vba_func_dict, DG)
     DG = find_change_flow(vba_func_dict, DG)
