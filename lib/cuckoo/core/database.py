@@ -1249,7 +1249,7 @@ class Database(object):
          session = self.Session()
          try:
              maxid = session.query(func.max(Task.id)).first()
-             return maxid
+             return maxid[0]
          except SQLAlchemyError as e:
              log.debug("Database error retrieving max task id: {0}".format(e))
              return 0
