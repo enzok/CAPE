@@ -1403,10 +1403,6 @@ class Database(object):
                     samples = session.query(Task).filter(query_filter == sample_hash).filter(Sample.id == Task.sample_id).all()
                     if samples is not None:
                         sample = filter(None, [sample.to_dict().get("target", "") for sample in samples])
-                    else:
-                        sample = None
-                else:
-                    sample = None
             except AttributeError:
                 return None
             except SQLAlchemyError as e:
