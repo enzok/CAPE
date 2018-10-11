@@ -444,6 +444,19 @@ def cuckoo_remove_pending_tasks(pending_tasks):
         task += 1
 
 
+def cuckoo_get_max_task_id():
+    """Return max task id
+    """
+    init_console_logging()
+
+    maxid = 0
+
+    db = Database()
+
+    maxid = db.max_taskid()
+
+    print("Max Task Id = {}".format(maxid))
+
 def cuckoo_clean_bson_suri_logs():
     """Clean up raw suri log files probably not needed if storing in mongo. Does not remove extracted files
     """

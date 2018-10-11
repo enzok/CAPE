@@ -1242,6 +1242,20 @@ class Database(object):
          finally:
              session.close()
 
+    def max_taskid(self):
+         """Find max taskid
+         @return: task id
+         """
+         session = self.Session()
+         try:
+             maxid = session.query(func.max(Task.id)).first()
+             return maxid
+         except SQLAlchemyError as e:
+             log.debug("Database error retrieving max task id: {0}".format(e))
+             return 0
+         finally:
+             session.close()
+
     @classlock
     def get_file_types(self):
         """Get sample filetypes
