@@ -456,8 +456,8 @@ def index(request, resubmit_hash=False):
                                                          filename, package, timeout, options, priority, machine,
                                                          gateway, clock, custom, memory, enforce_timeout, referrer,
                                                          tags, orig_options, task_gateways, task_machines)
-                if status == "error":
-                    return task_ids  # render message
+        if status == "error":
+            return task_ids  # render message
 
         tasks_count = len(task_ids)
 
