@@ -33,7 +33,6 @@ elasticsearch
 lxml
 imagehash
 pyparsing
-oletools
 sflock
 pyinstaller
 requests
