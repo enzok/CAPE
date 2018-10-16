@@ -2,13 +2,20 @@
 # This file is part of Cuckoo Sandbox - http://www.cuckoosandbox.org
 # See the file 'docs/LICENSE' for copying permission.
 
+from __future__ import absolute_import
 import os
+import sys
+import csv
+import json
+import socket
+import dns.resolver
 import requests
 import datetime
 import threading
 import logging
 import time
 
+from urlparse import urlparse
 try:
     import re2 as re
 except ImportError:
@@ -27,6 +34,7 @@ from lib.cuckoo.common.objects import Dictionary
 from lib.cuckoo.common.utils import create_folder
 from lib.cuckoo.core.database import Database
 from lib.cuckoo.core.resultserver import ResultServer
+from django.core.validators import URLValidator
 
 try:
     import libvirt
@@ -34,7 +42,20 @@ try:
 except ImportError:
     HAVE_LIBVIRT = False
 
+try:
+    import tldextract
+    HAVE_TLDEXTRACT = True
+except ImportError:
+    HAVE_TLDEXTRACT = False
+
 log = logging.getLogger(__name__)
+
+myresolver = dns.resolver.Resolver()
+myresolver.timeout = 5.0
+myresolver.lifetime = 5.0
+myresolver.domain = dns.name.Name("google-public-dns-a.google.com")
+myresolver.nameserver = ['8.8.8.8']
+
 
 class Auxiliary(object):
     """Base abstract class for auxiliary modules."""
@@ -686,6 +707,7 @@ class Signature(object):
     filter_apinames = set()
     filter_categories = set()
     filter_analysistypes = set()
+    banned_suricata_sids = ()
 
     def __init__(self, results=None):
         self.data = []
@@ -730,6 +752,123 @@ class Signature(object):
             self.results["statistics"]["signatures"][name] = { }
 
         self.results["statistics"]["signatures"][name][field] = value
+
+    def get_pids(self):
+        pids = list()
+        logs = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(self.results["info"]["id"]), "logs")
+        processes = self.results.get("behavior", {}).get("processtree", [])
+        if processes:
+            for pid in processes:
+                pids.append(str(pid.get("pid", "")))
+                pids += [str(cpid["pid"]) for cpid in pid.get("children", []) if "pid" in cpid]
+        # in case if bsons too big
+        if os.path.exists(logs):
+            pids += [pidb.replace(".bson", "") for pidb in os.listdir(logs) if ".bson" in pidb]
+
+        # in case if injection not follows
+        if "procmemory" in self.results:
+            pids += [str(block["pid"]) for block in self.results["procmemory"]]
+        if "procdump" in self.results:
+            pids += [str(block["pid"]) for block in self.results["procdump"]]
+
+        log.debug(list(set(pids)))
+        return ",".join(list(set(pids)))
+
+
+    def yara_detected(self, name):
+        target = self.results.get("target", {})
+        if target.get("category") == "file" and target.get("file"):
+            for block in self.results["target"]["file"]["yara"]:
+                if re.findall(name, block["name"], re.I):
+                    return "sample", self.results["target"]["file"]["path"], block
+
+        for keyword in ("procmemory", "extracted", "dropped", "CAPE"):
+            for block in self.results.get(keyword, []):
+                if re.findall(name, block["yara"]["name"], re.I):
+                    if keyword in ("dropped", "extracted"):
+                        path = block["path"]
+                    elif keyword == "procmem":
+                        path = block["file"]
+                    elif keyword == "CAPE":
+                        path = block["raw"]
+
+                    return keyword, path, block["yara"]
+
+        return False
+
+    def advanced_url_parse(self, url):
+        if HAVE_TLDEXTRACT:
+            EXTRA_SUFFIXES = ('bit',)
+            parsed = False
+            try:
+                parsed = tldextract.TLDExtract(extra_suffixes=EXTRA_SUFFIXES, suffix_list_urls=None)(url)
+            except Exception as e:
+                log.error(e)
+            return parsed
+        else:
+            log.info("missed tldextract dependency")
+
+    def _get_ip_by_host(self, hostname):
+        for data in self.results.get('network', {}).get("hosts", []):
+            if data.get("hostname", "") == hostname:
+                return [data.get("ip", "")]
+        return []
+
+    def _get_ip_by_host_dns(self, hostname):
+
+        ips = list()
+
+        try:
+            answers = myresolver.query(hostname, 'A')
+            for rdata in answers:
+                n = dns.reversename.from_address(rdata.address)
+                try:
+                    answers_inv = myresolver.query(n, 'PTR')
+                    for rdata_inv in answers_inv:
+                        ips.append(rdata.address)
+                except dns.resolver.NoAnswer:
+                    ips.append(rdata.address)
+                except dns.resolver.NXDOMAIN:
+                    ips.append(rdata.address)
+        except dns.resolver.NoAnswer:
+            print "IPs: No se puede obtener"
+        except Exception as e:
+            log.info(e)
+
+        return ips
+
+    def _is_ip(self, ip):
+        # is this string an ip?
+        try:
+            socket.inet_aton(ip)
+            return True
+        except:
+            return False
+
+    def _check_valid_url(self, url, all_checks=False):
+        """ Checks if url is correct and can be parsed by tldextract/urlparse
+        @param url: string
+        @return: url or None
+        """
+
+        val = URLValidator(schemes=["http", "https", "udp", "tcp"])
+
+        try:
+            val(url)
+            return url
+        except:
+            pass
+
+        if all_checks:
+            last = url.rfind("://")
+            if url[:last] in ("http", "https"):
+                url = url[last+3:]
+
+        try:
+            val("http://%s" % url)
+            return "http://%s" % url
+        except:
+            pass
 
     def _check_value(self, pattern, subject, regex=False, all=False, ignorecase=True):
         """Checks a pattern against a given subject.
@@ -1304,7 +1443,7 @@ class Signature(object):
 
         return None
 
-    def check_suricata_alerts(self, pattern):
+    def check_suricata_alerts(self, pattern, blacklist=[]):
         """Check for pattern in Suricata alert signature
         @param pattern: string or expression to check for.
         @return: True/False
@@ -1312,10 +1451,40 @@ class Signature(object):
         res = False
         if isinstance(self.results.get("suricata", {}), dict):
             for alert in self.results.get("suricata", {}).get("alerts", []):
-                if re.findall(pattern, alert.get("signature", ""), re.I):
+                sid = alert.get("sid", 0)
+                if (sid not in self.banned_suricata_sids or \
+                   sid not in blacklist) and \
+                   re.findall(pattern, alert.get("signature", ""), re.I):
                     res = True
                     break
         return res
+
+    def check_alexa(self, pattern):
+        """
+        @param pattern: domain/url to check in alexa db
+        @return: True/False
+        """
+        # pre check for correct parsing
+        if "://" not in pattern:
+            pattern = "http://"+pattern
+
+        if HAVE_TLDEXTRACT:
+            try:
+                EXTRA_SUFFIXES = ('bit',)
+                tld_res = tldextract.TLDExtract(extra_suffixes=EXTRA_SUFFIXES, suffix_list_urls=None)(pattern)
+            except Exception as e:
+                return False
+            if tld_res.domain + "." + tld_res.suffix in self._alexadb:
+                # no subdomain, mean alexa match
+                if tld_res.subdomain == "":
+                    return True
+                #subdomain and alexa match
+                elif tld_res.subdomain + "." +tld_res.domain + "." + tld_res.suffix in self._alexadb[tld_res.domain + "." + tld_res.suffix]:
+                    return True
+        else:
+            log.warn("Missed tldextract dependencie")
+
+        return False
 
     def add_match(self, process, type, match):
         """Adds a match to the signature data.
