@@ -11,5 +11,5 @@ rule GraceWire
         $cmd4 = ".?AVGraceWireGenericConnectionThread@@"
     condition:
         //check for MZ Signature at offset 0
-        uint16(0) == 0x5A4D and ($cmd1 and $cmd2 and $cmd3)
+        uint16(0) == 0x5A4D and ($cmd1 and $cmd2 and $cmd3 and $cmd4)
 }
