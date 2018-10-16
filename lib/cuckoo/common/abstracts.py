@@ -709,15 +709,19 @@ class Signature(object):
 
         for keyword in ("procmemory", "extracted", "dropped", "CAPE"):
             for block in self.results.get(keyword, []):
-                if re.findall(name, block["yara"]["name"], re.I):
-                    if keyword in ("dropped", "extracted"):
-                        path = block["path"]
-                    elif keyword == "procmem":
-                        path = block["file"]
-                    elif keyword == "CAPE":
-                        path = block["raw"]
+                for sub_block in block["yara"]:
+                    if re.findall(name, sub_block["name"], re.I):
+                        if keyword in ("dropped", "extracted", "procmemory"):
+                            if block["file"]:
+                                path = block["file"]
+                            else:
+                                path = block["path"]
+                        elif keyword == "CAPE":
+                            path = block["raw"]
+                        else:
+                            path = ""
 
-                    return keyword, path, block["yara"]
+                        return keyword, path, sub_block
 
         return False, False, False
 
