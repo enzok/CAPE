@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright (C) 2010-2015 Cuckoo Foundation, Optiv, Inc. (brad.spengler@optiv.com).
 # This file is part of Cuckoo Sandbox - http://www.cuckoosandbox.org
 # See the file 'docs/LICENSE' for copying permission.
@@ -740,7 +741,7 @@ class Signature(object):
         # in case if bsons too big
         if os.path.exists(logs):
             pids += [pidb.replace(".bson", "") for pidb in os.listdir(logs) if ".bson" in pidb]
-        # in case if injection not follows
+        #  in case if injection not follows
         if "procmemory" in self.results and self.results["procmemory"] is not None:
             pids += [str(block["pid"]) for block in self.results["procmemory"]]
         if "procdump" in self.results and self.results["procdump"] is not None:
