@@ -80,6 +80,7 @@ from lib.cuckoo.common.constants import CUCKOO_ROOT
 from lib.cuckoo.common.objects import File
 from lib.cuckoo.common.config import Config
 
+import lib.cuckoo.common.office.vbadeobf as vbadeobf
 try:
     import olefile
     HAVE_OLEFILE = True
@@ -88,7 +89,7 @@ except ImportError:
     print("Missed olefile dependency: pip install olefile")
 
 try:
-    import lib.cuckoo.common.office.vbadeobf as vbadeobf
+    from oletools import oleobj
     from oletools.oleid import OleID
     from oletools.olevba import detect_autoexec
     from oletools.olevba import detect_hex_strings
@@ -96,6 +97,7 @@ try:
     from oletools.olevba import detect_suspicious
     from oletools.olevba import filter_vba
     from oletools.olevba import VBA_Parser
+    from oletools.rtfobj import is_rtf, RtfObjParser
     HAVE_OLETOOLS = True
 except ImportError:
     print("Ensure oletools are installed")
@@ -1055,7 +1057,17 @@ class PDF(object):
         return results
 
 class Office(object):
-    """Office Document Static Analysis"""
+    """Office Document Static Analysis
+        Supported formats:
+        - Word 97-2003 (.doc, .dot), Word 2007+ (.docm, .dotm)
+        - Excel 97-2003 (.xls), Excel 2007+ (.xlsm, .xlsb)
+        - PowerPoint 97-2003 (.ppt), PowerPoint 2007+ (.pptm, .ppsm)
+        - Word/PowerPoint 2007+ XML (aka Flat OPC)
+        - Word 2003 XML (.xml)
+        - Word/Excel Single File Web Page / MHTML (.mht)
+        - Publisher (.pub)
+        - Rich Text Format (.rtf)
+    """
     def __init__(self, file_path, options, results):
         self.file_path = file_path
         self.opts = options
@@ -1150,23 +1162,133 @@ class Office(object):
             ret["DocumentSummaryInformation"][prop] = convert_to_printable(str(value))
         return ret
 
+    def _parse_rtf(self, data):
+        results = dict()
+        rtfp = RtfObjParser(data)
+        rtfp.parse()
+        save_dir = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(self.results["info"]["id"]), "rtf_objects")
+        if rtfp.objects and not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        for rtfobj in rtfp.objects:
+            #ole_column = None
+            if rtfobj.is_ole:
+                results.setdefault(str(rtfobj.format_id), dict())
+                #ole_column = 'format_id: %d ' % rtfobj.format_id
+                if rtfobj.format_id == oleobj.OleObject.TYPE_EMBEDDED:
+                    results[str(rtfobj.format_id)].setdefault("type_embed", "Embedded")
+                elif rtfobj.format_id == oleobj.OleObject.TYPE_LINKED:
+                    results[str(rtfobj.format_id)].setdefault("type_embed", "Linked")
+                else:
+                    results[str(rtfobj.format_id)].setdefault("type_embed", "Unknown")
+                """
+                ole_column += 'class name: %r\n' % rtfobj.class_name
+                # if the object is linked and not embedded, data_size=None:
+                if rtfobj.oledata_size is None:
+                    ole_column += 'data size: N/A'
+                else:
+                    ole_column += 'data size: %d' % rtfobj.oledata_size
+                if rtfobj.is_package:
+                    ole_column += '\nOLE Package object:'
+                    ole_column += '\nFilename: %r' % rtfobj.filename
+                    ole_column += '\nSource path: %r' % rtfobj.src_path
+                    ole_column += '\nTemp path = %r' % rtfobj.temp_path
+                     check if the file extension is executable:
+                    _, ext = os.path.splitext(rtfobj.filename)
+                    log.debug('File extension: %r' % ext)
+                    if self.re_executable_extensions.match(ext):
+                        ole_column += '\nEXECUTABLE FILE'
+                else:
+                     pkg_column = 'Not an OLE Package'
+                """
+                if rtfobj.clsid is not None:
+                    #ole_column += '\nCLSID: %s' % rtfobj.clsid
+                    #ole_column += '\n%s' % rtfobj.clsid_desc
+                    if "CVE" in rtfobj.clsid_desc:
+                        results[str(rtfobj.format_id)].setdefault("CVE", rtfobj.clsid_desc)
+                # Detect OLE2Link exploit
+                # http://www.kb.cert.org/vuls/id/921560
+                if rtfobj.class_name == b'OLE2Link':
+                    #ole_column += '\nPossibly an exploit for the OLE2Link vulnerability (VU#921560, CVE-2017-0199)'
+                    results[str(rtfobj.format_id)].setdefault("CVE", "Possibly an exploit for the OLE2Link vulnerability (VU#921560, CVE-2017-0199)")
+            #else:
+                #ole_column = 'Not a well-formed OLE object'
+
+        for rtfobj in rtfp.objects:
+            i = rtfp.objects.index(rtfobj)
+                 # preset all keys
+                results[str(rtfobj.format_id)]["class_name"] = ""
+                results[str(rtfobj.format_id)]["size"] = ""
+                results[str(rtfobj.format_id)]["filename"] = ""
+            if rtfobj.is_package:
+                log.debug('Saving file from OLE Package in object #%d:' % i)
+                log.debug('  Filename = %r' % rtfobj.filename)
+                log.debug('  Source path = %r' % rtfobj.src_path)
+                log.debug('  Temp path = %r' % rtfobj.temp_path)
+
+                if rtfobj.filename:
+                    fname = convert_to_printable(rtfobj.filename)
+                else:
+                    fname = 'object_%08X.noname' % rtfobj.start
+                log.debug('  saving to file %s' % fname)
+                results[str(rtfobj.format_id)].setdefault("filename", fname)
+                save_path = os.path.join(save_dir, fname)
+                open(save_path, 'wb').write(rtfobj.olepkgdata)
+                results[str(rtfobj.format_id)].setdefault("source_path", convert_to_printable(rtfobj.src_path))
+            # When format_id=TYPE_LINKED, oledata_size=None
+            elif rtfobj.is_ole and rtfobj.oledata_size is not None:
+                log.debug('Saving file embedded in OLE object #%d:' % i)
+                log.debug('  format_id  = %d' % rtfobj.format_id)
+                log.debug('  class name = %r' % rtfobj.class_name)
+                log.debug('  data size  = %d' % rtfobj.oledata_size)
+                results[str(rtfobj.format_id)].setdefault("format_id", rtfobj.format_id)
+                results[str(rtfobj.format_id)].setdefault("class_name", rtfobj.class_name)
+                results[str(rtfobj.format_id)].setdefault("size", rtfobj.oledata_size)
+
+                # set a file extension according to the class name:
+                class_name = rtfobj.class_name.lower()
+                if class_name.startswith(b'word'):
+                    ext = 'doc'
+                elif class_name.startswith(b'package'):
+                    ext = 'package'
+                else:
+                    ext = 'bin'
+                fname = 'object_%08X.%s' % (rtfobj.start, ext)
+                results[str(rtfobj.format_id)].setdefault("filename", fname)
+                save_path = os.path.join(save_dir, fname)
+                log.debug('  saving to file %s' % fname)
+                open(save_path, 'wb').write(rtfobj.oledata)
+                results[str(rtfobj.format_id)].setdefault("filename", fname)
+            else:
+                log.debug('Saving raw data in object #%d:' % i)
+                fname = 'object_%08X.raw' % rtfobj.start
+                results[str(rtfobj.format_id)].setdefault("filename", fname)
+                save_path = os.path.join(save_dir, fname)
+                log.debug('  saving object to file %s' % fname)
+                open(save_path, 'wb').write(rtfobj.rawdata)
+            results[str(rtfobj.format_id)].setdefault("index", "%08Xh" % rtfobj.start)
+        return results
+
     def _parse(self, filepath):
         """Parses an office document for static information.
-        Currently (as per olefile) the following formats are supported:
-        - Word 97-2003 (.doc, .dot), Word 2007+ (.docm, .dotm)
-        - Excel 97-2003 (.xls), Excel 2007+ (.xlsm, .xlsb)
-        - PowerPoint 2007+ (.pptm, .ppsm)
-
         @param filepath: Path to the file to be analyzed.
         @return: results dict or None
         """
 
         results = dict()
+        vba = False
         if HAVE_OLETOOLS:
-            try:
-                vba = VBA_Parser(filepath)
-            except:
-                return results
+            if is_rtf(filepath):
+                try:
+                    temp_results = self._parse_rtf(open(filepath, "rb").read())
+                    if temp_results:
+                        results["office_rtf"] = temp_results
+                except Exception as e:
+                    log.error(e)
+            else:
+                try:
+                    vba = VBA_Parser(filepath)
+                except:
+                    return results
         else:
             return results
 
@@ -1193,7 +1315,7 @@ class Office(object):
             metares["Metadata"] = dict()
             log.warning("Failed to parse Office ole meta data: %s", xcpt)
 
-        if vba.detect_vba_macros():
+        if vba and vba.detect_vba_macros():
             metares["HasMacros"] = "Yes"
             macrores = officeresults["Macro"] = dict()
             macrores["Code"] = dict()

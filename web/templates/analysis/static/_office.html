@@ -279,7 +279,34 @@
                 {{ graphs.vba2graph.content|safe }} 
             {% endif %}
         {% endif %}
-
+        {% if analysis.static.office_rtf %}
+            <div>
+                <div id="si_metadata">
+                    <h4>RTF document details</h4>
+                    <table class="table table-striped table-bordered">
+                        {% for key, value in  analysis.static.office_rtf.items %}
+                        <tr>
+                            <th>Object ID:</th>
+                            <td>Size</td>
+                            <th>Index</th>
+                            <td>Class Name</td>
+                            <td>Type Embed</td>
+                            <th>CVE</th>
+                          </tr>
+                          <tr>
+                            <td><a href={% url "file" "rtf" analysis.info.id value.filename %} class="btn btn-primary btn-small">{{key}} - Download</a></td>
+                            <td>{{value.size}}</td>
+                            <td>{{value.index}}</td>
+                            <td>{{value.class_name}}</td>
+                            <td>{{value.type_embed}}</td>
+                            <td>{{value.CVE}}</td>
+                          </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+            <hr />
+        {% endif %}
     {% else %}
         Nothing to display.
     {% endif %}
