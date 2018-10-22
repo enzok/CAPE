@@ -1,5 +1,9 @@
-{% load key_tags %}
 <section id="static_analysis">
+    {% load key_tags %}
+    {% if graphs.bingraph.enabled %}
+        <h4>Binary Entropy</h4>
+        {{ graphs.bingraph.content|safe }}
+    {% endif %}
     {% if analysis.static and analysis.static.office %}
         {% if analysis.static.office.mmbot %}
             <div>
@@ -276,7 +280,7 @@
             {% endif %}
             {% if graphs.vba2graph.enabled %}
                 <h4>Vba2Graph</h4>
-                {{ graphs.vba2graph.content|safe }} 
+                {{ graphs.vba2graph.content|safe }}
             {% endif %}
         {% endif %}
         {% if analysis.static.office_rtf %}
