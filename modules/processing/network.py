@@ -641,7 +641,7 @@ class Pcap:
         entry["desc"] = "unknown"
 
         if ja3hash in self.ja3_fprints:
-            entry["desc"] = self.ja3_fprints['ja3hash']
+            entry["desc"] = self.ja3_fprints[ja3hash]
 
         self.ja3_records.append(entry)
 
