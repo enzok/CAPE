@@ -23,7 +23,7 @@ urlpatterns = [
     url(r"^analysis/", include(analysis)),
     url(r"^compare/", include(compare)),
     url(r"^submit/", include(submission)),
-    url(r"^file/(?P<category>\w+)/(?P<task_id>\d+)/(?P<dlfile>[\w\.]+)/$", analysis_views.file, name='file'),
+    url(r"^file/(?P<category>\w+)/(?P<task_id>\d+)/(?P<dlfile>\w+)/$", analysis_views.file, name='file'),
     url(r"^vtupload/(?P<category>\w+)/(?P<task_id>\d+)/(?P<filename>.+)/(?P<dlfile>\w+)/$", analysis_views.vtupload, name='vtupload'),
     url(r"^zipdownload/(?P<category>\w+)/(?P<task_id>\d+)/(?P<dlfile>\w+)/$", analysis_views.zipdownload, name='zipdownload'),
     url(r"^configdownload/(?P<task_id>\d+)/(?P<cape_name>\w+)/$", analysis_views.configdownload, name='configdownload'),
