@@ -70,6 +70,7 @@ class AnalysisManager(threading.Thread):
         self.task = task
         self.errors = error_queue
         self.cfg = Config()
+        self.aux_cfg = Config("auxiliary")
         self.storage = ""
         self.binary = ""
         self.machine = None
@@ -220,6 +221,10 @@ class AnalysisManager(threading.Thread):
                         options["exports"] = ",".join(exports)
                 except:
                     pass
+
+        # options from auxiliar.conf
+        options["curtain"] = self.aux_cfg.curtain.enabled
+        options["sysmon"] = self.aux_cfg.sysmon.enabled
 
         return options
 
