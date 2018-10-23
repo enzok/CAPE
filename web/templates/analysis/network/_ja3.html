@@ -7,18 +7,18 @@
             <tr>
                 <th width="7%">Source</th>
                 <th width="6%">Source Port</th>
-                <th width="25%">Destination</th>
+                <th width="22%">Destination</th>
                 <th width="8%">Destination Port</th>
-                <th width="15%">JA3 Hash</th>
+                <th width="18%">JA3 Hash</th>
                 <th width="44%">JA3 Description</th>
             </tr>
             {% for p in analysis.network.ja3 %}
                 <tr class="connrow" data="{{p.src}},{{p.sport}},{{p.dst}},{{p.dport}},tcp">
                     <td width="7%">{{p.src}}</td>
                     <td width="6%">{{p.sport}}</td>
-                    <td width="25%">{{p.dst}} {{ iplookups|get_item:p.dst }}</td>
+                    <td width="22%">{{p.dst}} {{ iplookups|get_item:p.dst }}</td>
                     <td width="8%">{{p.dport}}</td>
-                    <td width="15%">{{p.ja3}}</td>
+                    <td width="18%">{{p.ja3}}</td>
                     <td width="44%">{{p.desc}}</tdw>
                 </tr>
             {% endfor %}
