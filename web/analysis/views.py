@@ -111,7 +111,7 @@ def get_analysis_info(db, id=-1, task=None):
                        "network.pcap_sha256": 1,
                        "mlist_cnt": 1, "f_mlist_cnt": 1, "info.package": 1, "target.file.clamav": 1,
                        "suri_tls_cnt": 1, "suri_alert_cnt": 1, "suri_http_cnt": 1, "suri_file_cnt": 1,
-                      "trid" : 1
+                       "trid" : 1
                    }, sort=[("_id", pymongo.DESCENDING)]
                )
 
@@ -1208,11 +1208,11 @@ def perform_search(term, value):
     if enabledconf["mongodb"] and enabledconf["elasticsearchdb"] and essearch and not term:
         numhits = es.search(index=fullidx,
                             doc_type="analysis",
-                            q="%s*" % value,
+                            q="%s" % value,
                             size=0)['hits']['total']
         return es.search(index=fullidx,
                          doc_type="analysis",
-                         q="%s*" % value,
+                         q="%s" % value,
                          sort='task_id:desc',
                          size=numhits)["hits"]["hits"]
     term_map = {
@@ -1347,7 +1347,7 @@ def search(request):
             new = None
             if enabledconf["mongodb"] and enabledconf["elasticsearchdb"] and essearch and not term:
                 new = get_analysis_info(db, id=int(result["_source"]["task_id"]))
-            if enabledconf["mongodb"] and new is None:
+            if enabledconf["mongodb"] and term:
                 new = get_analysis_info(db, id=int(result["info"]["id"]))
             if es_as_db:
                 new = get_analysis_info(db, id=int(result["_source"]["info"]["id"]))
