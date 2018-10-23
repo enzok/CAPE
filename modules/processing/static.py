@@ -98,6 +98,7 @@ try:
     from oletools.olevba import filter_vba
     from oletools.olevba import VBA_Parser
     from oletools.rtfobj import is_rtf, RtfObjParser
+    from oletools.msodde import process_file as extract_dde
     HAVE_OLETOOLS = True
 except ImportError:
     print("Ensure oletools are installed")
@@ -1177,7 +1178,7 @@ class Office(object):
             temp_dict["CVE"] = ""
             temp_dict["sha256"] = ""
             temp_dict["index"] = ""
-            
+
             if rtfobj.is_package:
                 log.debug('Saving file from OLE Package in object #%d:' % rtfobj.format_id)
                 log.debug('  Filename = %r' % rtfobj.filename)
@@ -1274,6 +1275,12 @@ class Office(object):
             return results
 
         officeresults = results["office"] = {}
+
+        # extract DDE
+        results["office_dde"] =
+        dde = extract_dde(filepath)
+        if dde:
+            results["office_dde"] = convert_to_printable(dde)
 
         metares = officeresults["Metadata"] = dict()
         try:
