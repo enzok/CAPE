@@ -620,3 +620,5 @@
 {"desc":"JA3S: Akamai Static",             "ja3_hash":"d552d00679649fd11b6def3e9bdf2429","ja3_str":"771,52392,65281-0-11-35-5-16"}
 {"desc":"JA3S: OpenResty BigCommerce",     "ja3_hash":"cbb432e9f6c8c1093ca5bb0639db1f66","ja3_str":"771,52392,65281-0-11-35-16"}
 
+# custom
+{"desc":"Zeus Panda Banker CnC","ja3_hash":"5652327c8eac118ad7152f6109c2241f"}
