@@ -638,7 +638,7 @@ class Pcap:
         entry["dst"] = conn["dst"]
         entry["dport"] = conn["dport"]
         entry["ja3"] = ja3hash
-        entry["desc"] = ""
+        entry["desc"] = "unknown"
 
         if ja3hash in self.ja3_fprints:
             entry["desc"] = self.ja3_fprints['ja3hash']
