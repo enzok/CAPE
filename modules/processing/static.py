@@ -1220,7 +1220,7 @@ class Office(object):
                 log.debug('Saving file embedded in OLE object #{}:'.format(rtfobj.format_id))
                 log.debug('  format_id  = {}'.format(rtfobj.format_id))
                 log.debug('  class name = {}'.format(rtfobj.class_name))
-                log.debug('  data size  = {}'.format(rtfobj.oledata_sizea))
+                log.debug('  data size  = {}'.format(rtfobj.oledata_size))
                 temp_dict["class_name"] = rtfobj.class_name
                 temp_dict["size"] = rtfobj.oledata_size
                 # set a file extension according to the class name:
