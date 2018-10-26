@@ -1180,7 +1180,7 @@ class Office(object):
             temp_dict["index"] = ""
 
             if rtfobj.is_package:
-                log.debug('Saving file from OLE Package in object #%d:' % rtfobj.format_id)
+                log.debug('Saving file from OLE Package in object #{}:'.format(rtfobj.format_id))
                 log.debug('  Filename = %r' % rtfobj.filename)
                 log.debug('  Source path = %r' % rtfobj.src_path)
                 log.debug('  Temp path = %r' % rtfobj.temp_path)
@@ -1204,20 +1204,23 @@ class Office(object):
                     temp_dict["type_embed"] = "Linked"
                 else:
                     temp_dict["type_embed"] = "Unknown"
-                if hasattr(rtfobj, "clsid") and rtfobj.clsid is not None:
-                    # ole_column += '\nCLSID: %s' % rtfobj.clsid
-                    # ole_column += '\n%s' % rtfobj.clsid_desc
-                    if "CVE" in rtfobj.clsid_desc:
-                        temp_dict["CVE"] = rtfobj.clsid_desc
+                try:
+                    if rtfobj.clsid is not None:
+                        # ole_column += '\nCLSID: %s' % rtfobj.clsid
+                        # ole_column += '\n%s' % rtfobj.clsid_desc
+                        if "CVE" in rtfobj.clsid_desc:
+                            temp_dict["CVE"] = rtfobj.clsid_desc
+                except AttributeError:
+                    pass
                 # Detect OLE2Link exploit
                 # http://www.kb.cert.org/vuls/id/921560
                 if rtfobj.class_name == b'OLE2Link':
                     #ole_column += '\nPossibly an exploit for the OLE2Link vulnerability (VU#921560, CVE-2017-0199)'
                     temp_dict["CVE"] = "Possibly an exploit for the OLE2Link vulnerability (VU#921560, CVE-2017-0199)"
-                log.debug('Saving file embedded in OLE object #%d:' % rtfobj.format_id)
-                log.debug('  format_id  = %d' % rtfobj.format_id)
-                log.debug('  class name = %r' % rtfobj.class_name)
-                log.debug('  data size  = %d' % rtfobj.oledata_size)
+                log.debug('Saving file embedded in OLE object #{}:'.format(rtfobj.format_id))
+                log.debug('  format_id  = {}'.format(rtfobj.format_id))
+                log.debug('  class name = {}'.format(rtfobj.class_name))
+                log.debug('  data size  = {}'.format(rtfobj.oledata_sizea))
                 temp_dict["class_name"] = rtfobj.class_name
                 temp_dict["size"] = rtfobj.oledata_size
                 # set a file extension according to the class name:
@@ -1231,15 +1234,15 @@ class Office(object):
                 sha256 = hashlib.sha256(rtfobj.oledata).hexdigest()
                 temp_dict["filename"] = 'object_%08X.%s' % (rtfobj.start, ext)
                 save_path = os.path.join(save_dir, sha256)
-                log.debug('  saving to file %s' % sha256)
+                log.debug('  saving to file {}'.format(sha256))
                 open(save_path, 'wb').write(rtfobj.oledata)
                 temp_dict["sha256"] = sha256
             else:
-                log.debug('Saving raw data in object #%d:' % rtfobj.format_id)
+                log.debug('Saving raw data in object #{}:'.format(rtfobj.format_id))
                 temp_dict["filename"] = 'object_%08X.raw' % rtfobj.start
                 sha256 = hashlib.sha256(rtfobj.rawdata).hexdigest()
                 save_path = os.path.join(save_dir, sha256)
-                log.debug('  saving object to file %s' % sha256)
+                log.debug('  saving object to file {}'.format(sha256))
                 open(save_path, 'wb').write(rtfobj.rawdata)
                 temp_dict["sha256"] = sha256
                 temp_dict["size"] = len(rtfobj.rawdata)
