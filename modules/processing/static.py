@@ -1285,7 +1285,7 @@ class Office(object):
             if dde:
                 results["office_dde"] = convert_to_printable(dde)
         except Exception as e:
-            log.warn("Error processing office_dde: {}".fomrat(e))
+            log.warn("Error processing office_dde: {}".format(e))
 
         metares = officeresults["Metadata"] = dict()
         try:
