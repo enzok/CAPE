@@ -1280,9 +1280,12 @@ class Office(object):
         officeresults = results["office"] = {}
 
         # extract DDE
-        dde = extract_dde(filepath)
-        if dde:
-            results["office_dde"] = convert_to_printable(dde)
+        try:
+            dde = extract_dde(filepath)
+            if dde:
+                results["office_dde"] = convert_to_printable(dde)
+        except Exception as e:
+            log.warn("Error processing office_dde: {}".fomrat(e))
 
         metares = officeresults["Metadata"] = dict()
         try:
