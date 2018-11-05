@@ -29,11 +29,18 @@
             <div>
                 <div id="fs_metadata">
                     <h4>Document File Structure</h4>
-                    <div class="well" style="font-family: monospace;">
-                        {% for objname in analysis.static.office.Metadata.DocumentFileStructure %}
-                            <div>{{objname}}</div>
+                    <table class="table table-striped table-bordered">
+                        <colgroup>
+                            <col width="450" />
+                            <col width="*" />
+                        </colgroup>
+                        {% for objname, objsize in analysis.static.office.Metadata.DocumentFileStructure.items:"0.lower" %}
+                            <tr>
+                                <td>{{objname}}</td>
+                                <td>{{objsize}} bytes</td>
+                            </tr>
                         {% endfor %}
-                    </div>
+                    </table>
                 </div>
             </div>
             {% endif %}

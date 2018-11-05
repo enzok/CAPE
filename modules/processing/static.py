@@ -1143,10 +1143,10 @@ class Office(object):
                     if child.text:
                         apptags[prop] = convert_to_printable(child.text)
 
-        if zfile.namelist():
-            metares['DocumentFileStructure'] = zfile.namelist()
-        else:
-            metares['DocumentFileStructure'] = []
+        filestruct = metares['DocumentFileStructure'] = {}
+
+        for fobj in zfile.infolist():
+            filestruct[fobj.filename] = fobj.file_size
 
         return metares
 
