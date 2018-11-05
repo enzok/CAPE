@@ -334,7 +334,7 @@ def get_filenames(retlist, tmp_dir, children):
     try:
         for child in children:
             at = child.astree()
-            if 'file' in at['type']:
+            if 'file' in at['type'] or child.package in ['doc', 'xls']:
                 retlist.append(os.path.join(tmp_dir, at['filename']))
             elif 'container' in at['type']:
                 get_filenames(retlist, tmp_dir, child.children)
@@ -400,11 +400,11 @@ def demux_sample(filename, package, options):
         if tmp_pass:
             password = tmp_pass
         if password:
-            return demux_office(filename, password)
             log.debug("Extracting from Office doc - {}, password={}".format(filename, password))
+            return demux_office(filename, password)
         else:
-            return [filename]
             log.debug("Extracting from Office doc - {}".format(filename))
+            return [filename]
 
     # don't try to extract from Java archives or executables
     if "Java Jar" in magic:
