@@ -1117,8 +1117,7 @@ class Office(object):
                           'Company', 'HyperlinkBase', 'Slides', 'Notes', 'HiddenSlides']
 
         metares = dict()
-        metares['SummaryInformation'] = {}
-        coretags = metares['SummaryInformation']
+        coretags = metares['SummaryInformation'] = dict()
 
         for prop in SUMMARY_ATTRIBS:
             coretags[prop] = None
@@ -1132,10 +1131,7 @@ class Office(object):
                     if child.text:
                         coretags[prop] = convert_to_printable(child.text)
 
-
-
-        metares['DocumentSummaryInformation'] = {}
-        apptags = metares['DocumentSummaryInformation']
+        apptags = metares['DocumentSummaryInformation'] = dict()
 
         for prop in DOCSUM_ATTRIBS:
             coretags[prop] = None
@@ -1146,6 +1142,11 @@ class Office(object):
                 if prop in child.tag:
                     if child.text:
                         apptags[prop] = convert_to_printable(child.text)
+
+        if zfile.namelist():
+            metares['DocumentFileStructure'] = zfile.namelist()
+        else:
+            metares['DocumentFileStructure'] = []
 
         return metares
 
@@ -1306,7 +1307,7 @@ class Office(object):
                 metares = officeresults["Metadata"]
         except Exception as xcpt:
             metares["Metadata"] = dict()
-            log.warning("Failed to parse Office ole meta data: %s", xcpt)
+            log.warning("Failed to parse Office meta data: %s", xcpt)
 
         if vba and vba.detect_vba_macros():
             metares["HasMacros"] = "Yes"

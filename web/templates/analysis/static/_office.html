@@ -25,6 +25,18 @@
             </div>
         {% endif %}
         {% if analysis.static.office.Metadata %}
+            {% if analysis.static.office.Metadata.DocumentFileStructure %}
+            <div>
+                <div id="fs_metadata">
+                    <h4>Document File Structure</h4>
+                    <div class="well" style="font-family: monospace;">
+                        {% for objname in analysis.static.office.Metadata.DocumentFileStructure %}
+                            <div>{{objname}}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
             {% if analysis.static.office.Metadata.SummaryInformation %}
                 {% if analysis.static.office.Metadata.SummaryInformation.isXML %}
                 <div>
