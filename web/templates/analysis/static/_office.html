@@ -34,7 +34,7 @@
                             <col width="450" />
                             <col width="*" />
                         </colgroup>
-                        {% for objname, objsize in analysis.static.office.Metadata.DocumentFileStructure.items:"0.lower" %}
+                        {% for objname, objsize in analysis.static.office.Metadata.DocumentFileStructure.items|dictsort:"0.lower" %}
                             <tr>
                                 <td>{{objname}}</td>
                                 <td>{{objsize}} bytes</td>
