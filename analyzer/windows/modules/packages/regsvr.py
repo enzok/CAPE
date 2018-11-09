@@ -22,7 +22,7 @@ class Regsvr(Package):
         # If the file doesn't have the proper .dll extension force it
         # and rename it. This is needed for rundll32 to execute correctly.
         # See ticket #354 for details.
-        if ext != ".dll":
+        if ext != ".dll" or ext != ".txt":
             new_path = path + ".dll"
             os.rename(path, new_path)
             path = new_path
