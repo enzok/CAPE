@@ -522,6 +522,8 @@ class Process:
                 "bp1",
                 "bp2",
                 "bp3",
+                "depth",
+                "count",
                 ]
             
             for optname in simple_optnames:
@@ -703,8 +705,6 @@ class Process:
             log.warning("No valid pid specified, memory dump cannot be uploaded")
             return False
 
-        bin_name = ""
-        bit_str = ""
         file_path = os.path.join(PATHS["memory"], "{0}.dmp".format(self.pid))
 
         nf = NetlogFile(os.path.join("memory", "{0}.dmp".format(self.pid)))
@@ -714,6 +714,7 @@ class Process:
             while buf:
                 nf.send(buf, retry=True)
                 buf = infd.read(1024*1024)
+            log.info("Uploaded {}".format(file_path))
         except:
             infd.close()
             nf.close()
