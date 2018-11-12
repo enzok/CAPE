@@ -82,7 +82,7 @@ def decoder(reporter):
         mval = [x for x in poss_matches if test == x[:len(k) - 1]]
         mval = mval[0]
         full_key = brute_it(key, xorval, mval)
-        reporter.add_metadata("full_key", full_key)
+        reporter.add_metadata("FULL_KEY", full_key)
         for word in uni_words:
             try:
                 decoded_strings.append(decode_str(full_key, word))
@@ -95,8 +95,8 @@ def decoder(reporter):
                 poss_aes_keys.append(dec)
             elif len(dec) == 16:
                 poss_aes_iv.append(dec)
-        reporter.add_metadata("aes_key_candidates", clean_strings(poss_aes_keys))
-        reporter.add_metadata("aes_iv_candidates", clean_strings(poss_aes_iv))
+        reporter.add_metadata("AES_KEY_CANDIDATES", clean_strings(poss_aes_keys))
+        reporter.add_metadata("AES_IV_CANDIDATES", clean_strings(poss_aes_iv))
         for key in poss_aes_keys:
             for iv in poss_aes_iv:
                 aes = AES.new(key, AES.MODE_CBC, iv)
@@ -107,8 +107,8 @@ def decoder(reporter):
                     aes = AES.new(key, AES.MODE_CBC, iv)
                     jschecks.append(aes.encrypt(js))
                 if mzcheck in data:
-                    reporter.add_metadata("mz_key", key)
-                    reporter.add_metadata("mz_iv", iv)
+                    reporter.add_metadata("MZ_KEY", key)
+                    reporter.add_metadata("MZ_IV", iv)
                     aes = AES.new(key, AES.MODE_CBC, iv)
                     off_to_mz = data.find(mzcheck)
                     temp = data[off_to_mz:]
@@ -116,7 +116,7 @@ def decoder(reporter):
                         temp = temp[:-(len(temp) % 16)]
                     test = aes.decrypt(temp)
                     if 'This program' in test:
-                        reporter.add_metadata("contains_pe", "Yes")
+                        reporter.add_metadata("CONTAINS_PE", "Yes")
                         secondary_files.append(test)
                 for jscheck in jschecks:
                     if jscheck in data:
@@ -127,7 +127,7 @@ def decoder(reporter):
                             temp = temp[:-(len(temp) % 16)]
                         test = aes.decrypt(temp)
                         if 'var Gate' in test or 'package' in test:
-                            reporter.add_metadata("contains_js", "Yes")
+                            reporter.add_metadata("CONTAINS_JS", "Yes")
                             secondary_files.append(test)
 
     sec_urls = []
@@ -147,10 +147,10 @@ def decoder(reporter):
                 else:
                     sec_urls.append(u.decode('utf-16').decode('ascii'))
 
-    reporter.add_metadata("decoded_strings", clean_strings(decoded_strings))
-    reporter.add_metadata("urls", filter(lambda x: x[:4] == 'http' and len(x) > 5, decoded_strings))
+    reporter.add_metadata("DECODED_STRINGS", clean_strings(decoded_strings))
+    reporter.add_metadata("URLS", filter(lambda x: x[:4] == 'http' and len(x) > 5, decoded_strings))
     if sec_urls:
-        reporter.add_metadata("secondary_urls", sec_urls)
+        reporter.add_metadata("SECONDARY_URLS", sec_urls)
 
     return
 
