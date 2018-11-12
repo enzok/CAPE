@@ -656,7 +656,7 @@ class CAPE(Processing):
                 try:
                     if not "cape_config" in cape_config:
                         cape_config["cape_config"] = {}
-                    malwareconfig_config = module.config(file_data)
+                    malwareconfig_config = module.config(self, file_data)
                     if isinstance(malwareconfig_config, list):
                         for (key, value) in malwareconfig_config[0].iteritems():
                             cape_config["cape_config"].update({key: [value]}) 
