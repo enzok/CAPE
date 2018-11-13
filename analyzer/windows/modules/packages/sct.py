@@ -17,7 +17,7 @@ class SCT(Package):
         wscript = self.get_path("WScript")
 
         # Enforce the .wsf file extension as is required by wscript.
-        if not path.endswith(".wsf"):
+        if not path.endswith(".js"):
             os.rename(path, path + ".js")
             path += ".js"
 
