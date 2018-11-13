@@ -17,4 +17,10 @@ class WSF(Package):
 
     def start(self, path):
         wscript = self.get_path("WScript")
+
+        # Enforce the .wsf file extension as is required by wscript.
+        if not path.endswith((".wsf", ".js", ".vb")):
+            os.rename(path, path + ".wsf")
+            path += ".wsf"
+
         return self.execute(wscript, "\"%s\"" % path, path)
