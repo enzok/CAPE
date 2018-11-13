@@ -10,11 +10,14 @@ from lib.common.abstracts import Package
 class SCT(Package):
     """Sct analysis package."""
     PATHS = [
+        ("SystemRoot", "system32", "cmd.exe"),
         ("SystemRoot", "system32", "regsvr32.exe"),
     ]
 
     def start(self, path):
         regsvr32 = self.get_path("regsvr32.exe")
-        args = "\"/u /n /i:{0}\" scrobj.dll".format(path)
+        args = "{} /s /u /n /i:{} scrobj.dll".format(regsvr32, path)
+        cmd_path = self.get_path("cmd.exe")
+        cmd_args = "/c start /wait \"\" \"{0}\"".format(args)
 
-        return self.execute(regsvr32, args, path)
+        return self.execute(cmd_path, cmd_args, path)
