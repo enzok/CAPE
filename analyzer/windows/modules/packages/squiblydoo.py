@@ -10,11 +10,11 @@ from lib.common.abstracts import Package
 class SQUIBLYDOO(Package):
     """Squiblydoo analysis package."""
     PATHS = [
-        ("SystemRoot", "system32", "regsvr32.exe"),
+        ("SystemRoot", "system32", "cmd.exe"),
     ]
 
     def start(self, path):
-        regsvr32 = self.get_path("regsvr32.exe")
-        args = "\"/u /n /i:\"{0}\"\" scrobj.dll".format(path)
+        cmd_path = self.get_path("cmd.exe")
+        cmd_args = "/c start /wait \"\" regsvr32.exe /s /u /n /i:\"{}\" scrobj.dll".format(path)
 
-        return self.execute(regsvr32, args, path)
+        return self.execute(cmd_path, cmd_args, path)
