@@ -11,13 +11,10 @@ class SCT(Package):
     """Sct analysis package."""
     PATHS = [
         ("SystemRoot", "system32", "cmd.exe"),
-        ("SystemRoot", "system32", "regsvr32.exe"),
     ]
 
     def start(self, path):
-        regsvr32 = self.get_path("regsvr32.exe")
-        args = "\"{} /s /u /n /i:{} scrobj.dll\"".format(regsvr32, path)
         cmd_path = self.get_path("cmd.exe")
-        cmd_args = "/c start /wait \"\" \"\"{}\" \"/s /u /n /i:{} scrobj.dll\"".format(regsvr32, path)
+        cmd_args = "/c start /wait \"\" \"regsvr32.exe /s /u /n /i:\"{}\" scrobj.dll\"".format(path)
 
         return self.execute(cmd_path, cmd_args, path)
