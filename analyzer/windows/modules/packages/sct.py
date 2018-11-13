@@ -8,13 +8,13 @@ import shutil
 from lib.common.abstracts import Package
 
 class SCT(Package):
-    """Sct file analysis package."""
+    """Sct analysis package."""
     PATHS = [
         ("SystemRoot", "system32", "regsvr32.exe"),
     ]
 
     def start(self, path):
         regsvr32 = self.get_path("regsvr32.exe")
-        args = " {0}".format(path)
+        args = "\"/u /n /i:{0}\" scrobj.dll".format(path)
 
         return self.execute(regsvr32, args, path)
