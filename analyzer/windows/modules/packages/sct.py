@@ -10,15 +10,11 @@ from lib.common.abstracts import Package
 class SCT(Package):
     """Sct analysis package."""
     PATHS = [
-        ("SystemRoot", "system32", "wscript.exe"),
+        ("SystemRoot", "system32", "regsvr32.exe"),
     ]
 
     def start(self, path):
-        wscript = self.get_path("WScript")
+        regsvr32 = self.get_path("regsvr32.exe")
+        args = "\"/u /n /i:{0}\" scrobj.dll".format(path)
 
-        # Enforce the .wsf file extension as is required by wscript.
-        if not path.endswith(".js"):
-            os.rename(path, path + ".js")
-            path += ".js"
-
-        return self.execute(wscript, "\"%s\"" % path, path)
+        return self.execute(regsvr32, args, path)
