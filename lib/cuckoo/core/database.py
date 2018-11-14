@@ -1506,7 +1506,7 @@ class Database(object):
             return None
 
         session = self.Session()
-        if self.cfg.cuckoo.process_results():
+        if self.cfg.cuckoo.process_results:
             #AnalysisManager.process_results(task=task_id, report=True)
             #session.query(Task).get(task_id).status = TASK_REPORTED
             return None
