@@ -15,7 +15,6 @@ from lib.cuckoo.common.exceptions import CuckooDependencyError
 from lib.cuckoo.common.objects import File, URL, PCAP
 from lib.cuckoo.common.utils import create_folder, Singleton, classlock, SuperLock
 from lib.cuckoo.common.demux import demux_sample
-from lib.cuckoo.core.scheduler import AnalysisManager
 
 try:
     from sqlalchemy import create_engine, Column, event
