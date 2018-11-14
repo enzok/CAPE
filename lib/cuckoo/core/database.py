@@ -15,6 +15,7 @@ from lib.cuckoo.common.exceptions import CuckooDependencyError
 from lib.cuckoo.common.objects import File, URL, PCAP
 from lib.cuckoo.common.utils import create_folder, Singleton, classlock, SuperLock
 from lib.cuckoo.common.demux import demux_sample
+import utils.process as process_results
 
 try:
     from sqlalchemy import create_engine, Column, event
@@ -1494,3 +1495,29 @@ class Database(object):
         finally:
             session.close()
         return errors
+    @classlock
+    def reprocess(self, task_id):
+        """Reprocess a task.
+        @param task_id: ID of the task to reprocess.
+        @return: True if success.
+        """
+        task = self.view_task(task_id)
+
+        if not task:
+            return None
+
+        session = self.Session()
+        if self.cfg.cuckoo.process_results():
+            process_results.process(task=task_id, report=True)
+            session.query(Task).get(task_id).status = TASK_REPORTED
+        else:
+            session.query(Task).get(task_id).status = TASK_COMPLETED
+        try:
+            session.commit()
+        except SQLAlchemyError as e:
+            log.debug("Database error reprocessing task: {0}".format(e))
+            session.rollback()
+            return False
+        finally:
+            session.close()
+        return True

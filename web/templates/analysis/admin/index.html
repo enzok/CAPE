@@ -30,6 +30,10 @@
         </tr>
         <tr>
             <th></th>
+            <td><a href="{% url "reprocess" analysis.info.id %}" class="btn btn-primary btn-small">Reprocess</a></td>
+        </tr>
+        <tr>
+            <th></th>
             <td><a href="{% url "reschedule" analysis.info.id %}" class="btn btn-primary btn-small">Reschedule</a></td>
         </tr>
     </table>
