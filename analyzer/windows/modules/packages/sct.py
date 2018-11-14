@@ -1,9 +1,7 @@
-# Copyright (C) 2010-2015 Cuckoo Foundation.
-# This file is part of Cuckoo Sandbox - http://www.cuckoosandbox.org
+# This file is part of CAPE Sandbox - https://github.com/ctxis/CAPE
 # See the file 'docs/LICENSE' for copying permission.
 
 import os
-
 
 from lib.common.abstracts import Package
 
