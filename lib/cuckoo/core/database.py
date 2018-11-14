@@ -15,7 +15,7 @@ from lib.cuckoo.common.exceptions import CuckooDependencyError
 from lib.cuckoo.common.objects import File, URL, PCAP
 from lib.cuckoo.common.utils import create_folder, Singleton, classlock, SuperLock
 from lib.cuckoo.common.demux import demux_sample
-import utils.process as process_results
+from utils.process import process as process_results
 
 try:
     from sqlalchemy import create_engine, Column, event
@@ -1508,7 +1508,7 @@ class Database(object):
 
         session = self.Session()
         if self.cfg.cuckoo.process_results():
-            process_results.process(task=task_id, report=True)
+            process_results(task=task_id, report=True)
             session.query(Task).get(task_id).status = TASK_REPORTED
         else:
             session.query(Task).get(task_id).status = TASK_COMPLETED
