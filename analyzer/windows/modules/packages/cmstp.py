@@ -20,8 +20,7 @@ class Cmstp(Package):
             inf.write('[version]\nSignature=$chicago$\nAdvancedINF=2.5\n\n')
             inf.write("[DefaultInstall_SingleUser]\nUnRegisterOCXs=UnRegisterOCXSection\n\n")
             inf.write("[[UnRegisterOCXSection]\n%11%\scrobj.dll,NI,%Filename%\n\n")
-            inf.write('[Strings]\nAppAct="SOFTWARE\Microsoft\Connection Manager"\n')
-            inf.write('Filename="{}"\nServiceName="BONG"\nShortSvcName="BONG"\n'.format(target))
+            inf.write('[Strings]\nFilename="{}"\nServiceName="BONG"\nShortSvcName="BONG"\n'.format(target))
 
         if os.path.exists(file_path):
             log.info("{} created.".format(file_path))
