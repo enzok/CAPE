@@ -13,14 +13,14 @@ from lib.common.abstracts import Auxiliary
 log = logging.getLogger(__name__)
 
 
-CMDPATHS = [
+WORDPATHS = [
     ("ProgramFiles", "Microsoft Office", "WINWORD.EXE"),
     ("ProgramFiles", "Microsoft Office", "Office*", "WINWORD.EXE"),
     ("ProgramFiles", "Microsoft Office*", "root", "Office*", "WINWORD.EXE"),
     ("ProgramFiles", "Microsoft Office", "WORDVIEW.EXE"),
 ]
 
-WORDPATHS = [
+CMDPATHS = [
     ("SystemRoot", "system32", "cmd.exe"),
 ]
 
