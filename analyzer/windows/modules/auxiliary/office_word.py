@@ -4,6 +4,7 @@
 
 import os
 import glob
+from time import sleep
 import logging
 from threading import Thread
 
@@ -81,10 +82,13 @@ class OfficeWord(Auxiliary, Thread):
         if not startword:
             return True
 
-        while self.do_run:
-            cmd_path = self.get_path_glob(CMDPATHS)
+        if self.do_run:
+            cmd_path = self.get_path(CMDPATHS)
             word = self.get_path_glob(WORDPATHS)
+            if not word:
+                return True
             cmd_args = "/c start /min \"\" \"{0}\"".format(word)
             word = Process()
             log.info("Launching Word with {} {}".format(cmd_path, cmd_args))
             word.execute(path=cmd_path, args=cmd_args, suspended=False)
+            sleep(5)
