@@ -59,6 +59,8 @@ class HTTP_Request(Signature):
         ret = False
         # Parse to create self.data
         for host in self.request.keys():
+            if "ProxyUrls" in host:
+                continue
             for uri in self.request[host]["uris"]:
                 self.data.append({"url": "{}:{}/{}".format(host, self.request[host]["port"], uri)})
 
