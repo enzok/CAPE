@@ -23,7 +23,7 @@ class HTTP_Request(Signature):
                                "apps.identrust.com"]
 
     filter_apinames = set(["HttpOpenRequestA", "HttpOpenRequestW", "InternetConnectA",
-                           "InternetConnectW"])
+                           "InternetConnectW", "WinHttpGetProxyForUrl"])
 
 
     def on_call(self, call, process):
@@ -48,6 +48,12 @@ class HTTP_Request(Signature):
                 if uri != "/" and uri != "":
                     self.request[self.lasthost]["uris"].append(uri)
                     self.request[self.lasthost]["curhandle"] = call["return"]
+        elif call["api"].startswith("WinHttpGetProxyForUrl"):
+            url = self.get_argument(call, "Url")
+            if "ProxyUrls" not in self.request:
+                self.request["ProxyUrls"] = []
+            if url:
+                self.request["ProxyUrls"].append(url)
 
     def on_complete(self):
         ret = False
@@ -55,6 +61,9 @@ class HTTP_Request(Signature):
         for host in self.request.keys():
             for uri in self.request[host]["uris"]:
                 self.data.append({"url": "{}:{}/{}".format(host, self.request[host]["port"], uri)})
+
+        for url in self.request["ProxyUrls"]:
+            self.data.append({"url": url})
 
         if len(self.data) > 0:
             ret = True
