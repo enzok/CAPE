@@ -58,14 +58,14 @@ class HTTP_Request(Signature):
     def on_complete(self):
         ret = False
         # Parse to create self.data
-        for host in self.request.keys():
-            if "ProxyUrls" in host:
-                continue
-            for uri in self.request[host]["uris"]:
-                self.data.append({"url": "{}:{}/{}".format(host, self.request[host]["port"], uri)})
-
-        for url in self.request["ProxyUrls"]:
-            self.data.append({"url": url})
+        for keyval in self.request.keys():
+            if "ProxyUrls" in keyval:
+                for url in self.request["ProxyUrls"]:
+                    self.data.append({"url": url})
+            else:
+                host = keyval
+                for uri in self.request[host]["uris"]:
+                    self.data.append({"url": "{}:{}/{}".format(host, self.request[host]["port"], uri)})
 
         if len(self.data) > 0:
             ret = True
