@@ -450,5 +450,8 @@ def demux_sample(filename, package, options):
     if not retlist:
         retlist.append(filename)
         log.debug("Not an archive file - {}".format(filename))
+    else:
+        if len(retlist) > 10:
+            retlist = retlist[:10]
 
     return retlist
