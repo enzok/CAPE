@@ -23,7 +23,8 @@ class HTTP_Request(Signature):
                                "apps.identrust.com"]
 
     filter_apinames = set(["HttpOpenRequestA", "HttpOpenRequestW", "InternetConnectA",
-                           "InternetConnectW", "WinHttpGetProxyForUrl"])
+                           "InternetConnectW", "WinHttpGetProxyForUrl",
+                           "InternetCrackUrlA", "InternetCrackUrlW"])
 
 
     def on_call(self, call, process):
@@ -54,6 +55,12 @@ class HTTP_Request(Signature):
                 self.request["ProxyUrls"] = []
             if url:
                 self.request["ProxyUrls"].append(url)
+        elif call["api"].startswith("InternetCrackUrl"):
+            url = self.get_argument(call, "Url")
+            if "CrackUrls" not in self.request:
+                self.request["CrackUrls"] = []
+            if url:
+                self.request["CrackUrls"].append(url)
 
     def on_complete(self):
         ret = False
@@ -61,6 +68,9 @@ class HTTP_Request(Signature):
         for keyval in self.request.keys():
             if "ProxyUrls" in keyval:
                 for url in self.request["ProxyUrls"]:
+                    self.data.append({"url": url})
+            elif "CrackUrls" in keyval:
+                for url in self.request["CrackUrls"]:
                     self.data.append({"url": url})
             else:
                 host = keyval
