@@ -703,7 +703,13 @@ class Process:
         file_path = os.path.join(PATHS["memory"], "{0}.dmp".format(self.pid))
 
         nf = NetlogFile(os.path.join("memory", "{0}.dmp".format(self.pid)))
-        infd = open(file_path, "rb")
+        try:
+            infd = open(file_path, "rb")
+        except:
+            nf.close()
+            log.warning("Unable to find process dump for process %d.", self.pid)
+            return False
+
         buf = infd.read(1024*1024)
         try:
             while buf:
@@ -713,7 +719,7 @@ class Process:
         except:
             infd.close()
             nf.close()
-            log.warning("Upload of memory dump for process %d failed", self.pid)
+            log.warning("Upload of memory dump for process %d failed.", self.pid)
             return False
 
         infd.close()
