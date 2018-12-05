@@ -20,7 +20,7 @@ class Office_Macro_Autoexec(Signature):
             if "Macro" in self.results["static"]["office"]:
                 if "AutoExec" in self.results["static"]["office"]["Macro"]["Analysis"]:
                     ret = True
-                for func, desc in self.results["static"]["office"]["Macro"]["Analaysis"]["AutoExec"]:
+                for func, desc in self.results["static"]["office"]["Macro"]["Analysis"]["AutoExec"]:
                     self.data.append({func: desc})
 
         return ret
