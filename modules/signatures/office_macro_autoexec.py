@@ -18,9 +18,9 @@ class Office_Macro_Autoexec(Signature):
         if "static" in self.results and "office" in self.results["static"]:
             # 97-2003 OLE and 2007+ XML macros
             if "Macro" in self.results["static"]["office"]:
-                if "AutoExec" in self.results["static"]["office"]["Analysis"]:
+                if "AutoExec" in self.results["static"]["office"]["Macro"]["Analysis"]:
                     ret = True
-                for func, desc in self.results["static"]["office"]["Analaysis"]["AutoExec"]:
+                for func, desc in self.results["static"]["office"]["Macro"]["Analaysis"]["AutoExec"]:
                     self.data.append({func: desc})
 
         return ret
