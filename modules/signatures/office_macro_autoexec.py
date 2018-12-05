@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Copyright (C) 2014 enzok
 #
 # This program is free software: you can redistribute it and/or modify
@@ -13,11 +12,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-=======
-#
-#
-#
->>>>>>> f179decd964735bfaed1ea6366143ba47fc17036
 
 from lib.cuckoo.common.abstracts import Signature
 
@@ -33,10 +27,6 @@ class Office_Macro_Autoexec(Signature):
     def run(self):
         ret = False
         if "static" in self.results and "office" in self.results["static"]:
-<<<<<<< HEAD
-=======
-            # 97-2003 OLE and 2007+ XML macros
->>>>>>> f179decd964735bfaed1ea6366143ba47fc17036
             if "Macro" in self.results["static"]["office"]:
                 if "AutoExec" in self.results["static"]["office"]["Macro"]["Analysis"]:
                     ret = True
