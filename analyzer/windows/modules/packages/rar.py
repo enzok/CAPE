@@ -8,8 +8,9 @@ import logging
 import re
 
 try:
-    from rarfile import RarFile,BadRarFile
+    from rarfile import RarFile, BadRarFile, UNRAR_TOOL
     HAS_RARFILE = True
+    UNRAR_TOOL = "bin\\unrar.exe"
 except ImportError:
     HAS_RARFILE = False
 
