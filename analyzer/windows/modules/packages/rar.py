@@ -99,7 +99,7 @@ class Rar(Package):
         root = os.environ["TEMP"]
         password = self.options.get("password")
         exe_regex = re.compile('(\.exe|\.scr|\.msi|\.bat|\.lnk)$',flags=re.IGNORECASE)
-
+        office_regex = re.compile('(\.doc|\.xls|\.pub|\.ppt)$', flags=re.IGNORECASE)
         rarinfos = self.get_infos(path)
         self.extract_rar(path, root, password)
 
@@ -111,6 +111,9 @@ class Rar(Package):
                 # Attempt to find a valid exe extension in the archive
                 for f in rarinfos:
                     if exe_regex.search(f.filename):
+                        file_name = f.filename
+                        break
+                    elif office_regex.search(f.filename):
                         file_name = f.filename
                         break
                 # Default to the first one if none found
@@ -133,7 +136,7 @@ class Rar(Package):
             wscript = self.get_path_app_in_path("wscript.exe")
             wscript_args = "\"{0}\"".format(file_path)
             return self.execute(wscript, wscript_args, file_path)
-        elif file_name.lower().endswith(('.doc','docx', 'docm')):
+        elif file_name.lower().endswith(('.doc', 'docx', 'docm')):
             PATHS = [
                      ("ProgramFiles", "Microsoft Office", "WINWORD.EXE"),
                      ("ProgramFiles", "Microsoft Office", "Office*", "WINWORD.EXE"),
