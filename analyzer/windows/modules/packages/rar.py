@@ -24,6 +24,8 @@ class Rar(Package):
 
     PATHS = [
         ("SystemRoot", "system32", "cmd.exe"),
+        ("SystemRoot", "system32", "wscript.exe"),
+        ("SystemRoot", "system32", "rundll32.exe"),
     ]
 
     def extract_rar(self, rar_path, extract_path, password):
@@ -144,6 +146,7 @@ class Rar(Package):
                      ("ProgramFiles", "Microsoft Office", "WORDVIEW.EXE"),
                     ]
             word = self.get_path_glob("Microsoft Office Word")
+            log.debug("wordpath: {}".format(word))
             return self.execute(word, "\"%s\" /q" % file_path, file_path)
         elif file_name.lower().endswith(('.xls', 'xlsx', 'xlsb', 'xlsm')):
             PATHS = [
