@@ -1217,7 +1217,8 @@ class Analyzer:
 
                         # If none of the monitored processes are still alive, we
                         # can terminate the analysis.
-                        if not PROCESS_LIST and (not LASTINJECT_TIME or (datetime.now() >= (LASTINJECT_TIME + timedelta(seconds=15)))):
+                        if not PROCESS_LIST and (not LASTINJECT_TIME or
+                                                 (datetime.now() >= (LASTINJECT_TIME + timedelta(seconds=15)))):
                             if emptytime and (datetime.now() >= (emptytime + timedelta(seconds=5))):
                                 log.info("Process list is empty, "
                                         "terminating analysis.")
