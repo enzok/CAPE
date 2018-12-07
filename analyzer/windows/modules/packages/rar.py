@@ -146,8 +146,6 @@ class Rar(Package):
                      ("ProgramFiles", "Microsoft Office", "WORDVIEW.EXE"),
                     ]
             word = self.get_path_glob("Microsoft Office Word")
-            log.debug("paths: {}".format(PATHS))
-            log.debug("wordpath: {}".format(word))
             return self.execute(word, "\"%s\" /q" % file_path, file_path)
         elif file_name.lower().endswith(('.xls', 'xlsx', 'xlsb', 'xlsm')):
             self.PATHS = [
