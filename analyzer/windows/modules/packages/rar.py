@@ -8,9 +8,9 @@ import logging
 import re
 
 try:
-    from rarfile import RarFile, BadRarFile, UNRAR_TOOL
+    import rarfile
     HAS_RARFILE = True
-    UNRAR_TOOL = "bin\\unrar.exe"
+    rarfile.UNRAR_TOOL = os.path.join(os.getcwd(), "bin", "unrar.exe")
 except ImportError:
     HAS_RARFILE = False
 
@@ -41,10 +41,10 @@ class Rar(Package):
             rar_path = new_rar_path
 
         # Extraction.
-        with RarFile(rar_path, "r") as archive:
+        with rarfile.RarFile(rar_path, "r") as archive:
             try:
                 archive.extractall(path=extract_path, pwd=password)
-            except BadRarFile:
+            except rarfile.BadRarFile:
                 raise CuckooPackageError("Invalid Rar file")
             except RuntimeError:
                 try:
@@ -64,14 +64,14 @@ class Rar(Package):
         @param rar_path: rar file path
         @return: comparison boolean
         """
-        with RarFile(rar_path, "r") as archive:
+        with rarfile.RarFile(rar_path, "r") as archive:
             try:
                 # Test if rar file contains a file named as itself.
                 for name in archive.namelist():
                     if name == os.path.basename(rar_path):
                         return True
                 return False
-            except BadRarFile:
+            except rarfile.BadRarFile:
                 raise CuckooPackageError("Invalid Rar file")
 
     def get_infos(self, rar_path):
@@ -80,9 +80,9 @@ class Rar(Package):
         @return: RarInfo class
         """
         try:
-            with RarFile(rar_path, "r") as archive:
+            with rarfile.RarFile(rar_path, "r") as archive:
                 return archive.infolist()
-        except BadRarFile:
+        except rarfile.BadRarFile:
             raise CuckooPackageError("Invalid Rar file")
 
     def start(self, path):
