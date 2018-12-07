@@ -139,7 +139,7 @@ class Rar(Package):
             wscript_args = "\"{0}\"".format(file_path)
             return self.execute(wscript, wscript_args, file_path)
         elif file_name.lower().endswith(('.doc', 'docx', 'docm')):
-            PATHS = [
+            self.PATHS = [
                      ("ProgramFiles", "Microsoft Office", "WINWORD.EXE"),
                      ("ProgramFiles", "Microsoft Office", "Office*", "WINWORD.EXE"),
                      ("ProgramFiles", "Microsoft Office*", "root", "Office*", "WINWORD.EXE"),
@@ -150,7 +150,7 @@ class Rar(Package):
             log.debug("wordpath: {}".format(word))
             return self.execute(word, "\"%s\" /q" % file_path, file_path)
         elif file_name.lower().endswith(('.xls', 'xlsx', 'xlsb', 'xlsm')):
-            PATHS = [
+            self.PATHS = [
                      ("ProgramFiles", "Microsoft Office", "EXCEL.EXE"),
                      ("ProgramFiles", "Microsoft Office", "Office*", "EXCEL.EXE"),
                      ("ProgramFiles", "Microsoft Office*", "root", "Office*", "EXCEL.EXE"),
@@ -158,7 +158,7 @@ class Rar(Package):
             excel = self.get_path_glob("Microsoft Office Excel")
             return self.execute(excel, "\"%s\" /e" % file_path, file_path)
         elif file_name.lower().endswith(('.ppt', 'pptx', 'pptm')):
-            PATHS = [
+            self.PATHS = [
                      ("ProgramFiles", "Microsoft Office", "POWERPNT.EXE"),
                      ("ProgramFiles", "Microsoft Office", "Office*", "POWERPNT.EXE"),
                      ("ProgramFiles", "Microsoft Office*", "root", "Office*", "POWERPNT.EXE"),
@@ -166,7 +166,7 @@ class Rar(Package):
             powerpoint = self.get_path_glob("Microsoft Office PowerPoint")
             return self.execute(powerpoint, "/s \"%s\"" % file_path, file_path)
         elif file_name.lower().endswith('.pub'):
-            PATHS = [
+            self.PATHS = [
                      ("ProgramFiles", "Microsoft Office", "MSPUB.EXE"),
                      ("ProgramFiles", "Microsoft Office", "Office*", "MSPUB.EXE"),
                      ("ProgramFiles", "Microsoft Office*", "root", "Office*", "MSPUB.EXE"),
