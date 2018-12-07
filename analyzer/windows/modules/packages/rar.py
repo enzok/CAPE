@@ -120,9 +120,66 @@ class Rar(Package):
                 raise CuckooPackageError("Empty RAR archive")
 
         file_path = os.path.join(root, file_name)
+        log.debug("file_name: \"%s\"" % (file_name))
         if file_name.lower().endswith(".lnk"):
             cmd_path = self.get_path("cmd.exe")
             cmd_args = "/c start /wait \"\" \"{0}\"".format(file_path)
             return self.execute(cmd_path, cmd_args, file_path)
+        elif file_name.lower().endswith(".msi"):
+            msi_path = self.get_path("msiexec.exe")
+            msi_args = "/I \"{0}\"".format(file_path)
+            return self.execute(msi_path, msi_args, file_path)
+        elif file_name.lower().endswith((".js", ".jse", ".vbs", ".vbe", ".wsf")):
+            wscript = self.get_path_app_in_path("wscript.exe")
+            wscript_args = "\"{0}\"".format(file_path)
+            return self.execute(wscript, wscript_args, file_path)
+        elif file_name.lower().endswith(('.doc','docx', 'docm')):
+            PATHS = [
+                     ("ProgramFiles", "Microsoft Office", "WINWORD.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "Office*", "WINWORD.EXE"),
+                     ("ProgramFiles", "Microsoft Office*", "root", "Office*", "WINWORD.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "WORDVIEW.EXE"),
+                    ]
+            word = self.get_path_glob("Microsoft Office Word")
+            return self.execute(word, "\"%s\" /q" % file_path, file_path)
+        elif file_name.lower().endswith(('.xls', 'xlsx', 'xlsb', 'xlsm')):
+            PATHS = [
+                     ("ProgramFiles", "Microsoft Office", "EXCEL.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "Office*", "EXCEL.EXE"),
+                     ("ProgramFiles", "Microsoft Office*", "root", "Office*", "EXCEL.EXE"),
+                    ]
+            excel = self.get_path_glob("Microsoft Office Excel")
+            return self.execute(excel, "\"%s\" /e" % file_path, file_path)
+        elif file_name.lower().endswith(('.ppt', 'pptx', 'pptm')):
+            PATHS = [
+                     ("ProgramFiles", "Microsoft Office", "POWERPNT.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "Office*", "POWERPNT.EXE"),
+                     ("ProgramFiles", "Microsoft Office*", "root", "Office*", "POWERPNT.EXE"),
+                    ]
+            powerpoint = self.get_path_glob("Microsoft Office PowerPoint")
+            return self.execute(powerpoint, "/s \"%s\"" % file_path, file_path)
+        elif file_name.lower().endswith('.pub'):
+            PATHS = [
+                     ("ProgramFiles", "Microsoft Office", "MSPUB.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "Office*", "MSPUB.EXE"),
+                     ("ProgramFiles", "Microsoft Office*", "root", "Office*", "MSPUB.EXE"),
+                     ("ProgramFiles", "Microsoft Office", "MSPUB.EXE"),
+                    ]
+            self.set_keys()
+            publisher = self.get_path_glob("Microsoft Office Publisher")
+            return self.execute(publisher, "/o \"%s\"" % file_path, file_path)
+        elif file_name.lower().endswith(".dll"):
+            rundll32 = self.get_path_app_in_path("rundll32.exe")
+            function = self.options.get("function", "#1")
+            arguments = self.options.get("arguments")
+            loadername = self.options.get("loader")
+            dll_args = "\"{0}\",{1}".format(file_path, function)
+            if arguments:
+                dll_args += " {0}".format(arguments)
+            if loadername:
+                newname = os.path.join(os.path.dirname(rundll32), loadername)
+                shutil.copy(rundll32, newname)
+                rundll32 = newname
+            return self.execute(rundll32, dll_args, file_path)
         else:
             return self.execute(file_path, self.options.get("arguments"), file_path)
