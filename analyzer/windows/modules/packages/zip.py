@@ -67,9 +67,11 @@ class Zip(Package):
                         if name.endswith(".zip"):
                             # Recurse.
                             try:
-                                self.extract_zip(os.path.join(extract_path, name), extract_path, password, recursion_depth + 1)
+                                self.extract_zip(os.path.join(extract_path, name), extract_path, password,
+                                                 recursion_depth + 1)
                             except BadZipfile:
-                                log.warning("Nested zip file '%s' name end with 'zip' extension is not a valid zip. Skip extracting" % name)
+                                log.warning("Nested zip file '%s' name end with 'zip' extension \\"
+                                            "is not a valid zip. Skip extracting" % name)
                             except RuntimeError as run_err:
                                 log.error("Error to extract nested zip file %s with details: %s" % name, run_err)
 
@@ -134,7 +136,8 @@ class Zip(Package):
     def start(self, path):
         root = os.environ["TEMP"]
         password = self.options.get("password")
-        exe_regex = re.compile('(\.exe|\.dll|\.scr|\.msi|\.bat|\.lnk|\.js|\.jse|\.vbs|\.vbe|\.wsf)$',flags=re.IGNORECASE)
+        exe_regex = re.compile('(\.exe|\.dll|\.scr|\.msi|\.bat|\.lnk|\.js|\.jse|\.vbs|\.vbe|\.wsf)$',
+                               flags=re.IGNORECASE)
         office_regex = re.compile('(\.doc|\.xls|\.pub|\.ppt)$', flags=re.IGNORECASE)
         zipinfos = self.get_infos(path)
         self.extract_zip(path, root, password, 0)
@@ -172,7 +175,7 @@ class Zip(Package):
             wscript = self.get_path_app_in_path("wscript.exe")
             wscript_args = "\"{0}\"".format(file_path)
             return self.execute(wscript, wscript_args, file_path)
-        elif file_name.lower().endswith(('.doc','docx', 'docm')):
+        elif file_name.lower().endswith(('.doc', 'docx', 'docm')):
             self.PATHS = [
                      ("ProgramFiles", "Microsoft Office", "WINWORD.EXE"),
                      ("ProgramFiles", "Microsoft Office", "Office*", "WINWORD.EXE"),

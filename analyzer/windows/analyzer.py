@@ -418,7 +418,8 @@ class PipeHandler(Thread):
                     if process_id:
                         if process_id not in (PID, PPID):
                             if process_id not in PROCESS_LIST:
-                                proc = Process(options=self.options,config=self.config,pid=process_id,thread_id=thread_id)
+                                proc = Process(options=self.options, config=self.config, pid=process_id,
+                                               thread_id=thread_id)
                                 filepath = proc.get_filepath()
                                 filename = os.path.basename(filepath)
 
@@ -443,7 +444,7 @@ class PipeHandler(Thread):
                         dcom_pid = pid_from_service_name("DcomLaunch")
                         if dcom_pid:
                             log.info("Attaching to DcomLaunch service (pid %d)", dcom_pid)
-                            servproc = Process(options=self.options,config=self.config,pid=dcom_pid,suspended=False)
+                            servproc = Process(options=self.options, config=self.config, pid=dcom_pid, suspended=False)
                             CRITICAL_PROCESS_LIST.append(int(dcom_pid))
                             filepath = servproc.get_filepath()
                             servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
@@ -468,7 +469,8 @@ class PipeHandler(Thread):
                             dcom_pid = pid_from_service_name("DcomLaunch")
                             if dcom_pid:
                                 log.info("Attaching to DcomLaunch service (pid %d)", dcom_pid)
-                                servproc = Process(options=self.options,config=self.config,pid=dcom_pid,suspended=False)
+                                servproc = Process(options=self.options, config=self.config, pid=dcom_pid,
+                                                   suspended=False)
                                 CRITICAL_PROCESS_LIST.append(int(dcom_pid))
                                 filepath = servproc.get_filepath()
                                 servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
@@ -482,7 +484,7 @@ class PipeHandler(Thread):
                         wmi_pid = pid_from_service_name("winmgmt")
                         if wmi_pid:
                             log.info("Attaching to WMI service (pid %d)", wmi_pid)
-                            servproc = Process(options=self.options,config=self.config,pid=wmi_pid,suspended=False)
+                            servproc = Process(options=self.options, config=self.config, pid=wmi_pid, suspended=False)
                             CRITICAL_PROCESS_LIST.append(int(wmi_pid))
                             filepath = servproc.get_filepath()
                             servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
@@ -505,7 +507,7 @@ class PipeHandler(Thread):
 
                         sched_pid = pid_from_service_name("schedule")
                         if sched_pid:
-                            servproc = Process(options=self.options,config=self.config,pid=sched_pid,suspended=False)
+                            servproc = Process(options=self.options, config=self.config, pid=sched_pid, suspended=False)
                             CRITICAL_PROCESS_LIST.append(int(sched_pid))
                             filepath = servproc.get_filepath()
                             servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
@@ -530,7 +532,8 @@ class PipeHandler(Thread):
                             dcom_pid = pid_from_service_name("DcomLaunch")
                             if dcom_pid:
                                 log.info("Attaching to DcomLaunch service (pid %d)", dcom_pid)
-                                servproc = Process(options=self.options,config=self.config,pid=dcom_pid,suspended=False)
+                                servproc = Process(options=self.options, config=self.config, pid=dcom_pid,
+                                                   suspended=False)
                                 CRITICAL_PROCESS_LIST.append(int(dcom_pid))
                                 filepath = servproc.get_filepath()
                                 servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
@@ -544,7 +547,7 @@ class PipeHandler(Thread):
 
                         bits_pid = pid_from_service_name("BITS")
                         if bits_pid:
-                            servproc = Process(options=self.options,config=self.config,pid=bits_pid,suspended=False)
+                            servproc = Process(options=self.options, config=self.config, pid=bits_pid, suspended=False)
                             CRITICAL_PROCESS_LIST.append(int(bits_pid))
                             filepath = servproc.get_filepath()
                             servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
@@ -571,7 +574,8 @@ class PipeHandler(Thread):
                         # unable to inject
                         if SERVICES_PID:
                             log.info("Attaching to Service Control Manager (services.exe - pid %d)", SERVICES_PID)
-                            servproc = Process(options=self.options,config=self.config,pid=SERVICES_PID,suspended=False)
+                            servproc = Process(options=self.options, config=self.config, pid=SERVICES_PID,
+                                               suspended=False)
                             CRITICAL_PROCESS_LIST.append(int(SERVICES_PID))
                             filepath = servproc.get_filepath()
                             servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
@@ -683,7 +687,8 @@ class PipeHandler(Thread):
                                 if SERVICES_PID and process_id == SERVICES_PID:
                                     CRITICAL_PROCESS_LIST.append(int(SERVICES_PID))
 
-                                log.info("Announced %s process name: %s pid: %d", "64-bit" if is_64bit else "32-bit", filename, process_id)
+                                log.info("Announced %s process name: %s pid: %d", "64-bit" if is_64bit else "32-bit",
+                                         filename, process_id)
 
                                 # We want to prevent multiple injection attempts if one is already underway
                                 PROCESS_LOCK.acquire()
@@ -735,7 +740,8 @@ class PipeHandler(Thread):
                                 if SERVICES_PID and process_id == SERVICES_PID:
                                     CRITICAL_PROCESS_LIST.append(int(SERVICES_PID))
 
-                                log.info("Announced %s process name: %s pid: %d", "64-bit" if is_64bit else "32-bit", filename, process_id)
+                                log.info("Announced %s process name: %s pid: %d", "64-bit" if is_64bit else "32-bit",
+                                         filename, process_id)
 
                                 if not in_protected_path(filename):
                                     res = proc.debug_inject(interest, childprocess=True)
