@@ -31,8 +31,8 @@ with open(CUCKOO_ROOT+"/data/guid_list.txt", "r") as guidfile:
 class WMIViaCOMApi(Signature):
     name = "WMI_using_COM_API"
     description = "IWbemLocator connection through DCOM to a WMI namespace"
-    severity = 3
-    confidence = 80
+    severity = 2
+    confidence = 90
     categories = ["recon"]
     authors = ["enzok"]
     minimum = "1.3"
@@ -61,8 +61,8 @@ class WMIViaCOMApi(Signature):
 class IEViaCOMApi(Signature):
     name = "IE_using_COM_API"
     description = "Launched IE through DCOM"
-    severity = 3
-    confidence = 80
+    severity = 2
+    confidence = 90
     categories = ["stealth"]
     authors = ["enzok"]
     minimum = "1.3"
@@ -91,8 +91,8 @@ class IEViaCOMApi(Signature):
 class COMGUIDs(Signature):
     name = "suspicious_COM_GUIDs"
     description = "Suspicious COM GUIDs"
-    severity = 3
-    confidence = 80
+    severity = 2
+    confidence = 90
     categories = ["stealth"]
     authors = ["enzok"]
     minimum = "1.3"
