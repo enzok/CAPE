@@ -51,7 +51,7 @@ class WMIViaCOMApi(Signature):
                 iid = self.get_argument(call, "riid")
                 if iid == "DC12A687-737F-11CF-884D-00AA004B2E24":
                     self.data.append({"WMI": "Obtained namespace pointer to WMI interface: "
-                                      "CLSID = {}  IID = {}".format(clsid, iid)})
+                                      "[CLSID = {}]  [IID = {}]".format(clsid, iid)})
 
     def on_complete(self):
         if self.data:
@@ -82,7 +82,7 @@ class IEViaCOMApi(Signature):
                 iid = self.get_argument(call, "riid")
                 if iid == "EAB22AC1-30C1-11CF-A7EB-0000C05BAE0B":
                     self.data.append({"IWebBrowser Interface": "Internet Explorer started using COM interface: "
-                                      "CLSID = {}  IID = {}".format(clsid, iid)})
+                                      "[CLSID = {}]  [IID = {}]".format(clsid, iid)})
 
     def on_complete(self):
         if self.data:
