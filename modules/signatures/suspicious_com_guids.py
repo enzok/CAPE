@@ -50,7 +50,8 @@ class WMIViaCOMApi(Signature):
             if clsid == "4590F811-1D3A-11D0-891F-00AA004B2E24":
                 iid = self.get_argument(call, "riid")
                 if iid == "DC12A687-737F-11CF-884D-00AA004B2E24":
-                    self.data.append({"WMI": "Obtained namespace pointer to WMI interface"})
+                    self.data.append({"WMI": "Obtained namespace pointer to WMI interface: "
+                                      "CLSID = {}  IID = {}".format(clsid, iid)})
 
     def on_complete(self):
         if self.data:
