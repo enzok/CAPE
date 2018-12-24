@@ -684,11 +684,12 @@ class CAPE(Processing):
                     ssdeep_grade = pydeep.compare(file_info["ssdeep"], cape_file["ssdeep"])
                     if ssdeep_grade >= ssdeep_threshold:
                         append_file = False
-                if file_info["entrypoint"] and file_info["entrypoint"] == cape_file["entrypoint"] \
-                    and file_info["ep_bytes"] == cape_file["ep_bytes"]:
-                    append_file = False
+                if "entrypoint" in file_info:
+                    if file_info["entrypoint"] and file_info["entrypoint"] == cape_file["entrypoint"] \
+                            and file_info["ep_bytes"] == cape_file["ep_bytes"]:
+                        append_file = False
 
-        if append_file == True:
+        if append_file:
             CAPE_output.append(file_info)
         return file_info
     
