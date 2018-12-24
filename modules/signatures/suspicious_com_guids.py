@@ -80,7 +80,8 @@ class IEViaCOMApi(Signature):
             if clsid == "0002DF01-0000-0000-C000-000000000046":
                 iid = self.get_argument(call, "riid")
                 if iid == "EAB22AC1-30C1-11CF-A7EB-0000C05BAE0B":
-                    self.data.append({"IWebBrowser Interface": "Internet Explorer started using COM interface"})
+                    self.data.append({"IWebBrowser Interface": "Internet Explorer started using COM interface: "
+                                      "CLSID = {}  IID = {}".format(clsid, iid)})
 
     def on_complete(self):
         if self.data:
