@@ -8,7 +8,6 @@ rule CrowdStrike_CSIT_18196_01 : powermaze rat stardust_chollima
         last_modified = "2018-12-20"
         actor = "STARDUST CHOLLIMA"
         malware_family = "Powermaze"
-        cape_type = "Powermaze"
     strings:
         $ = "'UABSAE8AQwBFAFMAUwBfAFIARQBRAFUARQBTAFQA'"//: 'PROCESS_REQUEST'
         $ = "'RABPAFcATgBMAE8AQQBEAF8AUwBUAE8AUAA='"//: 'DOWNLOAD_STOP'
@@ -43,7 +42,6 @@ rule CrowdStrike_CSIT_18196_02 : powershell stardust_chollima
         version = "201812201217"
         last_modified = "2018-12-20"
         actor = "STARDUST CHOLLIMA"
-        cape_type = "Powermaze"
     strings:
         // ${global:dac8b255ec2a4362840e51143e4e57b2}
         $var_re = /\$\{global\:[a-f0-9]{32}\} = /
