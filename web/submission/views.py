@@ -4,6 +4,8 @@
 
 import os
 import sys
+import random
+import string
 
 import requests
 import tempfile
@@ -58,6 +60,15 @@ def update_options(gw, orig_options):
             options += ",gwname=%s" % (settings.GATEWAYS_IP_MAP[gw])
 
     return options
+
+
+def check_name(name):
+    # replace a hash values for samples that are name length aware
+    if len(name) >= 32:
+        name = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits)
+                       for _ in range(random.randint(5, 15)))
+
+    return name
 
 
 def download_file(content, request, db, task_ids, url, params, headers, service, filename, package, timeout, options,
@@ -248,6 +259,7 @@ def index(request, resubmit_hash=False):
                 else:
                     filename = resubmission_hash
 
+                filename = check_name(filename)
                 path = store_temp_file(content, filename)
                 headers = {}
                 url = 'local'
@@ -279,6 +291,8 @@ def index(request, resubmit_hash=False):
                     filename = opt_filename
                 else:
                     filename = sample.name
+
+                filename = check_name(filename)
                 path = store_temp_file(sample.read(), filename)
     
                 for gw in task_gateways:
