@@ -75,6 +75,8 @@ def download_file(content, request, db, task_ids, url, params, headers, service,
 
         if r.status_code == 200:
             content = r.content
+        elif r.status_code == 404:
+            return "error", render(request, "error.html", {"error": "Provided hash not found on {}".format(service)})
         elif r.status_code == 403:
             return "error", render(request, "error.html",
                                    {"error": "API key is not valid/authorized for {0} downloads".format(service)})
@@ -82,9 +84,9 @@ def download_file(content, request, db, task_ids, url, params, headers, service,
         f = open(filename, 'wb')
         f.write(content)
         f.close()
-    except:
+    except Exception as dlerr:
         return "error", render(request, "error.html",
-                               {"error": "Error writing {} download file to temporary path".format(service)})
+                               {"error": "Error writing {} download file to temporary path: {}".format(service, dlerr)})
 
     onesuccess = True
 
