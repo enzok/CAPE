@@ -31,7 +31,7 @@ with open(CUCKOO_ROOT+"/data/guid_list.txt", "r") as guidfile:
 class WMIViaCOMApi(Signature):
     name = "WMI_using_COM_API"
     description = "IWbemLocator connection through DCOM to a WMI namespace"
-    severity = 2
+    severity = 3
     confidence = 90
     categories = ["recon"]
     authors = ["enzok"]
@@ -51,7 +51,7 @@ class WMIViaCOMApi(Signature):
                 iid = self.get_argument(call, "riid")
                 if iid == "DC12A687-737F-11CF-884D-00AA004B2E24":
                     self.data.append({"WMI": "Obtained namespace pointer to WMI interface: "
-                                      "[CLSID = {}]  [IID = {}]".format(clsid, iid)})
+                                      "[CLSID = {} -> {} * {}]".format(clsid, GUIDS[clsid][0], GUIDS[clsid][1])})
 
     def on_complete(self):
         if self.data:
@@ -62,7 +62,7 @@ class WMIViaCOMApi(Signature):
 class IEViaCOMApi(Signature):
     name = "IE_using_COM_API"
     description = "Launched IE through DCOM"
-    severity = 2
+    severity = 3
     confidence = 90
     categories = ["stealth"]
     authors = ["enzok"]
@@ -82,7 +82,7 @@ class IEViaCOMApi(Signature):
                 iid = self.get_argument(call, "riid")
                 if iid == "EAB22AC1-30C1-11CF-A7EB-0000C05BAE0B":
                     self.data.append({"IWebBrowser Interface": "Internet Explorer started using COM interface: "
-                                      "[CLSID = {}]  [IID = {}]".format(clsid, iid)})
+                                      "[CLSID = {} -> {} * {}]".format(clsid, GUIDS[clsid][0], GUIDS[clsid][1])})
 
     def on_complete(self):
         if self.data:
@@ -93,7 +93,7 @@ class IEViaCOMApi(Signature):
 class COMGUIDs(Signature):
     name = "suspicious_COM_GUIDs"
     description = "Suspicious COM GUIDs"
-    severity = 2
+    severity = 3
     confidence = 90
     categories = ["stealth"]
     authors = ["enzok"]
@@ -110,7 +110,8 @@ class COMGUIDs(Signature):
         if call['api'] == "CoCreateInstance" or call['api'] == "CoCreateInstanceEx":
             clsid = self.get_argument(call, "rclsid")
             if clsid and clsid in GUIDS:
-                self.data.append({desc: info})
+                desc, info = GUIDS[clsid]
+                self.data.append({clsid: "{} * {}".format(desc, info)})
 
     def on_complete(self):
         if self.data:
