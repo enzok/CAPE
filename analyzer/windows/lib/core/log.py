@@ -60,10 +60,11 @@ class LogServerThread(Thread):
                                             None)
 
                 try:
+                    datalen = len(data)
                     data += buf.raw[:bytes_read.value]
                 except MemoryError as memerr:
                     log.debug("MemoryError: {} - data size = {}".format(memerr, datalen))
-                datalen = len(data)
+
                 if success or KERNEL32.GetLastError() != ERROR_MORE_DATA:
                     break
 
