@@ -84,7 +84,7 @@ class VirusTotal(Processing):
             # Not supported type, exit.
             return virustotal
 
-        data = {"resource": resource, "apikey": key}
+        data = {"resource": resource, "apikey": key, "allinfo": 1}
 
         try:
             r = requests.get(url, params=data, verify=True, timeout=int(timeout))
@@ -113,4 +113,8 @@ class VirusTotal(Processing):
             virustotal["resource"] = resource
             virustotal["results"]=list(({"vendor":engine.replace(".", "_"),"sig": signature["result"]}) 
                                             for engine, signature in items)
+
+        if "additional_info" in virustotal:
+            virustotal["additional_info"] = ""
+
         return virustotal

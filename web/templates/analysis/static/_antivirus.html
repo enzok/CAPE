@@ -1,5 +1,31 @@
 <section id="static_antivirus">
     {% if analysis.virustotal and analysis.virustotal.response_code %}
+    {% if analysis.virustotal and analysis.virustotal.first_seen %}
+        <table class="table table-striped table-bordered" style="table-layout: fixed;">
+            <tr>
+                <th style="border-top: 0; width: 15%;">First Seen</th>
+                <td style="border-top: 0; word-wrap: break-word;">{{analysis.virustotal.first_seen}}</td>
+            </tr>
+            <tr>
+                <th style="border-top: 0; width: 15%;">Last Seen</th>
+                <td style="border-top: 0; word-wrap: break-word;">{{analysis.virustotal.last_seen}}</td>
+            </tr>
+            <tr>
+                <th>Submission Names</th>
+                <td>
+                {% if analysis.virustotal.submission_names %}
+                    <ul style="margin-bottom: 0;">
+                    {% for name in analysis.virustotal.submission_names %}
+                        <li>{{name}}</li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    Not Available
+                {% endif %}
+                </td>
+            </tr>
+        </table>
+    {% endif %}
     {% if analysis.virustotal.resource %}
         <h4><a href="https://www.virustotal.com/en/{{analysis.info.category}}/{{analysis.virustotal.resource}}/analysis/">Full Results</a></h4>
     {% endif %}
