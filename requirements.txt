@@ -20,6 +20,7 @@ requests
 python-magic
 geoip
 pillow
+elasticsearch
 java-random
 python-whois
 bs4
@@ -29,8 +30,6 @@ git+https://github.com/crackinglandia/pype32.git
 git+https://github.com/jsocol/django-ratelimit
 git+https://github.com/kbandla/pydeep.git
 pyvmomi>=6.0
-elasticsearch
-lxml
 imagehash
 pyparsing
 sflock
@@ -39,7 +38,7 @@ requests
 sqlalchemy
 # upx
 maec
-oletools>=0.53.1
+oletools==0.53.1
 networkx>=2.1
 regex
 graphviz>=0.8.4
@@ -51,3 +50,5 @@ numpy==1.15.0
 six==1.11.0
 statistics==1.0.3.5
 xmltodict
+pyyaml
+pyelftools
