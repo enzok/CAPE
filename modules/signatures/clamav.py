@@ -32,39 +32,37 @@ class ClamAV(Signature):
     def run(self):
         self.data = []
         if self.results["target"]["category"] == "file":
-            if "clamav" in self.results["target"]["file"].keys() and "sha256" in self.results["target"]["file"]:
-                entry = "clamav:%s, sha256:%s" % (self.results["target"]["file"]["clamav"],
-                                                  self.results["target"]["file"]["sha256"])
+            if "clamav" in self.results["target"]["file"].keys() and self.results["target"]["file"]["clamav"] and "sha256" in self.results["target"]["file"].keys():
+                entry = "clamav:%s, sha256:%s" % (self.results["target"]["file"]["clamav"],self.results["target"]["file"]["sha256"])
                 if "type" in self.results["target"]["file"]:
-                    entry = "%s, type:%s" % (entry, self.results["target"]["file"]["type"])
-                self.data.append({"target": entry})
+                    entry = "%s, type:%s" % (entry,self.results["target"]["file"]["type"])
+                self.data.append({"target":entry})
 
-        if "suricata" in self.results and "files" in self.results["suricata"]:
-            for entry in self.results["suricata"]["files"]:
-                proto = entry["protocol"]
-                if "file_info" in entry and "clamav" in entry["file_info"] and "sha256" in entry["file_info"]:
-                    lentry = "clamav:%s, sha256:%s, src:%s, sp:%s, dst:%s, dp:%s" % \
-                             (entry["file_info"]["clamav"], entry["file_info"]["sha256"], entry['srcip'],
-                              entry['sp'], entry['dstip'], entry['dp'])
-                    if "http_user_agent" in entry.keys():
-                        lentry = "%s, ua:%s" % (lentry, entry['http_user_agent'])
-                    if "http_uri" in entry.keys():
-                        lentry = "%s, uri:%s" % (lentry, entry['http_uri'])
-                    if "http_referer" in entry.keys():
-                        lentry = "%s, referer:%s" % (lentry, entry['http_referer'])
-                    if entry["file_info"]["type"]:
-                        lentry = "%s, type:%s" % (lentry, entry["file_info"]["type"])
-                    self.data.append({"suri_extracted": lentry})
+        if "suricata" in self.results and self.results["suricata"]:
+            if "files" in self.results["suricata"]:
+                for entry in self.results["suricata"]["files"]:
+                    proto = entry["protocol"]
+                    if "clamav" in entry["file_info"].keys() and entry["file_info"]["clamav"] and "sha256" in entry["file_info"].keys():
+                        lentry = "clamav:%s, sha256:%s, src:%s, sp:%s, dst:%s, dp:%s" % (entry["file_info"]["clamav"],entry["file_info"]["sha256"],entry['srcip'], entry['sp'],entry['dstip'],entry['dp'])
+                        if "http_user_agent" in entry.keys():
+                            lentry  = "%s, ua:%s" % (lentry, entry['http_user_agent'])
+                        if "http_uri" in entry.keys():
+                            lentry =  "%s, uri:%s" % (lentry,entry['http_uri'])
+                        if "http_referer" in entry.keys():
+                            lentry = "%s, referer:%s" % (lentry,entry['http_referer'])
+                        if entry["file_info"]["type"]:
+                            lentry =  "%s, type:%s" % (lentry,entry["file_info"]["type"])
+                        self.data.append({"suri_extracted": lentry})
                             
         if "dropped" in self.results:
             for entry in self.results["dropped"]:
-                if "clamav" in entry and "sha256" in entry:
-                    lentry = "clamav:%s, sha256:%s" % (entry["clamav"], entry["sha256"])
-                    if "guest_paths" in entry:
-                        lentry = "%s, guest_paths:%s" % (lentry, "*".join(entry["guest_paths"]))
-                    if "type" in entry:
-                        lentry = "%s, type:%s" % (lentry, entry["type"])
-                    self.data.append({"dropped": lentry})
+                if "clamav" in entry.keys() and entry["clamav"] and "sha256" in entry.keys():
+                    lentry = "clamav:%s, sha256:%s " % (entry["clamav"],entry["sha256"])
+                    if "guest_paths"  in entry.keys():
+                        lentry = "%s, guest_paths:%s" % (lentry,"*".join(entry["guest_paths"]))
+                    if "type" in entry.keys():
+                        lentry = "%s, type:%s" % (lentry,entry["type"])
+                    self.data.append({"dropped":lentry})
 
         if len(self.data) > 0:
             return True

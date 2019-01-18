@@ -31,11 +31,10 @@ from lib.cuckoo.core.database import Database
 
 log = logging.getLogger(__name__)
 
-
 class ReSubmitExtractedEXE(Report):
     def run(self, results):
         self.noinject = self.options.get("noinject", False)
-        self.resublimit = int(self.options.get("resublimit", 5))
+        self.resublimit = int(self.options.get("resublimit",5))
         filesdict = {}
         self.task_options_stack = []
         self.task_options = None
@@ -44,16 +43,16 @@ class ReSubmitExtractedEXE(Report):
         self.resubcnt = 0
         report = dict(results)
 
-        if "options" in report["info"] and "resubmitjob" in report["info"]["options"]:
+        if report["info"].has_key("options") and report["info"]["options"].has_key("resubmitjob") and report["info"]["options"]["resubmitjob"]:
             return
 
         # copy all the options from current
-        if "options" in report["info"]:
-            for key, val in report["info"]["options"].items():
+        if "options" in report["info"] and report["info"]["options"]:
+            for key,val in report["info"]["options"].items():
                 self.task_options_stack.append(key + "=" + str(val))
 
         # copy machine label from current
-        if "machine" in report["info"]:
+        if "machine" in report["info"] and report["info"]["machine"]:
             self.machine = report["info"]["machine"]["label"]
 
         self.task_options_stack.append("resubmitjob=true")
@@ -68,13 +67,10 @@ class ReSubmitExtractedEXE(Report):
             if self.resubcnt >= self.resublimit:
                 break
             if os.path.isfile(dropped["path"]):
-                if ("PE32" in dropped["type"] or "MS-DOS" in dropped["type"]) and "DLL" not in dropped["type"]\
-                        and "native" not in dropped["type"]:
+                if ("PE32" in dropped["type"] or "MS-DOS" in dropped["type"]) and "DLL" not in dropped["type"] and "native" not in dropped["type"]:
                     if not filesdict.has_key(dropped['sha256']):
-                        srcpath = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(report["info"]["id"]),
-                                               "files", dropped['sha256'])
-                        linkdir = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(report["info"]["id"]),
-                                               "files", dropped['sha256'] + "_link")
+                        srcpath = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(report["info"]["id"]), "files", dropped['sha256'])
+                        linkdir = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(report["info"]["id"]), "files", dropped['sha256'] + "_link")
                         if not os.path.exists(srcpath):
                             continue
                         guest_paths = [line.strip() for line in open(srcpath + "_info.txt")]
@@ -91,20 +87,22 @@ class ReSubmitExtractedEXE(Report):
                             filesdict[dropped['sha256']] = dropped['path']
                             self.resubcnt += 1
             
-        if "suricata" in report and "files" in report["suricata"]:
-            for suricata_file_e in results["suricata"]["files"]:
-                # don't resubmit truncated files
-                if "file_info" in suricata_file_e and suricata_file_e["file_info"]["size"] != suricata_file_e["size"]:
-                    continue
-                if self.resubcnt >= self.resublimit:
-                    break
-                if suricata_file_e.has_key("file_info"):
-                    if os.path.isfile(suricata_file_e["file_info"]["path"]):
-                        ftype = suricata_file_e["file_info"]["type"]
-                        if ("PE32" in ftype or "MS-DOS" in ftype) and "DLL" not in ftype and "native" not in ftype:
-                            if "sha256" not in filesdict[suricata_file_e["file_info"]]:
-                                filesdict[suricata_file_e["file_info"]["sha256"]] = suricata_file_e["file_info"]["path"]
-                                self.resubcnt = self.resubcnt + 1
+        if report.has_key("suricata") and report["suricata"]:
+            if report["suricata"].has_key("files") and report["suricata"]["files"]:
+                for suricata_file_e in results["suricata"]["files"]:
+                    # don't resubmit truncated files
+                    if suricata_file_e["file_info"]["size"] and suricata_file_e["file_info"]["size"] != suricata_file_e["size"]:
+                        continue
+                    if self.resubcnt >= self.resublimit:
+                        break
+                    if suricata_file_e.has_key("file_info"):
+                        tmp_suricata_file_d = dict(suricata_file_e)
+                        if os.path.isfile(suricata_file_e["file_info"]["path"]):
+                            ftype = suricata_file_e["file_info"]["type"]
+                            if ("PE32" in ftype or "MS-DOS" in ftype) and "DLL" not in ftype and "native" not in ftype:
+                                if not filesdict.has_key(suricata_file_e["file_info"]["sha256"]):
+                                    filesdict[suricata_file_e["file_info"]["sha256"]] = suricata_file_e["file_info"]["path"]
+                                    self.resubcnt = self.resubcnt + 1
 
         db = Database()
 
@@ -115,8 +113,8 @@ class ReSubmitExtractedEXE(Report):
                 continue
 
             self.task_custom="Parent_Task_ID:%s" % report["info"]["id"]
-            if "custom" in report["info"]:
-                self.task_custom = "%s Parent_Custom:%s" % (self.task_custom, report["info"]["custom"])
+            if report["info"].has_key("custom") and report["info"]["custom"]:
+                self.task_custom = "%s Parent_Custom:%s" % (self.task_custom,report["info"]["custom"])
             task_id = db.add_path(file_path=filesdict[e],
                                   package='exe',
                                   timeout=200,
