@@ -13,21 +13,6 @@ from lib.cuckoo.common.utils import convert_to_printable
 class Dropped(Processing):
     """Dropped files analysis."""
 
-    def _is_text_file(self, file_path):
-        #: BOMs to indicate that a file is a text file even if it contains zero bytes.
-        # https://stackoverflow.com/questions/898669/how-can-i-detect-if-a-file-is-binary-non-text-in-python
-        _TEXT_BOMS = (
-            codecs.BOM_UTF16_BE,
-            codecs.BOM_UTF16_LE,
-            codecs.BOM_UTF32_BE,
-            codecs.BOM_UTF32_LE,
-            codecs.BOM_UTF8,
-        )
-        with open(file_path, 'rb') as source_file:
-            initial_bytes = source_file.read(8192)
-
-        return any(initial_bytes.startswith(bom) for bom in _TEXT_BOMS) and not b'\0' in initial_bytes
-
     def run(self):
         """Run analysis.
         @return: list of dropped files with related information.
@@ -62,7 +47,12 @@ class Dropped(Processing):
                     readit = True
                     break
             '''
-            if self._is_text_file(file_info["path"]):
+            textchars = bytearray({7, 8, 9, 10, 12, 13, 27} | set(range(0x20, 0x100)) - {0x7f})
+            is_binary_file = lambda bytes: bool(bytes.translate(None, textchars))
+
+            if is_binary_file(open(file_info["path"], 'rb').read(8192)):
+                pass
+            else:
                 with open(file_info["path"], "r") as drop_open:
                     filedata = drop_open.read(buf + 1)
                 if len(filedata) > buf:
