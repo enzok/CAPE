@@ -107,7 +107,8 @@ class RansomwareMessage(Signature):
             buff = self.get_raw_argument(call, "Buffer").lower()
             filepath = self.get_raw_argument(call, "HandleName")
             patterns = "|".join(self.indicators)
-            if (filepath.lower() == "\\??\\physicaldrive0" or filepath.lower().startswith("\\device\\harddisk")) and len(buff) >= 128:
+            if (filepath.lower() == "\\??\\physicaldrive0" or filepath.lower().startswith("\\device\\harddisk"))\
+                    and len(buff) >= 128:
                 if len(set(re.findall(patterns, buff))) > 1:
                     if filepath not in self.ransomfile:
                         self.ransomfile.append(filepath)
@@ -116,7 +117,7 @@ class RansomwareMessage(Signature):
         if "dropped" in self.results:
             for dropped in self.results["dropped"]:
                 mimetype = dropped["type"]
-                if "ASCII text" in mimetype:
+                if "ASCII text" in mimetype and "data" in dropped:
                     filename = dropped["name"]
                     data = dropped["data"]
                     patterns = "|".join(self.indicators)
@@ -127,7 +128,7 @@ class RansomwareMessage(Signature):
 
         if len(self.ransomfile) > 0:
             for filename in self.ransomfile:
-                self.data.append({"ransom_file" : "%s" % (filename)})
+                self.data.append({"ransom_file" : "%s" % filename})
             return True
 
         return False
