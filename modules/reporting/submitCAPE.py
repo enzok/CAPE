@@ -223,9 +223,9 @@ class SubmitCAPE(Report):
             if pattern in results:
                 if results[pattern] is not None:
                     for file in results[pattern]:
-                    if "cape_yara" in file:
-                        for entry in file["cape_yara"]:
-                            self.process_cape_yara(entry, detections)
+                        if "cape_yara" in file:
+                            for entry in file["cape_yara"]:
+                                self.process_cape_yara(entry, detections)
 
         ##### Dynamic CAPE hits
         ##### Packers, injection or other generic dumping
