@@ -149,7 +149,7 @@ class SubmitCAPE(Report):
                         self.task_options_stack.remove(item)
                 self.task_options_stack.append("bp0={0}".format(anti_sandbox))
                 detections.add('QakBot')
-            decrypt_config = cape_yara["addresses"].get("decrypt_config")
+            decrypt_config = cape_yara["addresses"].get("decrypt_config1")
             if decrypt_config:
                 decrypt_config = decrypt_config + 16 # Offset of "CALL" (decrypt)
                 for item in self.task_options_stack:
@@ -157,7 +157,42 @@ class SubmitCAPE(Report):
                         self.task_options_stack.remove(item)
                 self.task_options_stack.append("bp1={0}".format(decrypt_config))
                 detections.add('QakBot')
-                    
+            decrypt_config = cape_yara["addresses"].get("decrypt_config2")
+            if decrypt_config:
+                decrypt_config = decrypt_config + 30 # Offset of "CALL" (decrypt)
+                for item in self.task_options_stack:
+                    if 'bp1' in item:
+                        self.task_options_stack.remove(item)
+                self.task_options_stack.append("bp1={0}".format(decrypt_config))
+                detections.add('QakBot')
+
+    def submit_task(self, target, package, timeout, task_options, priority, machine, platform, memory, enforce_timeout,
+                    clock, tags, parent_id):
+
+        db = Database()
+
+        if os.path.exists(target):
+            task_id = db.add_path(file_path=target,
+                                  package=package,
+                                  timeout=timeout,
+                                  options=task_options,
+                                  priority=priority,   # increase priority to expedite related submission
+                                  machine=machine,
+                                  platform=platform,
+                                  memory=memory,
+                                  enforce_timeout=enforce_timeout,
+                                  clock=None,
+                                  tags=None,
+                                  parent_id=parent_id,)
+            if task_id:
+                log.info(u"CAPE detection on file \"{0}\": {1} - added as CAPE task with ID {2}".format(target,
+                                                                                                        package,
+                                                                                                        task_id))
+            else:
+                log.warn("Error adding CAPE task to database: {0}".format(package))
+        else:
+            log.info("File doesn't exists")
+
     def run(self, results):
         self.task_options_stack = []
         self.task_options = None
@@ -184,23 +219,10 @@ class SubmitCAPE(Report):
                     for entry in file["cape_yara"]:
                         self.process_cape_yara(entry, detections)
                         
-        if "procdump" in results:
-            if results["procdump"] is not None:
-                for file in results["procdump"]:
-                    if "cape_yara" in file:
-                        for entry in file["cape_yara"]:
-                            self.process_cape_yara(entry, detections)
-        
-        if "CAPE" in results:
-            if results["CAPE"] is not None:
-                for file in results["CAPE"]:
-                    if "cape_yara" in file:
-                        for entry in file["cape_yara"]:
-                            self.process_cape_yara(entry, detections)
-                            
-        if "dropped" in results:
-            if results["dropped"] is not None:
-                for file in results["dropped"]:
+        for pattern in ("procdump", "CAPE", "dropped"):
+            if pattern in results:
+                if results[pattern] is not None:
+                    for file in results[pattern]:
                     if "cape_yara" in file:
                         for entry in file["cape_yara"]:
                             self.process_cape_yara(entry, detections)
