@@ -1,4 +1,5 @@
-# Copyright (C) 2015 Kevin O'Reilly kevin.oreilly@contextis.co.uk 
+# encoding: utf-8
+# Copyright (C) 2015 Kevin O'Reilly kevin.oreilly@contextis.co.uk
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -31,13 +32,15 @@ from lib.cuckoo.core.database import Database
 log = logging.getLogger(__name__)
 
 cape_package_list = [
-        "Cerber", "Compression", "Compression_dll", "Compression_doc", "Compression_zip", "Compression_js", "Compression_pdf", 
-        "DumpOnAPI", "Doppelganging", "EvilGrab", "Extraction", "Extraction_dll", "Extraction_regsvr", "Extraction_zip", 
-        "Extraction_ps1", "Extraction_jar", "Extraction_pdf", "Extraction_js", "Hancitor", "Hancitor_doc", "Injection", 
-        "Injection_dll", "Injection_doc", "Injection_pdf", "Injection_zip", "Injection_ps1", "Injection_js", "PlugX", 
-        "PlugXPayload", "PlugX_dll", "PlugX_doc", "PlugX_zip", "QakBot", "RegBinary", "Sedreco",
-        "Sedreco_dll", "Shellcode-Extraction", "Trace", "Trace_dll", "TrickBot", "TrickBot_doc", "UPX", "UPX_dll", "Ursnif"
-    ];
+        "Cerber", "Compression", "Compression_dll", "Compression_doc", "Compression_zip", "Compression_js",
+        "Compression_pdf", "DumpOnAPI", "Doppelganging", "EvilGrab", "Extraction", "Extraction_dll",
+        "Extraction_regsvr", "Extraction_zip", "Extraction_ps1", "Extraction_jar", "Extraction_pdf", "Extraction_js",
+        "Hancitor", "Hancitor_doc", "Injection", "Injection_dll", "Injection_doc", "Injection_pdf", "Injection_zip",
+        "Injection_ps1", "Injection_js", "PlugX", "PlugXPayload", "PlugX_dll", "PlugX_doc", "PlugX_zip", "QakBot",
+        "RegBinary", "Sedreco", "Sedreco_dll", "Shellcode-Extraction", "Trace", "Trace_dll", "TrickBot",
+        "TrickBot_doc", "UPX", "UPX_dll", "Ursnif"
+    ]
+
 
 class SubmitCAPE(Report):
     def process_cape_yara(self, cape_yara, detections):
@@ -161,7 +164,6 @@ class SubmitCAPE(Report):
         self.task_custom = None
         filesdict = {}
         report = dict(results)
-        db = Database()
         detections = set()
 
         self.task_options = self.task["options"]
@@ -208,7 +210,8 @@ class SubmitCAPE(Report):
         #####
         if "signatures" in results:
             for entry in results["signatures"]:
-                if entry["name"] == "InjectionCreateRemoteThread" or entry["name"] == "InjectionProcessHollowing" or entry["name"] == "InjectionSetWindowLong" or entry["name"] == "InjectionInterProcess":
+                if entry["name"] == "InjectionCreateRemoteThread" or entry["name"] == "InjectionProcessHollowing" or\
+                        entry["name"] == "InjectionSetWindowLong" or entry["name"] == "InjectionInterProcess":
                     if report["info"].has_key("package"):
                         if parent_package=='doc':
                             detections.add('Injection_doc')    
@@ -373,22 +376,20 @@ class SubmitCAPE(Report):
             if report["info"].has_key("custom") and report["info"]["custom"]:
                 self.task_custom = "%s Parent_Custom:%s" % (self.task_custom,report["info"]["custom"])
 
-            task_id = db.add_path(file_path=self.task["target"],
-                                    package=package,
-                                    timeout=self.task["timeout"],
-                                    options=self.task_options,
-                                    priority=self.task["priority"]+1,   # increase priority to expedite related submission
-                                    machine=self.task["machine"],
-                                    platform=self.task["platform"],
-                                    memory=self.task["memory"],
-                                    enforce_timeout=self.task["enforce_timeout"],
-                                    clock=None,
-                                    tags=None,
-                                    parent_id=int(report["info"]["id"]))
-            if task_id:
-                log.info(u"CAPE detection on file \"{0}\": {1} - added as CAPE task with ID {2}".format(self.task["target"], package, task_id))
-            else:
-                log.warn("Error adding CAPE task to database: {0}".format(package))
+            self.submit_task(
+                self.task["target"],
+                package,
+                self.task["timeout"],
+                self.task_options,
+                self.task["priority"]+1,   # increase priority to expedite related submission
+                self.task["machine"],
+                self.task["platform"],
+                self.task["memory"],
+                self.task["enforce_timeout"],
+                None,
+                None,
+                int(report["info"]["id"])
+            )
             
         else: # nothing submitted, only 'dumpers' left
             if parent_package in cape_package_list:
@@ -399,20 +400,18 @@ class SubmitCAPE(Report):
                 self.task_custom = "%s Parent_Custom:%s" % (self.task_custom,report["info"]["custom"])
 
             for dumper in detections:
-                task_id = db.add_path(file_path=self.task["target"],
-                                package=dumper,
-                                timeout=self.task["timeout"],
-                                options=self.task_options,
-                                priority=self.task["priority"]+1,   # increase priority to expedite related submission
-                                machine=self.task["machine"],
-                                platform=self.task["platform"],
-                                memory=self.task["memory"],
-                                enforce_timeout=self.task["enforce_timeout"],
-                                clock=None,
-                                tags=None,
-                                parent_id=int(report["info"]["id"]))
-                if task_id:
-                    log.info(u"CAPE detection on file \"{0}\": {1} - added as CAPE task with ID {2}".format(self.task["target"], dumper, task_id))
-                else:
-                    log.warn("Error adding CAPE task to database: {0}".format(dumper))
+                self.submit_task(
+                    self.task["target"],
+                    dumper,
+                    self.task["timeout"],
+                    self.task_options,
+                    self.task["priority"]+1,   # increase priority to expedite related submission
+                    self.task["machine"],
+                    self.task["platform"],
+                    self.task["memory"],
+                    self.task["enforce_timeout"],
+                    None,
+                    None,
+                    int(report["info"]["id"])
+            )
         return
