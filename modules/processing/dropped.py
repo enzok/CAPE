@@ -62,7 +62,7 @@ class Dropped(Processing):
                     readit = True
                     break
             '''
-            if self._is_text_file(file["path"]):
+            if self._is_text_file(file_info["path"]):
                 with open(file_info["path"], "r") as drop_open:
                     filedata = drop_open.read(buf + 1)
                 if len(filedata) > buf:
