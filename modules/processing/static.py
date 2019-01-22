@@ -1222,10 +1222,15 @@ class Office(object):
                 log.debug('  format_id  = {}'.format(rtfobj.format_id))
                 log.debug('  class name = {}'.format(rtfobj.class_name))
                 log.debug('  data size  = {}'.format(rtfobj.oledata_size))
-                temp_dict["class_name"] = rtfobj.class_name
+                # make sure there aren't any escape characters because malware doesn't always follow the rules
+                if isinstance(rtfobj.class_name, str):
+                    class_name = rtfobj.class_name.decode('ascii', 'ignore').encode('ascii')
+                elif isinstance(rtfobj.class_name, unicode):
+                    class_name = rtfobj.class_name.encode('ascii', 'ignore')
+                temp_dict["class_name"] = class_name
                 temp_dict["size"] = rtfobj.oledata_size
                 # set a file extension according to the class name:
-                class_name = rtfobj.class_name.lower()
+                class_name = class_name.lower()
                 if class_name.startswith(b'word'):
                     ext = 'doc'
                 elif class_name.startswith(b'package'):
