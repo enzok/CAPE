@@ -1215,19 +1215,21 @@ class Office(object):
                     pass
                 # Detect OLE2Link exploit
                 # http://www.kb.cert.org/vuls/id/921560
-                if rtfobj.class_name == b'OLE2Link':
+                class_name = rtfobj.class_name
+                if class_name == b'OLE2Link':
                     #ole_column += '\nPossibly an exploit for the OLE2Link vulnerability (VU#921560, CVE-2017-0199)'
                     temp_dict["CVE"] = "Possibly an exploit for the OLE2Link vulnerability (VU#921560, CVE-2017-0199)"
                 log.debug('Saving file embedded in OLE object #{}:'.format(rtfobj.format_id))
                 log.debug('  format_id  = {}'.format(rtfobj.format_id))
-                log.debug('  class name = {}'.format(rtfobj.class_name))
+                log.debug('  class name = {}'.format(class_name))
                 log.debug('  data size  = {}'.format(rtfobj.oledata_size))
+
                 # make sure there aren't any escape characters because malware doesn't always follow the rules
-                class_name = rtfobj.class_name
                 if isinstance(class_name, str):
                     class_name = class_name.decode('ascii', 'ignore').encode('ascii')
                 elif isinstance(class_name, unicode):
                     class_name = class_name.encode('ascii', 'ignore')
+
                 temp_dict["class_name"] = class_name
                 temp_dict["size"] = rtfobj.oledata_size
                 # set a file extension according to the class name:
