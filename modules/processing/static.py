@@ -1223,10 +1223,11 @@ class Office(object):
                 log.debug('  class name = {}'.format(rtfobj.class_name))
                 log.debug('  data size  = {}'.format(rtfobj.oledata_size))
                 # make sure there aren't any escape characters because malware doesn't always follow the rules
-                if isinstance(rtfobj.class_name, str):
-                    class_name = rtfobj.class_name.decode('ascii', 'ignore').encode('ascii')
-                elif isinstance(rtfobj.class_name, unicode):
-                    class_name = rtfobj.class_name.encode('ascii', 'ignore')
+                class_name = rtfobj.class_name
+                if isinstance(class_name, str):
+                    class_name = class_name.decode('ascii', 'ignore').encode('ascii')
+                elif isinstance(class_name, unicode):
+                    class_name = class_name.encode('ascii', 'ignore')
                 temp_dict["class_name"] = class_name
                 temp_dict["size"] = rtfobj.oledata_size
                 # set a file extension according to the class name:
