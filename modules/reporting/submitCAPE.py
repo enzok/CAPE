@@ -166,9 +166,6 @@ class SubmitCAPE(Report):
                 self.task_options_stack.append("bp1={0}".format(decrypt_config))
                 detections.add('QakBot')
 
-        if cape_yara["name"] == "Base64EncodedExecutable":
-            detections.add('Base64EncodedExecutable')
-
     def submit_task(self, target, package, timeout, task_options, priority, machine, platform, memory, enforce_timeout,
                     clock, tags, parent_id):
 
