@@ -1,4 +1,4 @@
-rule Base64_encoded_Executable {
+rule Base64EncodedExecutable {
 	meta:
 		description = "Base64 Encoded Executable Payload"
         cape_type = "Base64 Encoded Executable Payload"
