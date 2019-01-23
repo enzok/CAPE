@@ -679,7 +679,9 @@ class CAPE(Processing):
                     self.results["cape"] = cape_name
 
         # Remove duplicate payloads from web ui
+        log.debug("CAPE: removing duplicate payloads for {}".format(file_info["path"]))
         for cape_file in CAPE_output:
+            log.debug("CAPE: checking {}".format(cape_file))
             if file_info["size"] == cape_file["size"]:
                 if HAVE_PYDEEP:
                     ssdeep_grade = pydeep.compare(file_info["ssdeep"], cape_file["ssdeep"])
@@ -692,6 +694,7 @@ class CAPE(Processing):
 
         if append_file:
             CAPE_output.append(file_info)
+        log.debug("CAPE: returning file info.")
         return file_info
     
     def run(self):
