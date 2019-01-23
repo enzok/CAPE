@@ -320,7 +320,7 @@ class Curtain(Processing):
     """Parse Curtain log for PowerShell 4104 Events."""
 
     def run(self):
-        log.debug("CURTAIN: Processing Curtain results.")
+
         self.key = "curtain"
         # Remove some event entries which are commonly found in all samples (noise reduction)
         noise = [

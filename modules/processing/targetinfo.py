@@ -3,12 +3,9 @@
 # See the file 'docs/LICENSE' for copying permission.
 
 import os.path
-import logging
 
 from lib.cuckoo.common.abstracts import Processing
 from lib.cuckoo.common.objects import File
-
-log = logging.getLogger(__name__)
 
 class TargetInfo(Processing):
     """General information about a file."""
@@ -31,7 +28,6 @@ class TargetInfo(Processing):
                 target_info["file"] = File(self.file_path).get_all()
 
             target_info["file"]["name"] = File(self.task["target"]).get_name()
-            log.debug("Targetinfo: file name = {}".format(target_info["file"]["name"]))
         elif self.task["category"] == "url":
             target_info["url"] = self.task["target"]
 
