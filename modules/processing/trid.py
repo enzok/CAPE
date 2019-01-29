@@ -19,6 +19,9 @@ class TrID(Processing):
         """
         self.key = "trid"
         strings = []
+        remlist = ["",
+                   "Warning: file seems to be plain text/ASCII",
+                   "         TrID is best suited to analyze binary files!", ]
 
         if self.task["category"] == "file":
             if not os.path.exists(self.file_path):
@@ -32,4 +35,5 @@ class TrID(Processing):
             strings = output.split('\n')
             # trim data
             strings = strings[6:-1]
+            strings = filter(lambda x: x not in remlist, strings)
         return strings
