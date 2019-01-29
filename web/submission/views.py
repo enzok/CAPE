@@ -464,10 +464,13 @@ def index(request, resubmit_hash=False):
                                                          gateway, clock, custom, memory, enforce_timeout, referrer,
                                                          tags, orig_options, task_gateways, task_machines)
         if status == "error":
-            return task_ids  # render message
-
-        tasks_count = len(task_ids)
-
+            # is render msg
+            return task_ids
+        if isinstance(task_ids, list):
+            tasks_count = len(task_ids)
+        else:
+            # ToDo improve error msg
+            tasks_count = 0
         if tasks_count > 0:
             return render(request, "submission/complete.html",
                           {"tasks": task_ids,
