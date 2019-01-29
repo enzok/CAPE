@@ -109,7 +109,8 @@ def download_file(content, request, db, task_ids, url, params, headers, service,
                                                          enforce_timeout=enforce_timeout,
                                                          tags=tags,
                                                          clock=clock)
-            task_ids.extend(task_ids_new)
+            if isinstance(task_ids, list):
+                task_ids.extend(task_ids_new)
 
     if not onesuccess:
         return "error", render(request, "error.html", {"error": "Provided hash not found on {}".format(service)})
