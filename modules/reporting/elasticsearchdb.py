@@ -145,6 +145,14 @@ class ElasticsearchDB(Report):
             report["strings"] = results.get("strings")
             report["mmbot"] = results.get("static", {}).get("office", {}).get("mmbot", {})
 
+            # Store unique list of API calls
+            if "behavior" in report and "processes" in report["behavior"]:
+                report["apicalls"] = []
+                for process in report["behavior"]["processes"]:
+                    # Loop on each process call.
+                    for index, call in enumerate(process["calls"]):
+                        if call["api"] not in report["apicalls"]:
+                            report["apicalls"].append(call["api"])
 
         # Create index and set maximum fields limit to 5000
         settings = {}
