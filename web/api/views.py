@@ -861,6 +861,8 @@ def ext_tasks_search(request):
                 records = results_db.analysis.find({"behavior.summary.executed_commands": {"$regex": dataarg, "$options": "-i"}}).sort([["_id", -1]])
             elif option == "resolvedapi":
                 records = results_db.analysis.find({"behavior.summary.resolved_apis": {"$regex": dataarg, "$options": "-i"}}).sort([["_id", -1]])
+            elif option == "apiname":
+                records = results_db.analysis.find({"behavior.processes.call.api": {"$regex": dataarg, "$options": "-i"}}).sort([["_id", -1]])
             elif option == "key":
                 records = results_db.analysis.find({"behavior.summary.keys": {"$regex": dataarg, "$options": "-i"}}).sort([["_id", -1]])
             elif option == "mutex":
@@ -933,6 +935,8 @@ def ext_tasks_search(request):
                 records = es.search(index=fullidx, doc_type="analysis", q="behavior.summary.executed_commands: %s" % value)["hits"]["hits"]
             elif term == "resolvedapi":
                 records = es.search(index=fullidx, doc_type="analysis", q="behavior.summary.resolved_apis: %s" % value)["hits"]["hits"]
+            elif term == "api":
+                records = es.search(index=fullidx, doc_type="analysis", q="behavior.processes.call.api: %s" % value)["hits"]["hits"]
             elif term == "key":
                 records = es.search(index=fullidx, doc_type="analysis", q="behavior.summary.keys: %s" % value)["hits"]["hits"]
             elif term == "mutex":

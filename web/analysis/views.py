@@ -1225,6 +1225,7 @@ def perform_search(term, value):
         "file" : "behavior.summary.files",
         "command" : "behavior.summary.executed_commands",
         "resolvedapi" : "behavior.summary.resolved_apis",
+        "apiname" : "behavior.processes.call.api",
         "key" : "behavior.summary.keys",
         "mutex" : "behavior.summary.mutexes",
         "domain" : "network.domains.domain",
