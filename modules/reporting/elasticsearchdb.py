@@ -146,9 +146,9 @@ class ElasticsearchDB(Report):
             report["mmbot"] = results.get("static", {}).get("office", {}).get("mmbot", {})
 
             # Store unique list of API calls
-            if "behavior" in report and "processes" in report["behavior"]:
+            if "behavior" in results and "processes" in results["behavior"]:
                 report["apicalls"] = []
-                for process in report["behavior"]["processes"]:
+                for process in results["behavior"]["processes"]:
                     # Loop on each process call.
                     for index, call in enumerate(process["calls"]):
                         if call["api"] not in report["apicalls"]:
