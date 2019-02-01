@@ -12,17 +12,22 @@ class JS(Package):
         ("SystemRoot", "system32", "wscript.exe"),
     ]
 
-    def start(self, path):
+    def __init__(self, options={}, config=None):
+        """@param options: options dict."""
+        self.config = config
+        self.options = options
+        self.options["dll"] = "ScriptDump.dll"
+
+        def start(self, path):
         wscript = self.get_path("wscript.exe")
         args = "\"%s\"" % path
         ext = os.path.splitext(path)[-1].lower()
         if ext != ".js" and ext != ".jse":
             if os.path.isfile(path) and "#@~^" in open(path, "rb").read(100):
                 os.rename(path,path + ".jse")
-                path += ".jse"
+                path = path + ".jse"
             else:
-                os.rename(path, path + ".js")
-                path += ".js"
-
+                os.rename(path,path + ".js")
+                path = path + ".js"
         args = "\"%s\"" % path
         return self.execute(wscript, args, path)
