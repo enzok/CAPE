@@ -46,7 +46,7 @@ log = logging.getLogger(__name__)
 class VolatilityAPI(object):
     """ Volatility API interface."""
 
-    def __init__(self, memdump, osprofile=None, baseline=None):
+    def __init__(self, memdump, osprofile=None, kdbg=None):
         """@param memdump: the memdump file path
         @param osprofile: the profile (OS type)
         """
@@ -54,7 +54,7 @@ class VolatilityAPI(object):
         self.memdump = memdump
         self.osprofile = osprofile
         self.config = None
-        self.baseline = baseline
+        self.kdbg = kdbg
         self.addr_space = None
         self.__config()
 
@@ -103,8 +103,8 @@ class VolatilityAPI(object):
         if self.osprofile:
             base_conf["profile"] = self.osprofile
 
-        if self.baseline is not None and self.baseline.get("memory", {}).get("kdbgscan", {}).get("data", []):
-            base_conf["kdbg"] = self.baseline["memory"]["kdbgscan"]["data"][0].get("kdbg", None)
+        if self.kdbg:
+            base_conf["kdbg"] = self.kdbg
 
         for key, value in base_conf.items():
             self.config.update(key, value)
@@ -1011,11 +1011,11 @@ class VolatilityManager(object):
         ["netscan", "vista", "win7"],
     ]
 
-    def __init__(self, memfile, osprofile=None, baseline=None):
+    def __init__(self, memfile, osprofile=None, kdbg=None):
         self.mask_pid = []
         self.taint_pid = set()
         self.memfile = memfile
-        self.baseline = baseline
+        self.kdbg = kdbg
 
         conf_path = os.path.join(CUCKOO_ROOT, "conf", "memory.conf")
         if not os.path.exists(conf_path):
@@ -1055,10 +1055,13 @@ class VolatilityManager(object):
 
         # Check if theres a memory profile configured in the machinery config.
         osprofile = Config(manager).get(vm).get("mem_profile")
+        kdbgoffset = Config(manager).get(vm).get("mem_KDBG")
         if osprofile is None:
             osprofile = self.osprofile
+        if kdbgoffset is None:
+            kdbgoffset = self.kdbg
 
-        vol = VolatilityAPI(self.memfile, osprofile, self.baseline)
+        vol = VolatilityAPI(self.memfile, osprofile, kdbgoffset)
         funcs = []
         pool = Pool()
         for plugin_name in self.PLUGINS:
@@ -1180,18 +1183,10 @@ class Memory(Processing):
         machine_manager = self.task["machine"]["manager"].lower()
 
         if HAVE_VOLATILITY:
+            log.info("Memory dump located at: {}".format(self.memory_path))
             if self.memory_path and os.path.exists(self.memory_path):
                 try:
-                    baseline = dict()
-                    if self.results.get('info', {}).get('machine', {}):
-                        baseline_file = os.path.join(CUCKOO_ROOT, "storage", "baseline",
-                                                     '{0}.json'.format(self.results['info']['machine'].get('name', '')))
-                        if os.path.exists(baseline_file):
-                            try:
-                                baseline = json.loads(open(baseline_file, 'rb').read())
-                            except Exception as e:
-                                log.exception(e)
-                    vol = VolatilityManager(self.memory_path, baseline=baseline)
+                    vol = VolatilityManager(self.memory_path)
                     results = vol.run(manager=machine_manager, vm=task_machine)
                 except Exception:
                     log.exception("Generic error executing volatility")
