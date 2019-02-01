@@ -11,8 +11,14 @@ class SCT(Package):
         ("SystemRoot", "system32", "regsvr32.exe"),
     ]
 
+    def __init__(self, options={}, config=None):
+        """@param options: options dict."""
+        self.config = config
+        self.options = options
+        self.options["dll"] = "ScriptDump.dll"
+
     def start(self, path):
         regsvr32 = self.get_path("regsvr32.exe")
-        args = "/s /u /n /i:{0} scrobj.dll".format(path)
+        args = "/u /n /i:{0} scrobj.dll".format(path)
 
         return self.execute(regsvr32, args, path)
