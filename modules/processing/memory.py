@@ -5,6 +5,7 @@
 import os
 import logging
 import time
+import json
 
 try:
     import re2 as re
@@ -45,7 +46,7 @@ log = logging.getLogger(__name__)
 class VolatilityAPI(object):
     """ Volatility API interface."""
 
-    def __init__(self, memdump, osprofile=None):
+    def __init__(self, memdump, osprofile=None, baseline=None):
         """@param memdump: the memdump file path
         @param osprofile: the profile (OS type)
         """
@@ -53,6 +54,7 @@ class VolatilityAPI(object):
         self.memdump = memdump
         self.osprofile = osprofile
         self.config = None
+        self.baseline = baseline
         self.addr_space = None
         self.__config()
 
@@ -101,6 +103,9 @@ class VolatilityAPI(object):
         if self.osprofile:
             base_conf["profile"] = self.osprofile
 
+        if self.baseline is not None and self.baseline.get("memory", {}).get("kdbgscan", {}).get("data", []):
+            base_conf["kdbg"] = self.baseline["memory"]["kdbgscan"]["data"][0].get("kdbg", None)
+
         for key, value in base_conf.items():
             self.config.update(key, value)
 
@@ -114,10 +119,25 @@ class VolatilityAPI(object):
           else:
               raise
 
-        self.plugins = registry.get_plugin_classes(commands.Command,
-                                                   lower=True)
-
+        self.plugins = registry.get_plugin_classes(commands.Command, lower=True)
         return self.config
+
+    def kdbgscan(self):
+        """Volatility kdbgscan plugin.
+        @see volatility/plugins/kdbgscan.py
+        """
+        results = list()
+
+        command = self.plugins["kdbgscan"](self.config)
+        data = command.calculate()
+        for profile, kdbg in data:
+            try:
+                results.append({'kdbg': kdbg.obj_offset})
+                break
+            except Exception as e:
+                log.exception(e)
+
+        return dict(config={}, data=results)
 
     def pslist(self):
         """Volatility pslist plugin.
@@ -986,14 +1006,16 @@ class VolatilityManager(object):
         "svcscan",
         "modscan",
         "yarascan",
+        "kdbgscan",
         ["sockscan", "winxp"],
         ["netscan", "vista", "win7"],
     ]
 
-    def __init__(self, memfile, osprofile=None):
+    def __init__(self, memfile, osprofile=None, baseline=None):
         self.mask_pid = []
         self.taint_pid = set()
         self.memfile = memfile
+        self.baseline = baseline
 
         conf_path = os.path.join(CUCKOO_ROOT, "conf", "memory.conf")
         if not os.path.exists(conf_path):
@@ -1036,7 +1058,7 @@ class VolatilityManager(object):
         if osprofile is None:
             osprofile = self.osprofile
 
-        vol = VolatilityAPI(self.memfile, osprofile)
+        vol = VolatilityAPI(self.memfile, osprofile, self.baseline)
         funcs = []
         pool = Pool()
         for plugin_name in self.PLUGINS:
@@ -1160,7 +1182,16 @@ class Memory(Processing):
         if HAVE_VOLATILITY:
             if self.memory_path and os.path.exists(self.memory_path):
                 try:
-                    vol = VolatilityManager(self.memory_path)
+                    baseline = dict()
+                    if self.results.get('info', {}).get('machine', {}):
+                        baseline_file = os.path.join(CUCKOO_ROOT, "storage", "baseline",
+                                                     '{0}.json'.format(self.results['info']['machine'].get('name', '')))
+                        if os.path.exists(baseline_file):
+                            try:
+                                baseline = json.loads(open(baseline_file, 'rb').read())
+                            except Exception as e:
+                                log.exception(e)
+                    vol = VolatilityManager(self.memory_path, baseline=baseline)
                     results = vol.run(manager=machine_manager, vm=task_machine)
                 except Exception:
                     log.exception("Generic error executing volatility")
