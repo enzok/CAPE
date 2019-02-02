@@ -1011,11 +1011,12 @@ class VolatilityManager(object):
         ["netscan", "vista", "win7"],
     ]
 
-    def __init__(self, memfile, osprofile=None, kdbg=None):
+    def __init__(self, memfile, osprofile=None, kdbg=None, analysis_path=None):
         self.mask_pid = []
         self.taint_pid = set()
         self.memfile = memfile
         self.kdbg = kdbg
+        self.analysis_path = analysis_path
 
         conf_path = os.path.join(CUCKOO_ROOT, "conf", "memory.conf")
         if not os.path.exists(conf_path):
@@ -1137,10 +1138,10 @@ class VolatilityManager(object):
                 log.error("Unable to delete memory dump file at path \"%s\" ", self.memfile)
 
     def do_strings(self):
-        strings_path = None
         if self.voptions.basic.dostrings:
             try:
-                data = open(self.memfile, "rb").read()
+                with open(self.memfile, "rb") as mfile:
+                    data = mfile.read()
             except (IOError, OSError) as e:
                 raise CuckooProcessingError("Error opening file %s" % e)
 
@@ -1158,9 +1159,9 @@ class VolatilityManager(object):
             for ws in re.findall(upat, data):
                 strings.append(str(ws.decode("utf-16le")))
             data = None
-            f=open(self.memfile + ".strings", "w")
-            f.write("\n".join(strings))
-            f.close()
+            with open(self.analysis_path + "memory.dmp.strings", "w") as sfile:
+                sfile.write("\n".join(strings))
+                sfile.close()
 
 class Memory(Processing):
     """Volatility Analyzer."""
@@ -1172,21 +1173,24 @@ class Memory(Processing):
         self.key = "memory"
         self.voptions = Config("memory")
         self.task_options = None
-
         self.task_options = self.task["options"]
 
         results = {}
-        if "machine" not in self.task or not self.task["machine"] or not self.task["memory"]:
-            return results
-
-        task_machine = self.task["machine"]["name"]
-        machine_manager = self.task["machine"]["manager"].lower()
-
         if HAVE_VOLATILITY:
+            config = Config()
+            if hasattr(config, "ramfs"):
+                self.memory_path = os.path.join(config.ramfs.path, self.task["id"], ".dmp")
+
+            if "machine" not in self.task or not self.task["machine"] or not self.task["memory"]:
+                return results
+
+            task_machine = self.task["machine"]["name"]
+            machine_manager = self.task["machine"]["manager"].lower()
+
             log.info("Memory dump located at: {}".format(self.memory_path))
             if self.memory_path and os.path.exists(self.memory_path):
                 try:
-                    vol = VolatilityManager(self.memory_path)
+                    vol = VolatilityManager(self.memory_path, analysis_path=self.analysis_path)
                     results = vol.run(manager=machine_manager, vm=task_machine)
                 except Exception:
                     log.exception("Generic error executing volatility")
