@@ -1159,7 +1159,8 @@ class VolatilityManager(object):
             for ws in re.findall(upat, data):
                 strings.append(str(ws.decode("utf-16le")))
             data = None
-            with open(self.analysis_path + "memory.dmp.strings", "w") as sfile:
+            log.debug("Writing memory dump strings to {}".format(self.analysis_path + "/memory.dmp.strings"))
+            with open(self.analysis_path + "/memory.dmp.strings", "w") as sfile:
                 sfile.write("\n".join(strings))
                 sfile.close()
 
