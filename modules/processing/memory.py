@@ -1179,7 +1179,7 @@ class Memory(Processing):
         if HAVE_VOLATILITY:
             config = Config()
             if hasattr(config, "ramfs"):
-                self.memory_path = os.path.join(config.ramfs.path, str(self.task["id"]), ".dmp")
+                self.memory_path = os.path.join(config.ramfs.path, str(self.task["id"]) + ".dmp")
 
             if "machine" not in self.task or not self.task["machine"] or not self.task["memory"]:
                 return results
