@@ -640,11 +640,11 @@ class CAPE(Processing):
             # More_Eggs
             if file_info["cape_type_code"] == MOREEGGSJS_PAYLOAD:
                 file_info["cape_type"] = "More Eggs JS Payload"
-                cape_name = "MoreEggs"
+                file_info["cape_name"] = "MoreEggs"
                 append_file = True
             if file_info["cape_type_code"] == MOREEGGSBIN_PAYLOAD:
                 file_info["cape_type"] = "More_Eggs Binary Payload"
-                cape_name = "MoreEggs"
+                file_info["cape_name"] = "MoreEggs"
                 type_strings = file_info["type"].split()
                 if type_strings[0] == "PE32+":
                     file_info["cape_type"] += ": 64-bit "
