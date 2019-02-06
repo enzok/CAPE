@@ -91,7 +91,7 @@ class ReSubmitExtractedEXE(Report):
             if report["suricata"].has_key("files") and report["suricata"]["files"]:
                 for suricata_file_e in results["suricata"]["files"]:
                     # don't resubmit truncated files
-                    if "file_info" not in suricata_file_e and suricata_file_e["file_info"]["size"] and \
+                    if "file_info" in suricata_file_e and suricata_file_e["file_info"]["size"] and \
                             suricata_file_e["file_info"]["size"] != suricata_file_e["size"]:
                         continue
                     if self.resubcnt >= self.resublimit:
