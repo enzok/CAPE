@@ -41,6 +41,8 @@ class ClamAV(Signature):
         if "suricata" in self.results and self.results["suricata"]:
             if "files" in self.results["suricata"]:
                 for entry in self.results["suricata"]["files"]:
+                    if "file_info" not in entry:
+                        continue
                     proto = entry["protocol"]
                     if "clamav" in entry["file_info"].keys() and entry["file_info"]["clamav"] and "sha256" in entry["file_info"].keys():
                         lentry = "clamav:%s, sha256:%s, src:%s, sp:%s, dst:%s, dp:%s" % (entry["file_info"]["clamav"],entry["file_info"]["sha256"],entry['srcip'], entry['sp'],entry['dstip'],entry['dp'])
