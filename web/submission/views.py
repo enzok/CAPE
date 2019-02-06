@@ -189,6 +189,11 @@ def index(request, resubmit_hash=False):
                 options += ","
             options += "dll=cuckoomon.dll"
 
+        if request.POST.get("scriptdump_dll"):
+            if options:
+                options += ","
+            options += "dll=ScriptDump.dll"
+
         if request.POST.get("kernel_analysis"):
             if options:
                 options += ","
