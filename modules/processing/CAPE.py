@@ -591,7 +591,10 @@ class CAPE(Processing):
 
             # Attempt to decrypt script dump
             if file_info["cape_type_code"] == SCRIPT_DUMP:
-                data = file_data.decode("utf-16").replace("\x00", "")
+                try:
+                    data = file_data.decode("utf-16").replace("\x00", "")
+                except UnicodeDecodeError:
+                    data = file_data
                 file_info["data"] = data
                 cape_name = "ScriptDump"
                 malwareconfig_loaded = False
