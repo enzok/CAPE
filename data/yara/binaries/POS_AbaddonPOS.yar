@@ -1,4 +1,4 @@
-ule win_abaddon_pos_auto {
+rule win_abaddon_pos_auto {
 
     meta:
         author = "Felix Bilstein - yara-signator at cocacoding dot com"
@@ -97,6 +97,7 @@ ule win_abaddon_pos_auto {
     condition:
         7 of them
 }
+
 rule win_abaddon_pos_w0 {
     meta:
         author = "Darien Huss, Proofpoint"
