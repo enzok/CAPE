@@ -313,7 +313,7 @@ $(document).ready( function() {
                                                     <td>Specify the SMTP port if not 25 or 587</td>
                                                 </tr>
                                                 <tr>
-                                                    <td><code>posproc</code></td>
+                                                    <td><code>posname</code></td>
                                                     <td>Specify the name for the fake pos process, must have ccgen.exe installed and enabled in config</td>
                                                 </tr>
                                             </tbody>
@@ -405,6 +405,13 @@ $(document).ready( function() {
                                     <input type="checkbox" name="scriptdump_dll" /> Include ScriptDump.dll <span class="text-muted"><small>(enable for non SCT samples that drop JScript (dll included in sct by default))</small></span>
                                 </label>
                             </div>
+                            {% if config.kernel %}
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="posproc" /> Enable Fake POS process for analysis
+                                </label>
+                            </div>
+                            {% endif %}
                             {% if config.gateways %}
                             <div class="checkbox">
                                 <label>

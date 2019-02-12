@@ -209,6 +209,11 @@ def index(request, resubmit_hash=False):
                 options += ","
             options += "save_memory=yes"
 
+        if request.POST.get("posproc"):
+            if options:
+                options += ","
+            options += "posproc=1"
+
         orig_options = options
 
         if gateway and gateway.lower() == "all":
@@ -487,6 +492,7 @@ def index(request, resubmit_hash=False):
         enabledconf = dict()
         enabledconf["vt"] = settings.VTDL_ENABLED
         enabledconf["kernel"] = settings.OPT_ZER0M0N
+        enabledconf["posproc"] = settings.POSPROC
         enabledconf["memory"] = Config("processing").memory.get("enabled")
         enabledconf["procmemory"] = Config("processing").procmemory.get("enabled")
         enabledconf["tor"] = Config("auxiliary").tor.get("enabled")

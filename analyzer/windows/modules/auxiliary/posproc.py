@@ -19,8 +19,10 @@ class POSfaker(Auxiliary, Thread):
         Auxiliary.__init__(self, options, config)
         Thread.__init__(self)
         self.config = Config(cfg="analysis.conf")
-        self.enabled = self.config.posproc
-        self.do_run = self.enabled
+        self.configured = self.config.posproc
+        self.enabled = self.options.get("posproc", None)
+        if self.configured and self.enabled:
+            self.do_run = True
         self.path = self.config.posproc.get("path", None)
 
     def stop(self):
@@ -33,7 +35,7 @@ class POSfaker(Auxiliary, Thread):
         if not self.enabled or not self.path:
             return False
 
-        posproc = self.options.get("posproc")
+        posproc = self.options.get("posname")
 
         if posproc:
             newpath = os.path.join("bin", posproc)
@@ -49,4 +51,5 @@ class POSfaker(Auxiliary, Thread):
         pos = Process()
         cmd_path = os.getenv("ComSpec")
         pos.execute(path=cmd_path, args=cmd_args, suspended=False)
+        log.info("Fake POS process started: {} {}".format(cmd_path, cmd_args))
         return True
