@@ -226,7 +226,7 @@ class AnalysisManager(threading.Thread):
         options["curtain"] = self.aux_cfg.curtain.enabled
         options["sysmon"] = self.aux_cfg.sysmon.enabled
         options["posproc"] = self.aux_cfg.posproc.enabled
-        options["posproc"]["exename"] = self.aux_cfg.posproc.exename
+        options["posproc"]["exename"] = self.aux_cfg.posproc.get("exename", None)
 
         return options
 
