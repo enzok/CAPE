@@ -27,8 +27,7 @@ class POSFaker(Auxiliary):
 
         try:
             posproc = self.options.get("posproc", None)
-            exename = self.config.posproc.get("exename", None)
-            if not posproc and not exename:
+            if not posproc:
                 log.info("Skipping POSFaker executable: not configureed.")
                 return True
 
