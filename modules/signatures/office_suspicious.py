@@ -42,6 +42,12 @@ class OfficeAnamalousFeature(Signature):
 
         ret = False
 
+        if "static" in self.results and "office" in self.results["static"]:
+            if "Metadata" in self.results["static"]["office"]:
+                if "isXML" in self.results["static"]["office"]["Metadata"]:
+                    # TODO add XML based metadata
+                    return ret
+
         if package != "xls" and "static" in self.results and "office" in self.results["static"]:
             if "Metadata" in self.results["static"]["office"]:
                 if "SummaryInformation" in self.results["static"]["office"]["Metadata"]:
