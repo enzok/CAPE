@@ -21,7 +21,7 @@ class POSfaker(Auxiliary, Thread):
         self.config = Config(cfg="analysis.conf")
         self.enabled = self.config.posproc
         self.do_run = self.enabled
-        self.path =
+        self.path = self.config.posproc.get("path", None)
 
     def stop(self):
         if self.enabled:
@@ -30,7 +30,7 @@ class POSfaker(Auxiliary, Thread):
         return False
 
     def run(self):
-        if not self.enabled:
+        if not self.enabled or not self.path:
             return False
 
         posproc = self.options.get("posproc")
