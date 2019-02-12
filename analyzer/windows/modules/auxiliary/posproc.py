@@ -10,7 +10,7 @@ from lib.core.config import Config
 log = logging.getLogger(__name__)
 
 
-class POSFaker(Auxiliary, Thread):
+class POSFaker(Auxiliary):
     """ Start a process to generate track 1 or 2 data in supplied process
         Make sure gencc.exe is included in the analyzer bin directory
         https://github.com/bizdak/ccgen
@@ -18,19 +18,17 @@ class POSFaker(Auxiliary, Thread):
 
     def __init__(self, options, config):
         Auxiliary.__init__(self, options, config)
-        Thread.__init__(self)
         self.config = Config(cfg="analysis.conf")
-        self.enabled = True
+        self.enabled = self.config.posproc
 
     def start(self):
         if not self.enabled:
             return True
 
         try:
-            pos_enabled = self.config.posproc
             posproc = self.options.get("posproc", None)
             exename = self.config.posproc.get("exename", None)
-            if not pos_enabled and not posproc and not exename:
+            if not posproc and not exename:
                 log.info("Skipping POSFaker executable: not configureed.")
                 return True
 
