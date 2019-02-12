@@ -405,7 +405,7 @@ $(document).ready( function() {
                                     <input type="checkbox" name="scriptdump_dll" /> Include ScriptDump.dll <span class="text-muted"><small>(enable for non SCT samples that drop JScript (dll included in sct by default))</small></span>
                                 </label>
                             </div>
-                            {% if config.kernel %}
+                            {% if config.posproc %}
                             <div class="checkbox">
                                 <label>
                                     <input type="checkbox" name="posproc" /> Enable Fake POS process for analysis
