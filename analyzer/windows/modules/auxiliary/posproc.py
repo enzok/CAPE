@@ -44,7 +44,8 @@ class POSFaker(Auxiliary):
                 try:
                     os.rename(pos_path, newpath)
                     path = newpath
-                except IOError as e:
+                    sleep(1)
+                except Exception as e:
                     log.error("Failed to rename {} to {}: {}".format(pos_path, newpath, e))
                     return False
 
