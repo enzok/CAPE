@@ -1,6 +1,7 @@
 import os
 import logging
 from threading import Thread
+from time import sleep
 
 from lib.api.process import Process
 from lib.common.abstracts import Auxiliary
@@ -19,33 +20,46 @@ class POSFaker(Auxiliary, Thread):
         Auxiliary.__init__(self, options, config)
         Thread.__init__(self)
         self.config = Config(cfg="analysis.conf")
-        self.do_run = True
+        self.enabled = True
 
-    def stop(self):
-        self.do_run = False
-
-    def run(self):
-        enabled = self.config.posproc
-        posproc = self.options.get("posproc", None)
-        path = self.config.posproc.get("path", None)
-        if not enabled and not posproc and not path:
+    def start(self):
+        if not self.enabled:
             return True
 
-        posname = self.options.get("posname")
+        try:
+            pos_enabled = self.config.posproc
+            posproc = self.options.get("posproc", None)
+            exename = self.config.posproc.get("exename", None)
+            if not pos_enabled and not posproc and not exename:
+                log.info("Skipping POSFaker executable: not configureed.")
+                return True
 
-        if posname:
-            newpath = os.path.join("bin", posname)
+            posname = self.options.get("posname")
 
-            try:
-                os.rename(path, newpath)
-                path = newpath
-            except IOError as e:
-                log.error("Failed to rename {} to {}: {}".format(path, newpath, e))
-                return False
+            if posname:
+                pos_path = os.path.join(os.getcwd(), "bin", "ccgen.exe")
+                if not os.path.exists(pos_path):
+                    log.info("Skipping POSFaker, ccgen.exe was not found in bin/")
+                    return True
 
-        if self.do_run:
+                newpath = os.path.join(os.getcwd(), "bin", posname)
+
+                try:
+                    os.rename(pos_path, newpath)
+                    path = newpath
+                except IOError as e:
+                    log.error("Failed to rename {} to {}: {}".format(pos_path, newpath, e))
+                    return False
+
             cmd_args = "/k start /min \"\" \"{0} -2 -s 69 -d 500\"".format(path)
             pos = Process()
             cmd_path = os.getenv("ComSpec")
             pos.execute(path=cmd_path, args=cmd_args, suspended=False)
             log.info("Fake POS process started: {} {}".format(cmd_path, cmd_args))
+            sleep(5)
+
+        except Exception:
+            import traceback
+            log.exception(traceback.format_exc())
+
+        return True
