@@ -9,7 +9,7 @@ from lib.core.config import Config
 log = logging.getLogger(__name__)
 
 
-class POSfaker(Auxiliary, Thread):
+class POSFaker(Auxiliary, Thread):
     """ Start a process to generate track 1 or 2 data in supplied process
         Make sure gencc.exe is included in the analyzer bin directory
         https://github.com/bizdak/ccgen
@@ -19,37 +19,33 @@ class POSfaker(Auxiliary, Thread):
         Auxiliary.__init__(self, options, config)
         Thread.__init__(self)
         self.config = Config(cfg="analysis.conf")
-        self.configured = self.config.posproc
-        self.enabled = self.options.get("posproc", None)
-        if self.configured and self.enabled:
-            self.do_run = True
-        self.path = self.config.posproc.get("path", None)
+        self.do_run = True
 
     def stop(self):
-        if self.enabled:
-            self.do_run = False
-            return True
-        return False
+        self.do_run = False
 
     def run(self):
-        if not self.enabled or not self.path:
-            return False
+        enabled = self.config.posproc
+        posproc = self.options.get("posproc", None)
+        path = self.config.posproc.get("path", None)
+        if not enabled and not posproc and not path:
+            return True
 
-        posproc = self.options.get("posname")
+        posname = self.options.get("posname")
 
-        if posproc:
-            newpath = os.path.join("bin", posproc)
+        if posname:
+            newpath = os.path.join("bin", posname)
 
             try:
-                os.rename(self.path, newpath)
-                self.path = newpath
+                os.rename(path, newpath)
+                path = newpath
             except IOError as e:
-                log.error("Failed to rename {} to {}: {}".format(self.path, newpath, e))
+                log.error("Failed to rename {} to {}: {}".format(path, newpath, e))
                 return False
 
-        cmd_args = "/k start /min \"\" \"{0} -2 -s 69 -d 500\"".format(self.path)
-        pos = Process()
-        cmd_path = os.getenv("ComSpec")
-        pos.execute(path=cmd_path, args=cmd_args, suspended=False)
-        log.info("Fake POS process started: {} {}".format(cmd_path, cmd_args))
-        return True
+        if self.do_run:
+            cmd_args = "/k start /min \"\" \"{0} -2 -s 69 -d 500\"".format(path)
+            pos = Process()
+            cmd_path = os.getenv("ComSpec")
+            pos.execute(path=cmd_path, args=cmd_args, suspended=False)
+            log.info("Fake POS process started: {} {}".format(cmd_path, cmd_args))
