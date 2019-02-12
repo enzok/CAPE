@@ -1146,7 +1146,8 @@ class Office(object):
         filestruct = metares['DocumentFileStructure'] = {}
 
         for fobj in zfile.infolist():
-            filestruct[fobj.filename] = fobj.file_size
+            keyname = fobj.filename.replace(".", "__")
+            filestruct[keyname] = fobj.file_size
 
         return metares
 
