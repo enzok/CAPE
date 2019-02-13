@@ -225,7 +225,6 @@ class AnalysisManager(threading.Thread):
         # options from auxiliar.conf
         options["curtain"] = self.aux_cfg.curtain.enabled
         options["sysmon"] = self.aux_cfg.sysmon.enabled
-        options["posproc"] = self.aux_cfg.posproc.enabled
 
         return options
 
