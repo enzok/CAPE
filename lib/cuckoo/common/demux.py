@@ -404,17 +404,21 @@ def demux_sample(filename, package, options):
     magic = File(filename).get_type()
 
     # if file is an Office doc and password is supplied, try to decrypt the doc
-    if "Microsoft" in magic or "Composite Document File" in magic or "CDFV2 Encrypted" in magic:
-        password = False
-        tmp_pass = options2passwd(options)
-        if tmp_pass:
-            password = tmp_pass
-        if password:
-            log.debug("Extracting from Office doc - {}, password={}".format(filename, password))
-            return demux_office(filename, password)
-        else:
-            log.debug("Extracting from Office doc - {}".format(filename))
-            return [filename]
+    if "Microsoft" in magic:
+        if "Outlook" or "Message" in magic:
+            log.debug("Extracting msg file - {}".format(filename))
+            pass
+        elif "Composite Document File" in magic or "CDFV2 Encrypted" in magic:
+            password = False
+            tmp_pass = options2passwd(options)
+            if tmp_pass:
+                password = tmp_pass
+            if password:
+                log.debug("Extracting from Office doc - {}, password={}".format(filename, password))
+                return demux_office(filename, password)
+            else:
+                log.debug("Submitting Office document - {}".format(filename))
+                return [filename]
 
     # don't try to extract from Java archives or executables
     if "Java Jar" in magic:
