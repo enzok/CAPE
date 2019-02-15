@@ -354,11 +354,12 @@ def get_filenames(retlist, tmp_dir, children):
     return retlist
 
 
-def demux_all(filename, options):
+def demux_sflock(filename, options):
     retlist = []
     try:
         # only extract from files with desired archive extensions
         ext = os.path.splitext(filename)[1]
+        ext = ext.lower()
         if ext not in archive_extensions_list:
             return retlist
 
@@ -371,10 +372,10 @@ def demux_all(filename, options):
         if unpacked.children:
             options = Config()
             tmp_path = options.cuckoo.get("tmppath", "/tmp")
-            target_path = os.path.join(tmp_path, "cuckoo-zip-tmp")
+            target_path = os.path.join(tmp_path, "cuckoo-sflock")
             if not os.path.exists(target_path):
                 os.mkdir(target_path)
-            tmp_dir = tempfile.mkdtemp(prefix='cuckoozip_', dir=target_path)
+            tmp_dir = tempfile.mkdtemp(dir=target_path)
 
             retlist = get_filenames([], tmp_dir, unpacked.children)
 
@@ -428,7 +429,7 @@ def demux_sample(filename, package, options):
 
     if HAS_SFLOCK:
         # all in one unarchiver
-        retlist = demux_all(filename, options)
+        retlist = demux_sflock(filename, options)
     else:
         # Fallback to legacy system
         retlist = demux_zip(filename, options)
