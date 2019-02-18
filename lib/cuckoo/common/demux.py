@@ -392,7 +392,6 @@ def demux_sample(filename, package, options):
     """
     If file is a ZIP, extract its included files and return their file paths
     If file is an email, extracts its attachments and return their file paths (later we'll also extract URLs)
-    If file is a password-protected Office doc and password is supplied, return path to decrypted doc
     """
 
     # if a package was specified, then don't do anything special
