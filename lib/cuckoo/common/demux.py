@@ -35,6 +35,13 @@ from lib.cuckoo.common.exceptions import CuckooDemuxError
 logging.basicConfig()
 log = logging.getLogger(__name__)
 
+demux_extensions_list = [
+        "", ".exe", ".dll", ".com", ".jar", ".pdf", ".msi", ".bin", ".scr", ".zip", ".tar", ".gz", ".tgz", ".rar", ".htm", ".html", ".hta",
+        ".doc", ".dot", ".docx", ".dotx", ".docm", ".dotm", ".docb", ".mht", ".mso", ".js", ".jse", ".vbs", ".vbe",
+        ".xls", ".xlt", ".xlm", ".xlsx", ".xltx", ".xlsm", ".xltm", ".xlsb", ".xla", ".xlam", ".xll", ".xlw",
+        ".ppt", ".pot", ".pps", ".pptx", ".pptm", ".potx", ".potm", ".ppam", ".ppsx", ".ppsm", ".sldx", ".sldm", ".wsf",
+    ]
+
 
 def options2passwd(options):
     password = False
@@ -128,7 +135,10 @@ def demux_zip(filename, options):
                 ext = ext.lower()
                 if ext == "" and len(basename) and basename[0] == ".":
                     continue
-                extracted.append(info.filename)
+                for theext in demux_extensions_list:
+                    if ext == theext:
+                        extracted.append(info.filename)
+                        break
 
             if extracted:
                 options = Config()
@@ -184,7 +194,10 @@ def demux_rar(filename, options):
                 ext = ext.lower()
                 if ext == "" and len(basename) and basename[0] == ".":
                     continue
-                extracted.append(info.filename)
+                for theext in demux_extensions_list:
+                    if ext == theext:
+                        extracted.append(info.filename)
+                        break
 
             if extracted:
                 options = Config()
@@ -235,7 +248,10 @@ def demux_tar(filename, options):
                 ext = ext.lower()
                 if ext == "" and len(basename) and basename[0] == ".":
                     continue
-                extracted.append(info)
+                for theext in demux_extensions_list:
+                    if ext == theext:
+                        extracted.append(info)
+                        break
 
             if extracted:
                 options = Config()
