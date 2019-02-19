@@ -42,10 +42,6 @@ demux_extensions_list = [
         ".ppt", ".pot", ".pps", ".pptx", ".pptm", ".potx", ".potm", ".ppam", ".ppsx", ".ppsm", ".sldx", ".sldm", ".wsf",
     ]
 
-archive_extensions_list = [
-        "", ".bin", ".zip", ".tar", ".gz", ".tgz", ".rar", ".ace", ".bup", ".eml", ".msg", ".mso",
-    ]
-
 
 def options2passwd(options):
     password = False
@@ -357,12 +353,6 @@ def get_filenames(retlist, tmp_dir, children):
 def demux_sflock(filename, options):
     retlist = []
     try:
-        # only extract from files with desired archive extensions
-        ext = os.path.splitext(filename)[1]
-        ext = ext.lower()
-        if ext not in archive_extensions_list:
-            return retlist
-
         password = "infected"
         tmp_pass = options2passwd(options)
         if tmp_pass:
