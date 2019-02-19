@@ -36,10 +36,11 @@ logging.basicConfig()
 log = logging.getLogger(__name__)
 
 demux_extensions_list = [
-        "", ".exe", ".dll", ".com", ".jar", ".pdf", ".msi", ".bin", ".scr", ".zip", ".tar", ".gz", ".tgz", ".rar", ".htm", ".html", ".hta",
+        "", ".exe", ".dll", ".com", ".jar", ".pdf", ".msi", ".bin", ".scr", ".zip", ".tar", ".gz", ".tgz", ".rar",
         ".doc", ".dot", ".docx", ".dotx", ".docm", ".dotm", ".docb", ".mht", ".mso", ".js", ".jse", ".vbs", ".vbe",
-        ".xls", ".xlt", ".xlm", ".xlsx", ".xltx", ".xlsm", ".xltm", ".xlsb", ".xla", ".xlam", ".xll", ".xlw",
+        ".xls", ".xlt", ".xlm", ".xlsx", ".xltx", ".xlsm", ".xltm", ".xlsb", ".xla", ".xlam", ".xll", ".xlw", ".htm",
         ".ppt", ".pot", ".pps", ".pptx", ".pptm", ".potx", ".potm", ".ppam", ".ppsx", ".ppsm", ".sldx", ".sldm", ".wsf",
+        ".html", ".hta",
     ]
 
 
@@ -135,10 +136,9 @@ def demux_zip(filename, options):
                 ext = ext.lower()
                 if ext == "" and len(basename) and basename[0] == ".":
                     continue
-                for theext in demux_extensions_list:
-                    if ext == theext:
-                        extracted.append(info.filename)
-                        break
+                if ext in demux_extensions_list:
+                    extracted.append(info.filename)
+                    break
 
             if extracted:
                 options = Config()
@@ -194,10 +194,10 @@ def demux_rar(filename, options):
                 ext = ext.lower()
                 if ext == "" and len(basename) and basename[0] == ".":
                     continue
-                for theext in demux_extensions_list:
-                    if ext == theext:
-                        extracted.append(info.filename)
-                        break
+                if ext in demux_extensions_list:
+                    extracted.append(info.filename)
+                    break
+
 
             if extracted:
                 options = Config()
@@ -248,10 +248,9 @@ def demux_tar(filename, options):
                 ext = ext.lower()
                 if ext == "" and len(basename) and basename[0] == ".":
                     continue
-                for theext in demux_extensions_list:
-                    if ext == theext:
-                        extracted.append(info)
-                        break
+                if ext in demux_extensions_list:
+                    extracted.append(info.filename)
+                    break
 
             if extracted:
                 options = Config()
@@ -341,7 +340,10 @@ def get_filenames(retlist, tmp_dir, children):
         for child in children:
             at = child.astree()
             if 'file' in at['type'] or child.package in ['doc', 'xls']:
-                retlist.append(os.path.join(tmp_dir, at['filename']))
+                base, ext = os.path.splitext(at['filename'])
+                ext = ext.lower()
+                if ext in demux_extensions_list:
+                    retlist.append(os.path.join(tmp_dir, at['filename']))
             elif 'container' in at['type']:
                 get_filenames(retlist, tmp_dir, child.children)
     except Exception as err:
