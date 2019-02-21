@@ -119,6 +119,9 @@ def download_file(content, request, db, task_ids, url, params, headers, service,
 
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
 def index(request, resubmit_hash=False):
+    submitter = []
+    if request.META['HTTP_X_REMOTE_USER']:
+        submitter = request.META['HTTP_X_REMOTE_USER']
     if request.method == "POST":
         package = request.POST.get("package", "")
         timeout = min(force_int(request.POST.get("timeout")), 60 * 60 * 24)
@@ -213,6 +216,11 @@ def index(request, resubmit_hash=False):
             if options:
                 options += ","
             options += "posproc=1"
+
+        if submitter:
+            if options:
+                options += ","
+            options += "submitter={}".format(submitter)
 
         orig_options = options
 

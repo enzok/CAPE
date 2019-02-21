@@ -40,6 +40,9 @@
                 <tr>
                     <th>Category</th>
                     <th>Package</th>
+                    {% if analysis.info.options.submitter %}
+                        <th>Submitter</th>
+                    {% endif %}
                     <th>Started</th>
                     <th>Completed</th>
                     <th>Duration</th>
@@ -53,6 +56,9 @@
                 <tr>
                     <td>{{analysis.info.category|upper}}</td>
                     <td>{{analysis.info.package}}</td>
+                    {% if analysis.info.options.submitter %}
+                        <th>{{analysis.info.options.submitter}}</th>
+                    {% endif %}
                     <td>{{analysis.info.started}}</td>
                     <td>{{analysis.info.ended}}</td>
                     <td>{{analysis.info.duration}} seconds</td>
