@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import logging
 import threading
 import uuid
+from time import sleep
 
 from django.conf import settings
 from django.http import HttpResponse, StreamingHttpResponse
@@ -23,6 +24,7 @@ pending_read_request = threading.Event()
 
 
 def index(request, task_id):
+    sleep(5)
     db = Database()
     task = db.view_task(task_id)
     machine = db.view_machine(task.machine)
