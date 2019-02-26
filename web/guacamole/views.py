@@ -25,10 +25,10 @@ pending_read_request = threading.Event()
 def index(request, task_id):
     db = Database()
     task = db.view_task(task_id)
-    if not task:
-        return render(request, "error.html", {"error": "The specified task doesn't seem to exist."})
+    machine = db.view_machine(task.machine)
+    if not task or not machine:
+        return render(request, "error.html", {"error": "Task or machine does not exist."})
     if task.status == "running":
-        machine = db.view_machine(task.machine)
         return render(request, "guacamole/index.html", {"hostname": task.machine,
                                                         "host_ip": machine.ip})
     elif task.status == "pending":

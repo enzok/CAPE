@@ -492,7 +492,8 @@ def index(request, resubmit_hash=False):
         if tasks_count > 0:
             return render(request, "submission/complete.html",
                           {"tasks": task_ids,
-                           "tasks_count": tasks_count})
+                           "tasks_count": tasks_count,
+                           "guacamole": Config("auxiliary").guacamole.get("enabled")})
         else:
             return render(request, "error.html",
                           {"error": "Error adding task to Cuckoo's database."})
