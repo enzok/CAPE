@@ -235,7 +235,7 @@
                             {% elif analysis.status == "running" %}
                                 {% if config.guacamole %}
                                     <a href="{% url "guacamole" analysis.id %}" target="_blank"><span class="mono">running</span></a>
-                                {% else % }
+                                {% else %}
                                     <span class="text-warning">running</span>
                                 {% endif %}
                             {% elif analysis.status == "completed" %}
@@ -511,7 +511,7 @@
                             {% elif analysis.status == "running" %}
                                 {% if config.guacamole %}
                                     <a href="{% url "guacamole" analysis.id %}" target="_blank"><span class="mono">running</span></a>
-                                {% else % }
+                                {% else %}
                                     <span class="text-warning">running</span>
                                 {% endif %}
                             {% elif analysis.status == "completed" %}
@@ -743,7 +743,7 @@
                         {% elif analysis.status == "running" %}
                             {% if config.guacamole %}
                                 <a href="{% url "guacamole" analysis.id %}" target="_blank"><span class="mono">running</span></a>>
-                            {% else % }
+                            {% else %}
                                 <span class="text-warning">running</span>
                             {% endif %}
                         {% elif analysis.status == "completed" %}
