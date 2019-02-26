@@ -8,11 +8,4 @@ The following tasks were added successfully:
 {% endfor %}.
 Click on the links to monitor the status of the submission.
 </div>
-<div>
-Remote desktop links for the following tasks:
-{% for task in tasks %}
-    <a target="_blank" href="{% url "gaucamole" task %}">{{task}}</a>
-{% endfor %}.
-Click on the links to monitor the status of the submission.
-</div>
 {% endblock %}
