@@ -13,7 +13,7 @@ Click on the links to monitor the status of the submission.
     <h4>Remote desktop link(s):</h4>
     Click on the link to control session:
     {% for task in tasks %}
-        <a href="{% url "guacamole" task %} target="_blank">{{task}}</a>
+        <a target="_blank" href="{% url "guacamole" task %}">{{task}}</a>
     {% endfor %}
 </div>
 {% endif %}

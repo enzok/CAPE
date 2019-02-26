@@ -24,7 +24,7 @@ pending_read_request = threading.Event()
 
 
 def index(request, task_id):
-    sleep(5)
+    sleep(2)
     db = Database()
     task = db.view_task(task_id)
     machine = db.view_machine(task.machine)
