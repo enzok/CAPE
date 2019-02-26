@@ -26,10 +26,14 @@ def index(request, task_id):
     task = Database().view_task(task_id)
     if not task:
         return render(request, "error.html", {"error": "The specified task doesn't seem to exist."})
-    hostname = task.machine
-    host_ip = task.machine.ip
-    return render(request, 'guacamole/index.html', {"hostname": hostname,
-                                                    "host_ip": host_ip})
+    if task.status == "running":
+        return render(request, "guacamole/index.html", {"hostname": task.machine,
+                                                        "host_ip": task.machine.ip})
+    elif task.status == "pending":
+        return render(request, "guacamole/status.html", {"task_id": task_id})
+    elif task.status == "failed" or task.status == "completed" or task.status == "reported":
+        return render(request, "error.html",
+                      {"error": "Task not available for remote control. It may have already completed."})
 
 
 @csrf_exempt
