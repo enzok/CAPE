@@ -57,10 +57,10 @@ def tunnel(request, host):
 
 def _do_connect(request, host):
     # Connect to guacd daemon
-    client = GuacamoleClient(settings.GUACD_HOST, settings.GUACD_PORT)
+    client = GuacamoleClient(settings.GUACD_HOST, int(settings.GUACD_PORT))
     client.handshake(protocol=settings.GUAC_PROTO,
                      hostname=host,
-                     port=settings.GUAC_PORT,
+                     port=int(settings.GUAC_PORT),
                      username=settings.GUAC_USER,
                      password=settings.GUAC_PASS)
 

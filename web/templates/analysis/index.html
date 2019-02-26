@@ -233,7 +233,11 @@
                             {% if analysis.status == "pending" %}
                                 <span class="text-muted">pending</span>
                             {% elif analysis.status == "running" %}
-                                <span class="text-warning">running</span>
+                                {% if config.guacamole %}
+                                    <a href="{% url "guacamole" analysis.id}"<span class="mono">running</span></a>
+                                {% else % }
+                                    <span class="text-warning">running</span>
+                                {% endif %}
                             {% elif analysis.status == "completed" %}
                                 <span class="text-info">processing</span>
                             {% elif analysis.status == "reported" %}
@@ -241,7 +245,7 @@
                                     <span class="text-danger">
                                 {% else %}
                                     <span class="text-success">
-                                {% endif%}
+                                {% endif %}
 
                                 reported</span>
                             {% else %}
@@ -505,7 +509,11 @@
                             {% if analysis.status == "pending" %}
                                 <span class="text-muted">pending</span>
                             {% elif analysis.status == "running" %}
-                                <span class="text-warning">running</span>
+                                {% if config.guacamole %}
+                                    <a href="{% url "guacamole" analysis.id}"<span class="mono">running</span></a>
+                                {% else % }
+                                    <span class="text-warning">running</span>
+                                {% endif %}
                             {% elif analysis.status == "completed" %}
                                 <span class="text-info">processing</span>
                             {% elif analysis.status == "reported" %}
@@ -733,7 +741,11 @@
                         {% if analysis.status == "pending" %}
                         <span class="text-muted">pending</span>
                         {% elif analysis.status == "running" %}
-                        <span class="text-warning">running</span>
+                                {% if config.guacamole %}
+                                    <a href="{% url "guacamole" analysis.id}"<span class="mono">running</span></a>
+                                {% else % }
+                                    <span class="text-warning">running</span>
+                                {% endif %}
                         {% elif analysis.status == "completed" %}
                         <span class="text-info">processing</span>
                         {% elif analysis.status == "reported" %}
