@@ -1,13 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<h1>Guacamole Connection - {{hostname}}</h1>
+{% extends "base.html" %}
+{% block content %}
+<h3>Guacamole Connection - {{hostname}}</h3>
 <!-- Guacamole -->
-{% load static %}
 <script type="text/javascript" src="{{ STATIC_URL }}js/guac.min.js"></script>
 
 <!-- Display -->
@@ -61,5 +55,4 @@
     };
 
 /* ]]> */ </script>
-</body>
-</html>
+{% endblock %}
