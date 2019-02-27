@@ -2,6 +2,10 @@
 {% block content %}
 <h4>Guacamole Connection - {{hostname}}</h4>
 
+<!-- Guacamole -->
+{% load static %}
+<script type="text/javascript" src="{% static 'js/all.min.js' %}"></script>
+
 <!-- Display -->
 <div id="display"></div>
 
