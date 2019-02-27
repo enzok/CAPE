@@ -27,8 +27,8 @@ def index(request, task_id):
     sleep(2)
     db = Database()
     task = db.view_task(task_id)
-    if not task or not machine:
-        return render(request, "error.html", {"error": "Task or machine does not exist."})
+    if not task:
+        return render(request, "error.html", {"error": "Task does not exist."})
     if task.status == "running":
         return render(request, "guacamole/index.html", {"hostname": task.machine})
     elif task.status == "pending":
@@ -59,6 +59,8 @@ def _do_connect(request, host):
     # Connect to guacd daemon
     db = Database()
     machine = db.view_machine(host)
+    if not machine:
+        return HttpResponse("Machine name {} not found.".format(host), content_type='text/plain')
     client = GuacamoleClient(settings.GUACD_HOST, int(settings.GUACD_PORT))
     client.handshake(protocol=settings.GUAC_PROTO,
                      hostname=str(machine.ip),
