@@ -27,12 +27,10 @@ def index(request, task_id):
     sleep(2)
     db = Database()
     task = db.view_task(task_id)
-    machine = db.view_machine(task.machine)
     if not task or not machine:
         return render(request, "error.html", {"error": "Task or machine does not exist."})
     if task.status == "running":
-        return render(request, "guacamole/index.html", {"hostname": task.machine,
-                                                        "host_ip": machine.ip})
+        return render(request, "guacamole/index.html", {"hostname": task.machine})
     elif task.status == "pending":
         return render(request, "guacamole/status.html", {"task_id": task_id})
     elif task.status == "failed" or task.status == "completed" or task.status == "reported":
@@ -59,9 +57,11 @@ def tunnel(request, host):
 
 def _do_connect(request, host):
     # Connect to guacd daemon
+    db = Database()
+    machine = db.view_machine(host)
     client = GuacamoleClient(settings.GUACD_HOST, int(settings.GUACD_PORT))
     client.handshake(protocol=settings.GUAC_PROTO,
-                     hostname=host,
+                     hostname=str(machine.ip),
                      port=int(settings.GUAC_PORT),
                      username=settings.GUAC_USER,
                      password=settings.GUAC_PASS)

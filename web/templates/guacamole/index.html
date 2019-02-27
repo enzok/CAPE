@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-<h4>Guacamole Connection - {{hostname}}</h4>
+<h4 align="center">Guacamole Connection - {{hostname}}</h4>
 
 <!-- Guacamole -->
 {% load static %}
-<script type="text/javascript" src="{% static 'js/all.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/all.js' %}"></script>
 
 <!-- Display -->
 <div id="display"></div>
@@ -17,7 +17,7 @@
 
     // Instantiate client, using an HTTP tunnel for communications.
     var guac = new Guacamole.Client(
-        new Guacamole.HTTPTunnel("tunnel/"{{host_ip}})
+        new Guacamole.HTTPTunnel("tunnel/"+{{hostname}})
     );
 
     // Add client to display div
