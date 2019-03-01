@@ -59,15 +59,15 @@ def _do_connect(request, host):
     machine_type = settings.GUAC_MACH
     if not machine_type:
         return HttpResponse("No machine type specified in auxiliary.conf", content_type='text/plain')
-    guac_ip = Config(machine_type).host.get("ip", None)
-    if not guac_ip:
-        return HttpResponse("No ip specified in auxiliary.conf", content_type='text/plain')
+    guac_port = Config(machine_type).host.get("guac_port", None)
+    if not guac_port:
+        return HttpResponse("No guac port specified in auxiliary.conf", content_type='text/plain')
 
     # Connect to guacd daemon
     client = GuacamoleClient(settings.GUACD_HOST, int(settings.GUACD_PORT))
     client.handshake(protocol=settings.GUAC_PROTO,
-                     hostname=str(guac_ip),
-                     port=int(settings.GUAC_PORT),
+                     hostname=str(settings.GUAC_HOST),
+                     port=int(guac_port),
                      username=settings.GUAC_USER,
                      password=settings.GUAC_PASS)
 
