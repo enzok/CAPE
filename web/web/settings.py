@@ -29,6 +29,7 @@ aux_cfg = Config("auxiliary")
 vtdl_cfg = aux_cfg.virustotaldl
 tor_cfg = aux_cfg.tor
 zip_cfg = aux_cfg.zipped_download
+guac_cfg = aux_cfg.guacamole
 
 # Enable Django authentication for website
 WEB_AUTHENTICATION = False
@@ -76,12 +77,13 @@ if GATEWAYS:
 OPT_ZER0M0N = True
 
 # guacd daemon host address and port and client connection settings
-GUACD_HOST = '127.0.0.1'
-GUACD_PORT = 4822
-GUAC_PROTO = 'rdp'
-GUAC_PORT = 3389
-GUAC_USER = 'rdpuser'
-GUAC_PASS = 'rdpuserpass'
+GUACD_HOST = guac_cfg.get("guacd_host", "127.0.0.1")
+GUACD_PORT = guac_cfg.get("guacd_port", "4822")
+GUAC_PROTO = guac_cfg.get("guac_proto", "vnc")
+GUAC_USER = guac_cfg.get("guac_user", "")
+GUAC_PASS = guac_cfg.get("guac_pass", "")
+GUAC_PORT = guac_cfg.get("guac_port", "5900")
+GUAC_MACH = guac_cfg.get("guac_mach", "")
 
 # To disable comment support, change the below to False
 COMMENTS = True

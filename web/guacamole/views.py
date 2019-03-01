@@ -56,14 +56,17 @@ def tunnel(request, host):
 
 
 def _do_connect(request, host):
+    machine_type = settings.GUAC_MACH
+    if not machine_type:
+        return HttpResponse("No machine type specified in auxiliary.conf", content_type='text/plain')
+    guac_ip = Config(machine_type).host.get("ip", None)
+    if not guac_ip:
+        return HttpResponse("No ip specified in auxiliary.conf", content_type='text/plain')
+
     # Connect to guacd daemon
-    db = Database()
-    machine = db.view_machine(host)
-    if not machine:
-        return HttpResponse("Machine name {} not found.".format(host), content_type='text/plain')
     client = GuacamoleClient(settings.GUACD_HOST, int(settings.GUACD_PORT))
     client.handshake(protocol=settings.GUAC_PROTO,
-                     hostname=str(machine.ip),
+                     hostname=str(guac_ip),
                      port=int(settings.GUAC_PORT),
                      username=settings.GUAC_USER,
                      password=settings.GUAC_PASS)
