@@ -8,13 +8,4 @@ The following tasks were added successfully:
 {% endfor %}.
 Click on the links to monitor the status of the submission.
 </div>
-{% if guacamole %}
-<div class="alert alert-success">
-    <h4>Remote desktop link(s):</h4>
-    Click on the link to control session:
-    {% for task in tasks %}
-        <a target="_blank" href="{% url "guacamole" task %}">{{task}}</a>
-    {% endfor %}
-</div>
-{% endif %}
 {% endblock %}

@@ -233,11 +233,7 @@
                             {% if analysis.status == "pending" %}
                                 <span class="text-muted">pending</span>
                             {% elif analysis.status == "running" %}
-                                {% if config.guacamole %}
-                                    <a href="{% url "guacamole" analysis.id %}" target="_blank"><span class="mono">running</span></a>
-                                {% else %}
-                                    <span class="text-warning">running</span>
-                                {% endif %}
+                                <span class="text-warning">running</span>
                             {% elif analysis.status == "completed" %}
                                 <span class="text-info">processing</span>
                             {% elif analysis.status == "reported" %}
@@ -509,11 +505,7 @@
                             {% if analysis.status == "pending" %}
                                 <span class="text-muted">pending</span>
                             {% elif analysis.status == "running" %}
-                                {% if config.guacamole %}
-                                    <a href="{% url "guacamole" analysis.id %}" target="_blank"><span class="mono">running</span></a>
-                                {% else %}
-                                    <span class="text-warning">running</span>
-                                {% endif %}
+                                <span class="text-warning">running</span>
                             {% elif analysis.status == "completed" %}
                                 <span class="text-info">processing</span>
                             {% elif analysis.status == "reported" %}
@@ -741,11 +733,7 @@
                         {% if analysis.status == "pending" %}
                         <span class="text-muted">pending</span>
                         {% elif analysis.status == "running" %}
-                            {% if config.guacamole %}
-                                <a href="{% url "guacamole" analysis.id %}" target="_blank"><span class="mono">running</span></a>>
-                            {% else %}
-                                <span class="text-warning">running</span>
-                            {% endif %}
+                            <span class="text-warning">running</span>
                         {% elif analysis.status == "completed" %}
                         <span class="text-info">processing</span>
                         {% elif analysis.status == "reported" %}

@@ -492,8 +492,7 @@ def index(request, resubmit_hash=False):
         if tasks_count > 0:
             return render(request, "submission/complete.html",
                           {"tasks": task_ids,
-                           "tasks_count": tasks_count,
-                           "guacamole": Config("auxiliary").guacamole.get("enabled")})
+                           "tasks_count": tasks_count})
         else:
             return render(request, "error.html",
                           {"error": "Error adding task to Cuckoo's database."})
@@ -502,7 +501,6 @@ def index(request, resubmit_hash=False):
         enabledconf["vt"] = settings.VTDL_ENABLED
         enabledconf["kernel"] = settings.OPT_ZER0M0N
         enabledconf["posproc"] = Config("auxiliary").posproc.get("enabled")
-        enabledconf["guacamole"] = Config("auxiliary").guacamole.get("enabled")
         enabledconf["memory"] = Config("processing").memory.get("enabled")
         enabledconf["procmemory"] = Config("processing").procmemory.get("enabled")
         enabledconf["tor"] = Config("auxiliary").tor.get("enabled")
