@@ -16,6 +16,8 @@ from shutil import copyfile
 from lib.cuckoo.common.abstracts import Processing
 from lib.cuckoo.common.config import Config
 from lib.cuckoo.common.constants import CUCKOO_ROOT
+from lib.cuckoo.common.exceptions import CuckooProcessingError
+from lib.cuckoo.common.utils import get_memdump_path
 
 try:
     import volatility.conf as conf
@@ -1131,7 +1133,9 @@ class VolatilityManager(object):
     def cleanup(self):
         """Delete the memory dump (if configured to do so)."""
 
-        if self.voptions.basic.delete_memdump or (self.task_options and 'save_memory=yes' not in self.task_options):
+        if self.task_options and 'save_memory' in self.task_options:
+            return
+        if self.voptions.basic.delete_memdump:
             try:
                 os.remove(self.memfile)
             except OSError:
@@ -1179,8 +1183,8 @@ class Memory(Processing):
         results = {}
         if HAVE_VOLATILITY:
             config = Config()
-            if hasattr(config, "ramfs"):
-                self.memory_path = os.path.join(config.ramfs.path, str(self.task["id"]) + ".dmp")
+            if config.ramfs:
+                self.memory_path = get_memdump_path(self.task["id"])
 
             if "machine" not in self.task or not self.task["machine"] or not self.task["memory"]:
                 return results

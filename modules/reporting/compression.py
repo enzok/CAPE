@@ -58,7 +58,6 @@ class Compression(Report):
                 f.write(strings_path, os.path.basename(strings_path), zipfile.ZIP_DEFLATED)
                 f.close()
                 os.remove(strings_path)
-                strings_path = "%s.zip" % (strings_path)
             except Exception as e:
                 raise CuckooReportError("Error creating Full Memory Strings Zip File %s" % e)
 
