@@ -1013,12 +1013,13 @@ class VolatilityManager(object):
         ["netscan", "vista", "win7"],
     ]
 
-    def __init__(self, memfile, osprofile=None, kdbg=None, analysis_path=None):
+    def __init__(self, memfile, osprofile=None, kdbg=None, analysis_path=None, savedmp=False):
         self.mask_pid = []
         self.taint_pid = set()
         self.memfile = memfile
         self.kdbg = kdbg
         self.analysis_path = analysis_path
+        self.savedmp = savedmp
 
         conf_path = os.path.join(CUCKOO_ROOT, "conf", "memory.conf")
         if not os.path.exists(conf_path):
@@ -1100,7 +1101,8 @@ class VolatilityManager(object):
 
         self.find_taint(results)
         self.do_strings()
-        self.cleanup()
+        if not self.savedmp:
+            self.cleanup()
 
         return self.mask_filter(results)
 
@@ -1133,8 +1135,6 @@ class VolatilityManager(object):
     def cleanup(self):
         """Delete the memory dump (if configured to do so)."""
 
-        if self.task_options and 'save_memory' in self.task_options:
-            return
         if self.voptions.basic.delete_memdump:
             try:
                 os.remove(self.memfile)
@@ -1177,8 +1177,10 @@ class Memory(Processing):
         """
         self.key = "memory"
         self.voptions = Config("memory")
-        self.task_options = None
-        self.task_options = self.task["options"]
+        self.savedmp = False
+
+        if self.task["options"] and "save_memory" in self.task["options"]:
+            self.savedmp = True
 
         results = {}
         if HAVE_VOLATILITY:
@@ -1195,7 +1197,7 @@ class Memory(Processing):
             log.info("Memory dump located at: {}".format(self.memory_path))
             if self.memory_path and os.path.exists(self.memory_path):
                 try:
-                    vol = VolatilityManager(self.memory_path, analysis_path=self.analysis_path)
+                    vol = VolatilityManager(self.memory_path, analysis_path=self.analysis_path, savedmp=self.savedmp)
                     results = vol.run(manager=machine_manager, vm=task_machine)
                 except Exception:
                     log.exception("Generic error executing volatility")
