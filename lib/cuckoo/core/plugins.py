@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 from distutils.version import StrictVersion
 
-from lib.cuckoo.common.utils import get_vt_consensus
+from lib.cuckoo.common.utils import get_vt_consensus, get_ramfs_path
 from lib.cuckoo.common.abstracts import Auxiliary, Machinery, LibVirtMachinery, Processing
 from lib.cuckoo.common.abstracts import Report, Signature, Feed
 from lib.cuckoo.common.config import Config
@@ -183,6 +183,8 @@ class RunProcessing(object):
 
         # Give it path to the analysis results.
         current.set_path(self.analysis_path)
+        # Set ramfs based memory dump path
+        self.rmemory_path = get_ramfs_path(self.task["id"])
         # Give it the analysis task object.
         current.set_task(self.task)
         # Give it the options from the relevant processing.conf section.
@@ -619,6 +621,8 @@ class RunReporting:
 
         # Give it the path to the analysis results folder.
         current.set_path(self.analysis_path)
+        # Set ramfs based memory dump path
+        self.rmemory_path = get_ramfs_path(self.task["id"])
         # Give it the analysis task object.
         current.set_task(self.task)
         # Give it the the relevant reporting.conf section.

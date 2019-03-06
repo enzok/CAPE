@@ -17,7 +17,6 @@ from lib.cuckoo.common.abstracts import Processing
 from lib.cuckoo.common.config import Config
 from lib.cuckoo.common.constants import CUCKOO_ROOT
 from lib.cuckoo.common.exceptions import CuckooProcessingError
-from lib.cuckoo.common.utils import get_memdump_path
 
 try:
     import volatility.conf as conf
@@ -1177,16 +1176,18 @@ class Memory(Processing):
         """
         self.key = "memory"
         self.voptions = Config("memory")
-        self.savedmp = False
+        savedmp = False
 
         if self.task["options"] and "save_memory" in self.task["options"]:
-            self.savedmp = True
+            savedmp = True
 
         results = {}
         if HAVE_VOLATILITY:
             config = Config()
-            if config.ramfs:
-                self.memory_path = get_memdump_path(self.task["id"])
+            if self.rmemory_path:
+                memory_path = self.rmemory_path
+            else:
+                memory_path = self.memory_path
 
             if "machine" not in self.task or not self.task["machine"] or not self.task["memory"]:
                 return results
@@ -1194,18 +1195,18 @@ class Memory(Processing):
             task_machine = self.task["machine"]["name"]
             machine_manager = self.task["machine"]["manager"].lower()
 
-            log.info("Memory dump located at: {}".format(self.memory_path))
-            if self.memory_path and os.path.exists(self.memory_path):
+            log.debug("Memory dump located at: {}".format(memory_path))
+            if memory_path and os.path.exists(memory_path):
                 try:
-                    vol = VolatilityManager(self.memory_path, analysis_path=self.analysis_path, savedmp=self.savedmp)
+                    vol = VolatilityManager(memory_path, analysis_path=self.analysis_path, savedmp=savedmp)
                     results = vol.run(manager=machine_manager, vm=task_machine)
                 except Exception:
                     log.exception("Generic error executing volatility")
                     if self.voptions.basic.delete_memdump_on_exception:
                         try:
-                            os.remove(self.memory_path)
+                            os.remove(memory_path)
                         except OSError:
-                            log.error("Unable to delete memory dump file at path \"%s\" ", self.memory_path)
+                            log.error("Unable to delete memory dump file at path \"%s\" ", memory_path)
             else:
                 log.error("Memory dump not found: to run volatility you have to enable memory_dump")
         else:

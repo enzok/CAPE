@@ -55,6 +55,7 @@ def free_space_monitor():
             else:
                 break
 
+
 def get_memdump_path(id, analysis_folder=False):
     """
     Get the path of memdump to store
@@ -65,6 +66,18 @@ def get_memdump_path(id, analysis_folder=False):
         memdump_path = os.path.join(ramfs.path, id + ".dmp")
     else:
         memdump_path = os.path.join(CUCKOO_ROOT, "storage", "analyses", id, "memory.dmp")
+
+    return memdump_path
+
+
+def get_ramfs_path(id):
+    """
+    Get ramfs memdump path
+    analysis_folder: force to return default analysis folder
+    """
+    memdump_path = None
+    if HAVE_RAMFS and ramfs.enabled:
+        memdump_path = os.path.join(ramfs.path, str(id) + ".dmp")
 
     return memdump_path
 

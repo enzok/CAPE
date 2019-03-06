@@ -667,6 +667,7 @@ class Processing(object):
         self.pcap_path = os.path.join(self.analysis_path, "dump.pcap")
         self.pmemory_path = os.path.join(self.analysis_path, "memory")
         self.memory_path = os.path.join(self.analysis_path, "memory.dmp")
+        self.rmemory_path = None
 
     def add_statistic(self, name, field, value):
         if name not in self.results["statistics"]["processing"]:
@@ -1557,6 +1558,7 @@ class Report(object):
         self.pcap_path = os.path.join(self.analysis_path, "dump.pcap")
         self.pmemory_path = os.path.join(self.analysis_path, "memory")
         self.memory_path = os.path.join(self.analysis_path, "memory.dmp")
+        self.rmemory_path = None
 
         try:
             create_folder(folder=self.reports_path)

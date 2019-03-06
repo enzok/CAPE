@@ -8,6 +8,7 @@ import zipfile
 from lib.cuckoo.common.abstracts import Report
 from lib.cuckoo.common.exceptions import CuckooReportError
 
+
 class Compression(Report):
     """Compresses analysis artifacts after processing/signatures are complete for permanent storage."""
 
@@ -16,6 +17,11 @@ class Compression(Report):
         zipprocdump = self.options.get("zipprocdump", False)
         zipmemstrings = self.options.get("zipmemstrings", False)
         zipprocstrings = self.options.get("zipprocstrings", False)
+
+        if self.rmemory_path:
+            memory_path = self.rmemory_path
+        else:
+            memory_path = self.memory_path
 
         if "procmemory" in results and results["procmemory"]:
             for proc in results["procmemory"]:
@@ -28,7 +34,7 @@ class Compression(Report):
                         f.write(dmp_path, os.path.basename(dmp_path), zipfile.ZIP_DEFLATED)
                         f.close()
                         os.remove(dmp_path)
-                        proc["file"]="%s.zip" % (dmp_path)
+                        proc["file"] = "%s.zip" % (dmp_path)
                     except Exception as e:
                         raise CuckooReportError("Error creating Process Memory Zip File %s" % e)
 
@@ -42,12 +48,12 @@ class Compression(Report):
                     except Exception as e:
                         raise CuckooReportError("Error creating Process Memory Strings Zip File %s" % e)
 
-        if zipmemdump and self.memory_path and os.path.exists(self.memory_path):
+        if zipmemdump and memory_path and os.path.exists(memory_path):
             try:
-                f = zipfile.ZipFile("%s.zip" % (self.memory_path), "w", allowZip64=True)
-                f.write(self.memory_path, os.path.basename(self.memory_path), zipfile.ZIP_DEFLATED)
+                f = zipfile.ZipFile("%s.zip" % (memory_path), "w", allowZip64=True)
+                f.write(memory_path, os.path.basename(memory_path), zipfile.ZIP_DEFLATED)
                 f.close()
-                os.remove(self.memory_path)
+                os.remove(memory_path)
             except Exception as e:
                  raise CuckooReportError("Error creating Full Memory Zip File %s" % e)
 
