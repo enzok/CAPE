@@ -622,7 +622,7 @@ class RunReporting:
         # Give it the path to the analysis results folder.
         current.set_path(self.analysis_path)
         # Set ramfs based memory dump path
-        self.rmemory_path = get_ramfs_path(self.task["id"])
+        current.rmemory_path = get_ramfs_path(self.task["id"])
         # Give it the analysis task object.
         current.set_task(self.task)
         # Give it the the relevant reporting.conf section.
