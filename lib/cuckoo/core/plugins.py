@@ -184,7 +184,7 @@ class RunProcessing(object):
         # Give it path to the analysis results.
         current.set_path(self.analysis_path)
         # Set ramfs based memory dump path
-        self.rmemory_path = get_ramfs_path(self.task["id"])
+        current.self.rmemory_path = get_ramfs_path(self.task["id"])
         # Give it the analysis task object.
         current.set_task(self.task)
         # Give it the options from the relevant processing.conf section.
