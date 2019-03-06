@@ -5,7 +5,6 @@ from lib.cuckoo.common.config import Config
 from lib.cuckoo.common.abstracts import Report
 
 log = logging.getLogger(__name__)
-reporting_conf = Config("reporting")
 
 
 class Savememdmp(Report):
