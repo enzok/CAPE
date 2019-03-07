@@ -222,6 +222,11 @@ def index(request, resubmit_hash=False):
                 options += ","
             options += "submitter={}".format(submitter)
 
+        if request.POST.get("newloader"):
+            if options:
+                options += ","
+            options += "loader=newloader.exe,loader_64=newloader_x64.exe"
+
         orig_options = options
 
         if gateway and gateway.lower() == "all":
