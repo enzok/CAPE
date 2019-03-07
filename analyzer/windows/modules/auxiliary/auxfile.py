@@ -1,10 +1,7 @@
-import time
 import os
-import shutil
 import logging
-from threading import Thread
+import errno
 
-from lib.api.process import Process
 from lib.common.abstracts import Auxiliary
 
 log = logging.getLogger(__name__)
@@ -29,6 +26,13 @@ class Auxfile(Auxiliary):
             newfile = os.path.join(basepath, auxfile)
         else:
             newfile = os.path.join(auxpath, auxfile)
+
+        if not os.path.exists(os.path.dirname(newfile)):
+            try:
+                os.makedirs(os.path.dirname(newfile))
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
 
         try:
             if auxtxt:
