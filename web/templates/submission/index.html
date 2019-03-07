@@ -60,7 +60,7 @@ $(document).ready( function() {
 </script>
 <div class="row">
     <div class="col-md-6 col-md-offset-3 center">
-        <p style="margin-bottom: 10px;"><img src="{{ STATIC_URL }}graphic/cuckoo.png" /></p>
+        <p style="margin-bottom: 10px;"><img src="{{ STATIC_URL }}graphic/cape.png" /></p>
 
         <form role="form" action="" method="post" enctype="multipart/form-data">
             {% csrf_token %}
@@ -249,7 +249,8 @@ $(document).ready( function() {
                                                     <td><code>appdata</code></td>
                                                     <td>When using the exe package, set to 1 to run the executable out of the Application Data path instead of the Temp directory.</td>
                                                 </tr>
-                                                <td><code>startword</code></td>
+                                                <tr>
+                                                    <td><code>startword</code></td>
                                                     <td>Setting this option to 1 will launch a MS Word minimized (may be useful for samples looking for Word process.)</td>
                                                 </tr>
                                                 <tr>
