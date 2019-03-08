@@ -171,7 +171,7 @@ def index(request, resubmit_hash=False):
             if options:
                 options += ","
             options += "procdump=1"
-        
+
         if request.POST.get("process_memory"):
             if options:
                 options += ","
@@ -180,8 +180,8 @@ def index(request, resubmit_hash=False):
         if request.POST.get("import_reconstruction"):
             if options:
                 options += ","
-            options += "import_reconstruction=1"        
-            
+            options += "import_reconstruction=1"
+
         if request.POST.get("enable_cape"):
             if options:
                 options += ","
@@ -200,7 +200,7 @@ def index(request, resubmit_hash=False):
         if request.POST.get("kernel_analysis"):
             if options:
                 options += ","
-            options += "kernel_analysis=yes"   
+            options += "kernel_analysis=yes"
 
         if request.POST.get("norefer"):
             if options:
@@ -238,7 +238,7 @@ def index(request, resubmit_hash=False):
                 if request.POST.get("all_gw_in_group"):
                     tgateway = settings.GATEWAYS[gateway].split(",")
                     for e in tgateway:
-                        task_gateways.append(settings.GATEWAYS[e]) 
+                        task_gateways.append(settings.GATEWAYS[e])
                 else:
                     tgateway = random.choice(settings.GATEWAYS[gateway].split(","))
                     task_gateways.append(settings.GATEWAYS[tgateway])
@@ -302,7 +302,7 @@ def index(request, resubmit_hash=False):
                     return render(request, "error.html",
                                   {"error": "Uploaded file exceeds maximum size specified in "
                                             "web/web/local_settings.py."})
-    
+
                 # Moving sample from django temporary file to Cuckoo temporary storage to
                 # let it persist between reboot (if user like to configure it in that way).
                 if opt_filename:
@@ -310,7 +310,7 @@ def index(request, resubmit_hash=False):
                 else:
                     filename = sample.name
                 path = store_temp_file(sample.read(), filename)
-    
+
                 for gw in task_gateways:
                     options = update_options(gw, orig_options)
 
@@ -346,7 +346,7 @@ def index(request, resubmit_hash=False):
                     return render(request, "error.html",
                                               {"error": "Uploaded quarantine file exceeds maximum size specified " 
                                                         "in web/web/local_settings.py."})
-    
+
                 # Moving sample from django temporary file to Cuckoo temporary storage to
                 # let it persist between reboot (if user like to configure it in that way).
                 tmp_path = store_temp_file(sample.read(),
@@ -388,7 +388,7 @@ def index(request, resubmit_hash=False):
                 if not sample.size:
                     if len(samples) != 1:
                         continue
-                    
+
                     return render(request, "error.html",
                                               {"error": "You uploaded an empty PCAP file."})
                 elif sample.size > settings.MAX_UPLOAD_SIZE:
@@ -412,7 +412,7 @@ def index(request, resubmit_hash=False):
                     else:
                         return render(request, "error.html",
                                                   {"error": "Conversion from SAZ to PCAP failed."})
-       
+
                 task_id = db.add_pcap(file_path=path, priority=priority)
                 task_ids.append(task_id)
 
@@ -467,25 +467,21 @@ def index(request, resubmit_hash=False):
                         content = submit_utils.get_file_content(paths)
 
                     headers = {}
-
+                    url = "https://www.virustotal.com/api/v3/files/{id}/download".format(id = h)
                     if settings.VTDL_PRIV_KEY:
-                        url = 'https://www.virustotal.com/vtapi/v2/file/download'
-                        params = {'apikey': settings.VTDL_PRIV_KEY, 'hash': h}
-                    else:
-                        url = 'https://www.virustotal.com/intelligence/download/'
-                        params = {'apikey': settings.VTDL_INTEL_KEY, 'hash': h}
+                        headers = {'x-apikey': settings.VTDL_PRIV_KEY}
+                    elif settings.VTDL_INTEL_KEY:
+                        headers = {'x-apikey': settings.VTDL_INTEL_KEY}
 
                     if content is False:
-                        status, task_ids = download_file(content, request, db, task_ids, url, params, headers,
-                                                         "VirusTotal", filename, package, timeout, options, priority,
-                                                         machine, gateway, clock, custom, memory, enforce_timeout,
-                                                         referrer, tags, orig_options, task_gateways, task_machines)
+                        status, task_ids = download_file(content, request, db, task_ids, url, params, headers, "VirusTotal", filename, package, timeout, options, priority, machine, gateway,
+                                                         clock, custom, memory, enforce_timeout, referrer, tags, orig_options, task_gateways, task_machines)
                     else:
+                        status, task_ids = download_file(content, request, db, task_ids, url, params, headers, "Local", filename, package, timeout, options, priority, machine, gateway,
+                                                         clock, custom, memory, enforce_timeout, referrer, tags, orig_options, task_gateways, task_machines)
+                if status != "ok":
+                    failed_hashes.append(h)
 
-                        status, task_ids = download_file(content, request, db, task_ids, url, params, headers, "Local",
-                                                         filename, package, timeout, options, priority, machine,
-                                                         gateway, clock, custom, memory, enforce_timeout, referrer,
-                                                         tags, orig_options, task_gateways, task_machines)
         if status == "error":
             # is render msg
             return task_ids
