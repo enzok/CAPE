@@ -450,6 +450,7 @@ def index(request, resubmit_hash=False):
             else:
                 base_dir = tempfile.mkdtemp(prefix='cuckoovtdl', dir=settings.VTDL_PATH)
                 hashlist = []
+                params = {}
                 if "," in vtdl:
                     hashlist = vtdl.replace(" ", "").strip().split(",")
                 else:
@@ -467,21 +468,22 @@ def index(request, resubmit_hash=False):
                         content = submit_utils.get_file_content(paths)
 
                     headers = {}
-                    params = {}
-                    url = "https://www.virustotal.com/api/v3/files/{id}/download".format(id = h)
+                    url = "https://www.virustotal.com/api/v3/files/{id}/download".format(id=h)
                     if settings.VTDL_PRIV_KEY:
                         headers = {'x-apikey': settings.VTDL_PRIV_KEY}
                     elif settings.VTDL_INTEL_KEY:
                         headers = {'x-apikey': settings.VTDL_INTEL_KEY}
 
                     if content is False:
-                        status, task_ids = download_file(content, request, db, task_ids, url, params, headers, "VirusTotal", filename, package, timeout, options, priority, machine, gateway,
-                                                         clock, custom, memory, enforce_timeout, referrer, tags, orig_options, task_gateways, task_machines)
+                        status, task_ids = download_file(content, request, db, task_ids, url, params, headers,
+                                                         "VirusTotal", filename, package, timeout, options, priority,
+                                                         machine, gateway, clock, custom, memory, enforce_timeout,
+                                                         referrer, tags, orig_options, task_gateways, task_machines)
                     else:
-                        status, task_ids = download_file(content, request, db, task_ids, url, params, headers, "Local", filename, package, timeout, options, priority, machine, gateway,
-                                                         clock, custom, memory, enforce_timeout, referrer, tags, orig_options, task_gateways, task_machines)
-                if status != "ok":
-                    failed_hashes.append(h)
+                        status, task_ids = download_file(content, request, db, task_ids, url, params, headers, "Local",
+                                                         filename, package, timeout, options, priority, machine,
+                                                         gateway, clock, custom, memory, enforce_timeout, referrer,
+                                                         tags, orig_options, task_gateways, task_machines)
 
         if status == "error":
             # is render msg
