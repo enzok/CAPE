@@ -131,11 +131,6 @@ def demux_sflock(filename, options):
 
 
 def demux_sample(filename, package, options):
-    """
-    If file is a ZIP, extract its included files and return their file paths
-    If file is an email, extracts its attachments and return their file paths (later we'll also extract URLs)
-    """
-
     # if a package was specified, then don't do anything special
     # this will allow for the ZIP package to be used to analyze binaries with included DLL dependencies
     # do the same if file= is specified in the options
@@ -147,7 +142,7 @@ def demux_sample(filename, package, options):
 
     # if file is an Office doc and password is supplied, try to decrypt the doc
     if "Microsoft" in magic:
-        if "Outlook" or "Message" in magic:
+        if "Outlook" in magic or "Message" in magic:
             log.debug("Extracting msg file - {}".format(filename))
             pass
         elif "Composite Document File" in magic or "CDFV2 Encrypted" in magic:
@@ -161,6 +156,8 @@ def demux_sample(filename, package, options):
             else:
                 log.debug("Submitting Office document - {}".format(filename))
                 return [filename]
+        else:
+            return [filename]
 
     # don't try to extract from Java archives or executables
     if "Java Jar" in magic:
