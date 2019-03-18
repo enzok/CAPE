@@ -28,7 +28,7 @@ class Zip(Package):
              ("SystemRoot", "system32", "cmd.exe"),
              ("SystemRoot", "system32", "wscript.exe"),
              ("SystemRoot", "system32", "rundll32.exe"),
-             ("SystemRoot", "sysnative", "WindowsPowerShell", "v1.0", "powershell.exe"
+             ("SystemRoot", "sysnative", "WindowsPowerShell", "v1.0", "powershell.exe"),
              ("SystemRoot", "system32", "xpsrchvw.exe"),
             ]
 
