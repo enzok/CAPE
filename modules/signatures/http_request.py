@@ -23,7 +23,7 @@ class HTTP_Request(Signature):
                                "apps.identrust.com"]
 
     filter_apinames = set(["HttpOpenRequestA", "HttpOpenRequestW", "InternetConnectA",
-                           "InternetConnectW", "WinHttpGetProxyForUrl", "InternetOpenUrlA"
+                           "InternetConnectW", "WinHttpGetProxyForUrl", "InternetOpenUrlA", "InternetOpenUrlW"
                            "InternetCrackUrlA", "InternetCrackUrlW"])
 
 
