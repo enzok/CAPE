@@ -835,7 +835,7 @@ def report(request, task_id):
                                   {"error": "The specified analysis does not exist"})
 
     children = 0
-    # If compressed, decompress CAPE data    
+    # If compressed, decompress CAPE data
     if "CAPE" in report:
         try:
             report["CAPE"] = json.loads(zlib.decompress(report["CAPE"]))
@@ -851,7 +851,7 @@ def report(request, task_id):
             report["procdump"] = json.loads(zlib.decompress(report["procdump"]))
         except:
             pass
-    
+
     if "enhanced" in report["behavior"]:
         try:
             report["behavior"]["enhanced"] = json.loads(zlib.decompress(report["behavior"]["enhanced"]))
@@ -862,6 +862,16 @@ def report(request, task_id):
             report["behavior"]["summary"] = json.loads(zlib.decompress(report["behavior"]["summary"]))
         except:
             pass
+
+    debugger_log_path = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(task_id), "debugger")
+    if os.path.exists(debugger_log_path):
+        report["debugger_logs"] = {}
+        for root, dirs, files in os.walk(debugger_log_path):
+            for name in files:
+                if name.endswith('.log'):
+                    debugger_log_file = open(os.path.join(root, name), "r")
+                    report["debugger_logs"][int(name.strip('.log'))] = debugger_log_file.read()
+                    debugger_log_file.close()
 
     if settings.MOLOCH_ENABLED and "suricata" in report:
         suricata = report["suricata"]
@@ -931,7 +941,7 @@ def report(request, task_id):
     if os.path.exists(vba2graph_svg_path):
         vba2graph_svg_content = open(vba2graph_svg_path, "rb").read()
         vba2graph = True
-    
+
     bingraph = False
     bingraph_svg_content = ""
     bingraph_svg_path = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(task_id), "bingraph", "ent.svg")
@@ -974,13 +984,11 @@ def file(request, category, task_id, dlfile):
         path = os.path.join(CUCKOO_ROOT, "storage", "analyses", task_id, "rtf_objects", file_name)
     elif category == "pcap":
         file_name += ".pcap"
-        # Forcefully grab dump.pcap, serve it as [sha256].pcap
         path = os.path.join(CUCKOO_ROOT, "storage", "analyses",
                             task_id, "dump.pcap")
         cd = "application/vnd.tcpdump.pcap"
     elif category == "screenshot":
         file_name += ".jpg"
-        #print file_name
         path = os.path.join(CUCKOO_ROOT, "storage", "analyses",
                             task_id, "shots", file_name)
         cd = "image/jpeg"
@@ -1001,41 +1009,16 @@ def file(request, category, task_id, dlfile):
         buf = os.path.join(CUCKOO_ROOT, "storage", "analyses",
                            task_id, "files", file_name)
         if os.path.isdir(buf):
-            # Backward compat for when each dropped file was in a separate dir
-            # Grab smaller file name as we store guest paths in the
-            # [orig file name]_info.exe
-            dfile = min(os.listdir(buf), key=len)
             path = os.path.join(buf, dfile)
-            #file_name = dfile + ".bin"
         else:
             path = buf
-            #file_name += ".bin"
     elif category == "procdump":
         buf = os.path.join(CUCKOO_ROOT, "storage", "analyses",
                            task_id, "procdump", file_name)
         if os.path.isdir(buf):
-            # Backward compat for when each dropped file was in a separate dir
-            # Grab smaller file name as we store guest paths in the
-            # [orig file name]_info.exe
-            dfile = min(os.listdir(buf), key=len)
             path = os.path.join(buf, dfile)
-            #file_name = dfile + ".bin"
         else:
             path = buf
-            #file_name += ".bin"
-    elif category == "CAPE":
-        buf = os.path.join(CUCKOO_ROOT, "storage", "analyses",
-                           task_id, "CAPE", file_name)
-        if os.path.isdir(buf):
-            # Backward compat for when each dropped file was in a separate dir
-            # Grab smaller file name as we store guest paths in the
-            # [orig file name]_info.exe
-            dfile = min(os.listdir(buf), key=len)
-            path = os.path.join(buf, dfile)
-            #file_name = dfile + ".bin"
-        else:
-            path = buf
-            #file_name += ".bin"
     # Just for suricata dropped files currently
     elif category == "zip":
         file_name = "files.zip"
@@ -1046,6 +1029,9 @@ def file(request, category, task_id, dlfile):
         file_name = "file." + dlfile
         path = os.path.join(CUCKOO_ROOT, "storage", "analyses",
                             task_id, "logs", "files", file_name)
+    elif category == "debugger_log":
+        file_name += ".log"
+        path = os.path.join(CUCKOO_ROOT, "storage", "analyses", task_id, "debugger", file_name)
     else:
         return render(request, "error.html",
                                   {"error": "Category not defined"})
@@ -1057,8 +1043,7 @@ def file(request, category, task_id, dlfile):
         resp = StreamingHttpResponse(FileWrapper(open(path), 8192),
                                      content_type=cd)
     except:
-        return render(request, "error.html",
-                                  {"error": "File not found"})
+        return render(request, "error.html", {"error": "File not found"})
 
     resp["Content-Length"] = os.path.getsize(path)
     resp["Content-Disposition"] = "attachment; filename=" + file_name
