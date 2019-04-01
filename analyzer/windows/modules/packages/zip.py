@@ -227,7 +227,7 @@ class Zip(Package):
             return self.execute(rundll32, dll_args, file_path)
         elif file_name.lower().endswith(".ps1"):
             powershell = self.get_path_app_in_path("powershell.exe")
-            args = "-NoProfile -ExecutionPolicy bypass -File \"{0}\"".format(path)
+            args = "-NoProfile -ExecutionPolicy bypass -File \"{0}\"".format(file_path)
             return self.execute(powershell, args, file_path)
         else:
             return self.execute(file_path, self.options.get("arguments"), file_path)
