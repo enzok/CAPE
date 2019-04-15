@@ -83,6 +83,8 @@ QAKBOT_PAYLOAD          = 0x39
 SCRIPT_DUMP             = 0x65
 MOREEGGSJS_PAYLOAD      = 0x68
 MOREEGGSBIN_PAYLOAD     = 0x69
+ICEDID_LOADER           = 0x40
+ICEDID_BOT              = 0x41
 UPX                     = 0x1000
 
 log = logging.getLogger(__name__)

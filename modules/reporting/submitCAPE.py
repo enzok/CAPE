@@ -166,6 +166,9 @@ class SubmitCAPE(Report):
                 self.task_options_stack.append("bp1={0}".format(decrypt_config))
                 detections.add('QakBot')
 
+        if cape_yara["name"] == "IcedID":
+            detections.add('IcedID')
+
     def submit_task(self, target, package, timeout, task_options, priority, machine, platform, memory, enforce_timeout,
                     clock, tags, parent_id):
 
@@ -218,7 +221,7 @@ class SubmitCAPE(Report):
                 if "cape_yara" in file:
                     for entry in file["cape_yara"]:
                         self.process_cape_yara(entry, detections)
-                        
+
         for pattern in ("procdump", "CAPE", "dropped"):
             if pattern in results:
                 if results[pattern] is not None:
@@ -382,6 +385,9 @@ class SubmitCAPE(Report):
 
         if 'QakBot' in detections and parent_package=='exe':
             package = 'QakBot'	
+
+        if 'IcedID' in detections and parent_package=='exe':
+            package = 'IcedID'
 
         #if 'RegBinary' in detections or 'CreatesLargeKey' in detections and parent_package=='exe':
         if 'RegBinary' in detections and parent_package=='exe':
