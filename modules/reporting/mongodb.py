@@ -39,7 +39,12 @@ class MongoDB(Report):
         db = self.options.get("db", "cuckoo")
 
         try:
-            self.conn = MongoClient(host, port)
+            self.conn = MongoClient( host,
+                                port=port,
+                                username=self.options.get("username", None),
+                                password=self.options.get("password", None),
+                                authSource=db
+                                )
             self.db = self.conn[db]
         except TypeError:
             raise CuckooReportError("Mongo connection port must be integer")

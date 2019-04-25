@@ -29,6 +29,20 @@ from lib.cuckoo.core.database import Database
 from lib.cuckoo.common.objects import File
 from utils import submit_utils
 
+
+# this required for hash searches
+FULL_DB = False
+repconf = Config("reporting")
+if repconf.mongodb.enabled:
+    import pymongo
+    results_db = pymongo.MongoClient( repconf.mongodb.host,
+                                port=repconf.mongodb.port,
+                                username=repconf.mongodb.get("username", None),
+                                password=repconf.mongodb.get("password", None),
+                                authSource=repconf.mongodb.db
+                                )[repconf.mongodb.db]
+    FULL_DB = True
+
 # Conditional decorator for web authentication
 class conditional_login_required(object):
     def __init__(self, dec, condition):

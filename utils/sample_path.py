@@ -18,15 +18,12 @@ if len(sys.argv) == 2:
             print("Found by db.sample_path_by_hash: {}".format(sys.argv[1]))
             print(paths)
     else:
-        results_db = pymongo.MongoClient(
-            repconf.mongodb.host,
-            port=repconf.mongodb.port,
-            username=repconf.mongodb.get(
-                "username", None),
-            password=repconf.mongodb.get(
-                "password", None),
-            authSource=repconf.mongodb.db
-            )[repconf.mongodb.db]
+        results_db = pymongo.MongoClient(   repconf.mongodb.host,
+                                            port=repconf.mongodb.port,
+                                            username=repconf.mongodb.get("username", None),
+                                            password=repconf.mongodb.get("password", None),
+                                            authSource=repconf.mongodb.db
+                                            )[repconf.mongodb.db]
         tasks = results_db.analysis.find({"dropped.sha256": sys.argv[1]})
         if tasks:
             for task in tasks:
