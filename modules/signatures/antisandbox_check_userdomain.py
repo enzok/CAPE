@@ -28,7 +28,7 @@ class AntiSandboxCheckUserdomain(Signature):
 
     def on_call(self, call, process):
         if call["api"] == "rtcEnvironBstr":
-            envvar = int(self.get_argument(call, "EnvVar"))
+            envvar = self.get_argument(call, "EnvVar")
             if envvar == "userdomain":
                 return True
         else:
