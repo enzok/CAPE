@@ -35,10 +35,8 @@ class MMBot(Processing):
     def run(self):
         self.key = "mmbot"
         results = dict()
-        ftypes = ["Zip archive data, at least v2.0",
-                  "Composite Document File V2 Document",
-                  "Microsoft OOXML"]
-        pkglist = ["doc", "ppt", "xls", "pub"]
+
+        ftype = File(self.file_path).get_type()
 
         if self.task["category"] == "file":
             if not HAVE_MMBOT:
@@ -49,7 +47,10 @@ class MMBot(Processing):
             if "info" in self.results and "package" in self.results["info"]:
                 package = self.results["info"]["package"]
 
-            if (package not in pkglist) or (ftypes not in File(self.file_path).get_type()):
+            if (package not in ("doc", "ppt", "xls", "pub") or
+                    "Zip archive data, at least v2.0" not in ftype or
+                    "Composite Document File V2 Document" not in ftype or
+                    "Microsoft OOXML" not in ftype):
                 return results
 
             opts = dict()
