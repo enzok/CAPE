@@ -143,7 +143,7 @@ class ElasticsearchDB(Report):
                         report["CAPE"] = cape
             report["signatures"] = results.get("signatures")
             report["strings"] = results.get("strings")
-            report["mmbot"] = results.get("static", {}).get("office", {}).get("mmbot", {})
+            report["mmbot"] = results.get("mmbot", {})
 
             # Store unique list of API calls
             if "behavior" in results and "processes" in results["behavior"]:

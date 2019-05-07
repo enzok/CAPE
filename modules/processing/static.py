@@ -105,12 +105,6 @@ from lib.cuckoo.common.pdftools.pdfid import PDFiD, PDFiD2JSON
 from lib.cuckoo.common.peepdf.PDFCore import PDFParser
 from lib.cuckoo.common.peepdf.JSAnalysis import analyseJS
 
-try:
-    from mmbot import MaliciousMacroBot
-    HAVE_MMBOT = True
-except:
-    HAVE_MMBOT = False
-
 log = logging.getLogger(__name__)
 processing_conf = Config("processing")
 
@@ -1336,9 +1330,6 @@ class Office(object):
             if macrores["Analysis"]["HexStrings"] == []:
                 del macrores["Analysis"]["HexStrings"]
 
-            if HAVE_MMBOT:
-                officeresults["mmbot"] = self.mmbot()
-
             if HAVE_VBA2GRAPH and processing_conf.vba2graph.enabled:
                 try:
                     vba2graph_path = os.path.join(CUCKOO_ROOT, "storage", "analyses",
@@ -1364,33 +1355,6 @@ class Office(object):
             if indicator.name == "PowerPoint Presentation" and indicator.value == True:
                 metares["DocumentType"] = indicator.name
 
-        return results
-
-    def mmbot(self):
-        """MaliciousMacroBot analysis.
-        @return: malicious label and scores
-        """
-
-        results = dict()
-
-        try:
-            mmb = MaliciousMacroBot(self.opts["benign_path"],
-                                    self.opts["malicious_path"],
-                                    self.opts["model_path"],
-                                    retain_sample_contents=False)
-            initresult = mmb.mmb_init_model(modelRebuild=False)
-            predresult = mmb.mmb_predict(self.file_path)
-            results = mmb.mmb_prediction_to_json(predresult)[0]
-
-            if "malicious" in results["prediction"]:
-                link_path = os.path.join(self.opts["malicious_path"], os.path.basename(self.file_path))
-                if not os.path.isfile(link_path):
-                    os.symlink(self.file_path, link_path)
-
-        except Exception as xcpt:
-            log.error("Failed to run mmbot processing: %s", xcpt)
-
-        log.debug(results)
         return results
 
     def run(self):
@@ -1711,14 +1675,6 @@ class Static(Processing):
                 package = self.results["info"]["package"]
 
             thetype = File(self.file_path).get_type()
-            mmbot_opts = {}
-            if HAVE_MMBOT:
-                mmbot_opts['benign_path'] = self.options.get("benign_path",
-                                                             os.path.join(CUCKOO_ROOT, "data", "mmbot", "benign"))
-                mmbot_opts['malicious_path'] = self.options.get("malicious_path",
-                                                                os.path.join(CUCKOO_ROOT, "data", "mmbot", "malicious"))
-                mmbot_opts['model_path'] = self.options.get("model_path",
-                                                                os.path.join(CUCKOO_ROOT, "data", "mmbot", "model"))
             if HAVE_PEFILE and ("PE32" in thetype or "MS-DOS executable" in thetype):
                 static = PortableExecutable(self.file_path, self.results).run()
                 if static and "Mono" in thetype:
@@ -1726,7 +1682,7 @@ class Static(Processing):
             elif "PDF" in thetype or self.task["target"].endswith(".pdf"):
                 static = PDF(self.file_path).run()
             elif package in ("doc", "ppt", "xls", "pub"):
-                static = Office(self.file_path, mmbot_opts, self.results).run()
+                static = Office(self.file_path, self.results).run()
             elif "Java Jar" in thetype or "Java archive" in thetype or self.task["target"].endswith(".jar"):
                 decomp_jar = self.options.get("procyon_path", None)
                 if decomp_jar and not os.path.exists(decomp_jar):
@@ -1737,9 +1693,9 @@ class Static(Processing):
             # oleid to fail us out silently, yeilding no static analysis
             # results for actual zip files.
             elif "Zip archive data, at least v2.0" in thetype:
-                static = Office(self.file_path, mmbot_opts, self.results).run()
+                static = Office(self.file_path, self.results).run()
             elif "Composite Document File V2 Document" in thetype or "Microsoft OOXML" in thetype:
-                static = Office(self.file_path, mmbot_opts, self.results).run()
+                static = Office(self.file_path, self.results).run()
             elif package == "wsf" or thetype == "XML document text" or self.task["target"].endswith(".wsf") or package == "hta":
                 static = WindowsScriptFile(self.file_path).run()
             elif package == "js" or package == "vbs":
