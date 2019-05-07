@@ -1032,9 +1032,8 @@ class Office(object):
         - Publisher (.pub)
         - Rich Text Format (.rtf)
     """
-    def __init__(self, file_path, options, results):
+    def __init__(self, file_path, results):
         self.file_path = file_path
-        self.opts = options
         self.results = results
 
     # Parse a string-casted datetime object that olefile returns. This will parse
