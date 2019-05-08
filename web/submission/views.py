@@ -222,10 +222,10 @@ def index(request, resubmit_hash=False):
                 options += ","
             options += "submitter={}".format(submitter)
 
-        if request.POST.get("newloader"):
+        if request.POST.get("oldloader"):
             if options:
                 options += ","
-            options += "loader=newloader.exe,loader_64=newloader_x64.exe"
+            options += "loader=oldloader.exe,loader_64=oldloader_x64.exe"
 
         orig_options = options
 
