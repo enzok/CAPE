@@ -667,3 +667,53 @@ class Scheduler:
                 raise errors.get(block=False)
             except Queue.Empty:
                 pass
+
+class MachineTest:
+    """VM Machine test.
+    """
+    def __init__(self):
+        self.cfg = Config()
+
+    def test(self):
+        """Test the machine manager."""
+        global machinery, machine_lock
+
+        machinery_name = self.cfg.cuckoo.machinery
+
+        # Get registered class name. Only one machine manager is imported,
+        # therefore there should be only one class in the list.
+        plugin = list_plugins("machinery")[0]
+        # Initialize the machine manager.
+        machinery = plugin()
+
+        # Find its configuration file.
+        conf = os.path.join(CUCKOO_ROOT, "conf", "%s.conf" % machinery_name)
+
+        if not os.path.exists(conf):
+            raise CuckooCriticalError("The configuration file for machine "
+                                      "manager \"{0}\" does not exist at path:"
+                                      " {1}".format(machinery_name, conf))
+
+        # Provide a dictionary with the configuration options to the
+        # machine manager instance.
+        machinery.set_options(Config(machinery_name))
+
+        # Initialize the machine manager.
+        try:
+            machinery.initialize(machinery_name)
+        except CuckooMachineError as e:
+            raise CuckooCriticalError("Error initializing machines: %s" % e)
+
+        # At this point all the available machines should have been identified
+        # and added to the list. If none were found, Cuckoo needs to abort the
+        # execution.
+        if not len(machinery.machines()):
+            raise CuckooCriticalError("No machines available.")
+        else:
+            log.info("Loaded %s machine/s", len(machinery.machines()))
+
+        if len(machinery.machines()) > 4 and self.cfg.cuckoo.process_results:
+            log.warning("When running many virtual machines it is recommended "
+                        "to process the results in a separate process.py to "
+                        "increase throughput and stability. Please read the "
+                        "documentation about the `Processing Utility`.")

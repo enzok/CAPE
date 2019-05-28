@@ -22,7 +22,7 @@ try:
     from lib.cuckoo.core.startup import init_logging, init_modules, init_console_logging
     from lib.cuckoo.core.startup import init_tasks, init_yara
     from lib.cuckoo.core.startup import cuckoo_remove_pending_tasks, cuckoo_clean_tasks
-    from lib.cuckoo.core.scheduler import Scheduler
+    from lib.cuckoo.core.scheduler import Scheduler, MachineTest
     from lib.cuckoo.core.resultserver import ResultServer
 
     import bson
@@ -66,6 +66,8 @@ def cuckoo_init(quiet=False, debug=False, artwork=False, test=False):
     # This is just a temporary hack, we need an actual test suite to integrate
     # with Travis-CI.
     if test:
+        mtest = MachineTest()
+        mtest.test()
         return
 
     ResultServer()
