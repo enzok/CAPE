@@ -710,7 +710,7 @@ class MachineTest:
         if not len(machinery.machines()):
             raise CuckooCriticalError("No machines available.")
         else:
-            log.info("Loaded %s machine/s", len(machinery.machines()))
+            log.info("%s machine/s tested OK.", len(machinery.machines()))
 
         if len(machinery.machines()) > 4 and self.cfg.cuckoo.process_results:
             log.warning("When running many virtual machines it is recommended "
