@@ -108,7 +108,7 @@ class OfficeAnamalousFeature(Signature):
             ret = True
 
         return ret
-    
+
 class OfficeDDECommand(Signature):
     name = "office_dde_command"
     description = "The Office file contains an embedded Dynamic Data Exchange (DDE) command"
@@ -127,5 +127,4 @@ class OfficeDDECommand(Signature):
             dde = self.results["static"]["office_dde"]
             self.data.append({"command" : dde})
             ret = True
-
         return ret

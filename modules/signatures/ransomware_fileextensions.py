@@ -73,6 +73,15 @@ class RansomwareExtensions(Signature):
             (".*\.no_more_ransom$", ["Troldesh"]),
             (".*_luck$", ["CryptoLuck"]),
             (".*\.CHIP$", ["CHIP"]),
+            ("\.KRAB$", ["GandCrab"]),
+            (".*\.DALE$", ["CHIP"]),
+            (".*\.sexy$", ["PayDay"]),
+            (".*\.kraken$", ["Kraken"]),
+            (".*\.lesli$", ["CryptoMix"]),
+            (".*\.sage$", ["Sage"]),
+            (".*\.CRYPTOSHIELD$", ["CryptoShield"]),
+            (".*\.serpent$", ["Serpent"]),
+            (".*\.REVENGE$", ["Revenge"]),
         ]
 
         for indicator in indicators:
