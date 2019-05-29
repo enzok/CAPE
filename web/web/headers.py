@@ -6,6 +6,11 @@ import sys
 
 from django.conf import settings
 
+try:
+    from django.utils.deprecation import MiddlewareMixin
+except:
+    pass
+
 sys.path.append(settings.CUCKOO_PATH)
 
 from lib.cuckoo.common.constants import CUCKOO_VERSION
