@@ -135,6 +135,7 @@ class ElasticsearchDB(Report):
             report["summary"] = results.get("behavior", {}).get("summary")
             report["network"] = results.get("network")
             report["malfamily"] = results.get("malfamily", "")
+            report["malscore"] = results.get("malscore", 0)
             report["cape"] = results.get("cape", "")
             cape_result = results.get("CAPE", "")
             if cape_result:
