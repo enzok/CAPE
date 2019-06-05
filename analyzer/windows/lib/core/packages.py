@@ -46,12 +46,8 @@ def choose_package(file_type, file_name, exports, file_path):
         return "ppt"
     elif "Java Jar" in file_type or "Java archive" in file_type or file_name.endswith(".jar"):
         return "jar"
-    elif "Zip" in file_type:
-        return "zip"
     elif "ELF" in file_type:
         return "elf"
-    elif "RAR archive" in file_type or file_name.endswith(".rar"):
-        return "rar"
     elif "Macromedia Flash" in file_type or file_name.endswith(".swf"):
         return "swf"
     elif file_name.endswith((".py", ".pyc")) or "Python script" in file_type:
