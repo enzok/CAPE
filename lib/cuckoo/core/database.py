@@ -13,7 +13,7 @@ from lib.cuckoo.common.exceptions import CuckooDatabaseError
 from lib.cuckoo.common.exceptions import CuckooOperationalError
 from lib.cuckoo.common.exceptions import CuckooDependencyError
 from lib.cuckoo.common.objects import File, URL, PCAP
-from lib.cuckoo.common.utils import create_folder, Singleton, classlock, SuperLock
+from lib.cuckoo.common.utils import create_folder, Singleton, classlock, SuperLock, get_options
 from lib.cuckoo.common.demux import demux_sample
 
 try:
@@ -881,7 +881,7 @@ class Database(object):
             custom="", machine="", platform="", tags=None,
             memory=False, enforce_timeout=False, clock=None,
             shrike_url=None, shrike_msg=None,
-            shrike_sid = None, shrike_refer=None, parent_id=None):
+            shrike_sid=None, shrike_refer=None, parent_id=None):
         """Add a task to database.
         @param obj: object to add (File or URL).
         @param timeout: selected timeout.
@@ -1031,16 +1031,24 @@ class Database(object):
 
     def demux_sample_and_add_to_db(self, file_path, timeout=0, package="", options="", priority=1,
                                    custom="", machine="", platform="", tags=None,
-                                   memory=False, enforce_timeout=False, clock=None,shrike_url=None,
-                                   shrike_msg=None, shrike_sid = None, shrike_refer=None, parent_id=None):
+                                   memory=False, enforce_timeout=False, clock=None, shrike_url=None,
+                                   shrike_msg=None, shrike_sid=None, shrike_refer=None, parent_id=None):
         """
         Handles ZIP file submissions, submitting each extracted file to the database
         Returns a list of added task IDs
         """
         task_ids = []
-        # extract files from the (potential) ZIP
+        # extract files from the (potential) archive
         extracted_files = demux_sample(file_path, package, options)
-        # create tasks for each file in the ZIP
+
+        # Check for 'file' option indicating supporting files needed for upload; otherwise create task for each file
+        opts = get_options(options)
+        if "file" in opts:
+            for xfile in extracted_files:
+                if opts["file"].lower() in xfile.lower():
+                    extracted_files = [xfile]
+                    break
+
         for file in extracted_files:
             task_id = self.add_path(file_path=file,
                                     timeout=timeout,
@@ -1068,7 +1076,7 @@ class Database(object):
     def add_pcap(self, file_path, timeout=0, package="", options="", priority=1,
                 custom="", machine="", platform="", tags=None, memory=False,
                 enforce_timeout=False, clock=None, shrike_url=None, shrike_msg=None,
-                shrike_sid = None, shrike_refer=None, parent_id=None):
+                shrike_sid=None, shrike_refer=None, parent_id=None):
         return self.add(PCAP(file_path), timeout, package, options, priority,
                         custom, machine, platform, tags, memory,
                         enforce_timeout, clock, shrike_url, shrike_msg,
@@ -1078,7 +1086,7 @@ class Database(object):
     def add_url(self, url, timeout=0, package="", options="", priority=1,
                 custom="", machine="", platform="", tags=None, memory=False,
                 enforce_timeout=False, clock=None, shrike_url=None, shrike_msg=None,
-                shrike_sid = None, shrike_refer=None, parent_id=None):
+                shrike_sid=None, shrike_refer=None, parent_id=None):
         """Add a task to database from url.
         @param url: url.
         @param timeout: selected timeout.
