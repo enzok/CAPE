@@ -105,7 +105,7 @@ def get_filenames(retlist, tmp_dir, children):
 def demux_sflock(filename, options):
     retlist = []
     try:
-        password = "infected"
+        password = ""
         tmp_pass = options2passwd(options)
         if tmp_pass:
             password = tmp_pass
