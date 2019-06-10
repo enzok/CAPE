@@ -39,6 +39,8 @@ demux_extensions_list = [
         ".html", ".hta",
     ]
 
+office_exts = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"]
+
 
 def options2passwd(options):
     password = False
@@ -89,7 +91,7 @@ def get_filenames(retlist, tmp_dir, children):
     try:
         for child in children:
             at = child.astree()
-            if 'file' in at['type'] or child.package in ['doc', 'xls', 'ppt']:
+            if 'file' in at['type'] or child.package in office_exts:
                 base, ext = os.path.splitext(at['filename'])
                 ext = ext.lower()
                 if ext in demux_extensions_list:
