@@ -59,6 +59,9 @@ Packet = namedtuple("Packet", ["raw", "ts"])
 log = logging.getLogger(__name__)
 
 enabled_whitelist = Config("processing").network.dnswhitelist
+whitelist_file = Config("processing").network.dnswhitelist_file
+inetsim_list = Config("processing").network.inetsim_list
+
 
 class Pcap:
     """Reads network data from PCAP file."""
@@ -90,7 +93,7 @@ class Pcap:
         self.http_requests = OrderedDict()
         # List containing all DNS requests.
         self.dns_requests = OrderedDict()
-        self.dns_answers = {}
+        self.dns_answers = set()
         # List containing all SMTP requests.
         self.smtp_requests = []
         # Reconstruncted SMTP flow.
@@ -119,7 +122,26 @@ class Pcap:
             "\.gvt1\.com$",
             "\.msedge\.net$",
             "\.msftncsi\.com$",
+            "^apps\.identrust\.com$",
+            "^isrg\.trustid\.ocsp\.identrust\.com$",
+            "^urs\.microsoft\.com$",
+            "^config\.edge\.skype\.com$",
+            "^client-office365-tas\.msedge\.net$",
+            "^files\.acrobat\.com$",
+            "^acroipm2\.adobe\.com$",
+            "^acroipm\.adobe\.com$",
+            "^ocsp\.trust-provider\.com$",
+            "^ocsp\.comodoca4\.com$",
+            "^ocsp\.pki\.goog$",
         ]
+        if enabled_whitelist and whitelist_file:
+            file_domain_whitelist = []
+            with open(os.path.join(CUCKOO_ROOT, whitelist_file), 'r') as f:
+                for entry in f.read().split("\n"):
+                    if entry.startswith("#") or len(entry.strip()) == 0:
+                        continue  # comment or empty line
+                    file_domain_whitelist.append(entry)
+                self.domain_whitelist = list(set(file_domain_whitelist))
         self.ip_whitelist = set()
 
     def _dns_gethostbyname(self, name):
@@ -155,7 +177,7 @@ class Pcap:
             ("203.0.113.0", 24),
             ("240.0.0.0", 4),
             ("255.255.255.255", 32),
-            ("224.0.0.0", 4)
+            ("224.0.0.0", 4),
         ]
 
         try:
@@ -191,6 +213,8 @@ class Pcap:
                 ip = convert_to_printable(connection["dst"])
 
                 if ip not in self.hosts:
+                    if ip in self.ip_whitelist and not inetsim_list:
+                        return False
                     self.hosts.append(ip)
 
                     # We add external IPs to the list, only the first time
@@ -399,12 +423,13 @@ class Pcap:
                 ans["data"] = ""
                 query["answers"].append(ans)
 
-            if enabled_whitelist:
+            if enabled_whitelist and not inetsim_list:
                 for reject in self.domain_whitelist:
                     if re.match(reject, query["request"]):
                         if query["answers"]:
                             for addip in query["answers"]:
-                                self.ip_whitelist.add(addip["data"])
+                                if addip["type"] == "A" or addip["type"] == "AAAA":
+                                    self.ip_whitelist.add(addip["data"])
                         return True
 
             self._add_domain(query["request"])
@@ -412,12 +437,8 @@ class Pcap:
             reqtuple = query["type"], query["request"]
             if reqtuple not in self.dns_requests:
                 self.dns_requests[reqtuple] = query
-            new_answers = set((i["type"], i["data"]) for i in query["answers"])
-            if reqtuple not in self.dns_answers:
-                self.dns_answers[reqtuple] = new_answers
-            else:
-                new_answers = new_answers - self.dns_answers[reqtuple]
-                self.dns_answers[reqtuple].update(new_answers)
+            new_answers = set((i["type"], i["data"]) for i in query["answers"]) - self.dns_answers
+            self.dns_answers.update(new_answers)
             self.dns_requests[reqtuple]["answers"] += [dict(type=i[0], data=i[1]) for i in new_answers]
 
         return True
@@ -431,6 +452,8 @@ class Pcap:
             ".*\\.in\\-addr\\.arpa$",
             ".*\\.ip6\\.arpa$",
         ]
+
+        filters.extend(self.domain_whitelist)
 
         regexps = [re.compile(filter) for filter in filters]
         for regexp in regexps:
@@ -484,6 +507,11 @@ class Pcap:
                 entry["host"] = convert_to_printable(http.headers["host"])
             else:
                 entry["host"] = conn["dst"]
+
+            if enabled_whitelist:
+                for reject in self.domain_whitelist:
+                    if re.search(reject, entry["host"]):
+                        return False
 
             entry["port"] = conn["dport"]
 
@@ -549,9 +577,15 @@ class Pcap:
     def _add_irc(self, conn, tcpdata):
         """
         Adds an IRC communication.
-	    @param conn: TCP connection info.
+        @param conn: TCP connection info.
         @param tcpdata: TCP data in flow
         """
+
+        if enabled_whitelist and not inetsim_list:
+            if conn["src"] in self.ip_whitelist:
+                 return False
+            if conn["dst"] in self.ip_whitelist:
+                 return False
 
         try:
             reqc = ircMessage()
@@ -626,7 +660,7 @@ class Pcap:
     def _add_ja3(self, conn, tcpdata, ja3hash):
         """
         Adds an JA3 digest.
-	    @param conn: TCP connection info.
+        @param conn: TCP connection info.
         @param tcpdata: TCP data in flow
         """
 
@@ -761,7 +795,7 @@ class Pcap:
         self._process_smtp()
 
         # Remove hosts that have an IP which correlate to a whitelisted domain
-        if enabled_whitelist:
+        if enabled_whitelist and not inetsim_list:
             for delip in self.ip_whitelist:
                 if delip in self.unique_hosts:
                     self.unique_hosts.remove(delip)
@@ -777,6 +811,28 @@ class Pcap:
         self.results["smtp"] = self.smtp_requests
         self.results["irc"] = self.irc_requests
         self.results["ja3"] = self.ja3_records
+
+        if enabled_whitelist and not inetsim_list:
+
+            for host in self.results["hosts"]:
+                for delip in self.ip_whitelist:
+                    if delip == host["ip"]:
+                        self.results["hosts"].remove(host)
+
+            for host in self.results["tcp"]:
+                for delip in self.ip_whitelist:
+                    if delip == host["src"] or delip == host["dst"]:
+                        self.results["tcp"].remove(host)
+
+            for host in self.results["udp"]:
+                for delip in self.ip_whitelist:
+                    if delip == host["src"] or delip == host["dst"]:
+                        self.results["udp"].remove(host)
+
+            for host in self.results["icmp"]:
+                for delip in self.ip_whitelist:
+                    if delip == host["src"] or delip == host["dst"]:
+                        self.results["icmp"].remove(host)
 
         return self.results
 
