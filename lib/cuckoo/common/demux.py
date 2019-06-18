@@ -39,7 +39,7 @@ demux_extensions_list = [
         ".html", ".hta",
     ]
 
-office_exts = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"]
+office_pkgs = ["doc", "xls", "ppt"]
 
 
 def options2passwd(options):
@@ -91,10 +91,13 @@ def get_filenames(retlist, tmp_dir, children):
     try:
         for child in children:
             at = child.astree()
-            if 'file' in at['type'] or child.package in office_exts:
+            magic = at['finger']['magic']
+            if 'file' in at['type'] or \
+                    child.package in office_pkgs or \
+                    ("Microsoft" in magic and not ("Outlook" in magic or "Message" in magic)):
                 base, ext = os.path.splitext(at['filename'])
                 ext = ext.lower()
-                if ext in demux_extensions_list:
+                if ext in demux_extensions_list or "PE32" in magic or "Java Jar" in magic:
                     retlist.append(os.path.join(tmp_dir, at['filename']))
             elif 'container' in at['type']:
                 get_filenames(retlist, tmp_dir, child.children)
