@@ -91,10 +91,10 @@ def demux_office(filename, password):
     return retlist
 
 
-def is_valid_type(child):
+def is_valid_type(magic):
     # check for valid file types and don't rely just on file extentsion
     for ftype in VALID_TYPES:
-        if ftype in child.magic:
+        if ftype in magic:
             return True
     return False
 
