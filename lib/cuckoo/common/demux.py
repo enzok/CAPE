@@ -42,6 +42,10 @@ demux_extensions_list = [
 office_pkgs = ["doc", "xls", "ppt"]
 
 
+# list of valid file types to extract - TODO: add more types
+VALID_TYPES = ["PE32", "Java Jar", "Outlook", "Message"]
+
+
 def options2passwd(options):
     password = False
     if "password=" in options:
@@ -87,17 +91,25 @@ def demux_office(filename, password):
     return retlist
 
 
+def is_valid_type(child):
+    # check for valid file types and don't rely just on file extentsion
+    for ftype in VALID_TYPES:
+        if ftype in child.magic:
+            return True
+    return False
+
+
 def get_filenames(retlist, tmp_dir, children):
     try:
         for child in children:
             at = child.astree()
-            magic = at['finger']['magic']
+            magic = child.magic
             if 'file' in at['type'] or \
                     child.package in office_pkgs or \
                     ("Microsoft" in magic and not ("Outlook" in magic or "Message" in magic)):
                 base, ext = os.path.splitext(at['filename'])
                 ext = ext.lower()
-                if ext in demux_extensions_list or "PE32" in magic or "Java Jar" in magic:
+                if ext in demux_extensions_list or is_valid_type(magic):
                     retlist.append(os.path.join(tmp_dir, at['filename']))
             elif 'container' in at['type']:
                 get_filenames(retlist, tmp_dir, child.children)
