@@ -111,7 +111,7 @@ def get_filenames(retlist, tmp_dir, children):
                 ext = ext.lower()
                 if ext in demux_extensions_list or is_valid_type(magic):
                     retlist.append(os.path.join(tmp_dir, at['filename']))
-            elif 'container' in at['type']:
+            elif 'container' in at['type'] and child.package not in office_pkgs:
                 get_filenames(retlist, tmp_dir, child.children)
     except Exception as err:
         log.error("Error getting file names: {}".format(err))
