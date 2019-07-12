@@ -376,6 +376,7 @@ class PipeHandler(Thread):
         global MONITORED_BITS
         global LASTINJECT_TIME
         global NUM_INJECTED
+        global ANALYSIS_TIMED_OUT
         try:
             data = ""
             response = "OK"
@@ -401,10 +402,10 @@ class PipeHandler(Thread):
 
                 break
 
-            if data and ANALYSIS_TIMED_OUT == False:
+            if data:
                 command = data.strip()
 
-                # Debug, Regular, Warning, or Critical information from CuckooMon.
+                # Debug, Regular, Warning, or Critical information from capemon.
                 if command.startswith("DEBUG:"):
                     log.debug(command[6:])
                 elif command.startswith("INFO:"):
@@ -463,7 +464,7 @@ class PipeHandler(Thread):
                         PROCESS_LIST.remove(pid)
 
                 elif command.startswith("INTEROP:"):
-                    if not MONITORED_DCOM:
+                    if not MONITORED_DCOM and ANALYSIS_TIMED_OUT == False:
                         MONITORED_DCOM = True
                         dcom_pid = pid_from_service_name("DcomLaunch")
                         if dcom_pid:
@@ -477,7 +478,7 @@ class PipeHandler(Thread):
                             KERNEL32.Sleep(2000)
 
                 elif command.startswith("WMI:"):
-                    if not MONITORED_WMI:
+                    if not MONITORED_WMI and ANALYSIS_TIMED_OUT == False:
                         MONITORED_WMI = True
                         si = subprocess.STARTUPINFO()
                         # STARTF_USESHOWWINDOW
@@ -517,7 +518,7 @@ class PipeHandler(Thread):
                             KERNEL32.Sleep(2000)
 
                 elif command.startswith("TASKSCHED:"):
-                    if not MONITORED_TASKSCHED:
+                    if not MONITORED_TASKSCHED and ANALYSIS_TIMED_OUT == False:
                         MONITORED_TASKSCHED = True
                         si = subprocess.STARTUPINFO()
                         si.dwFlags = 1      # STARTF_USESHOWWINDOW
@@ -540,7 +541,7 @@ class PipeHandler(Thread):
                             KERNEL32.Sleep(2000)
 
                 elif command.startswith("BITS:"):
-                    if not MONITORED_BITS:
+                    if not MONITORED_BITS and ANALYSIS_TIMED_OUT == False:
                         MONITORED_BITS = True
                         si = subprocess.STARTUPINFO()
                         # STARTF_USESHOWWINDOW
@@ -583,14 +584,15 @@ class PipeHandler(Thread):
                 # Switch the service type to own process behind its back so we
                 # can monitor the service more easily with less noise
                 elif command.startswith("SERVICE:"):
-                    servname = command[8:]
-                    si = subprocess.STARTUPINFO()
-                    # STARTF_USESHOWWINDOW
-                    si.dwFlags = 1
-                    # SW_HIDE
-                    si.wShowWindow = 0
-                    subprocess.call("sc config " + servname + " type= own", startupinfo=si)
-                    log.info("Announced starting service \"%s\"", servname)
+                    if ANALYSIS_TIMED_OUT == False:
+                        servname = command[8:]
+                        si = subprocess.STARTUPINFO()
+                        # STARTF_USESHOWWINDOW
+                        si.dwFlags = 1
+                        # SW_HIDE
+                        si.wShowWindow = 0
+                        subprocess.call("sc config " + servname + " type= own", startupinfo=si)
+                        log.info("Announced starting service \"%s\"", servname)
 
                     if not MONITORED_SERVICES:
                         # Inject into services.exe so we can monitor service creation
@@ -648,7 +650,7 @@ class PipeHandler(Thread):
                             KERNEL32.CloseHandle(event_handle)
 
                     PROCESS_LOCK.release()
-                # Handle notification of cuckoomon loading in a process
+                # Handle notification of capemon loading in a process
                 elif command.startswith("LOADED:"):
                     PROCESS_LOCK.acquire()
                     process_id = int(command[7:])
@@ -684,7 +686,7 @@ class PipeHandler(Thread):
                         if param.isdigit():
                             thread_id = int(param)
 
-                    if process_id:
+                    if process_id and ANALYSIS_TIMED_OUT == False:
                         if process_id not in (PID, PPID):
                             # We inject the process only if it's not being
                             # monitored already, otherwise we would generate
@@ -699,7 +701,7 @@ class PipeHandler(Thread):
 
                                 filepath = proc.get_filepath().encode('utf8', 'replace')
                                 # if it's a URL analysis, provide the URL to all processes as
-                                # the "interest" -- this will allow cuckoomon to see in the
+                                # the "interest" -- this will allow capemon to see in the
                                 # child browser process that a URL analysis is occurring
                                 if self.config.category == "file" or NUM_INJECTED > 1:
                                     interest = filepath
@@ -995,6 +997,7 @@ class Analyzer:
         global MONITOR_DLL_64
         global LOADER32
         global LOADER64
+        global ANALYSIS_TIMED_OUT
 
         log.debug("Starting analyzer from: %s", os.getcwd())
         log.debug("Storing results at: %s", PATHS["root"])
