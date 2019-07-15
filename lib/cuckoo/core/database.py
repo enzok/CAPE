@@ -1409,22 +1409,35 @@ class Database(object):
         }
         query_filter = sizes.get(len(sample_hash), "")
         sample = None
-        # check storage/binaries 
+        # check storage/binaries
         if query_filter:
             session = self.Session()
             try:
-                
-                sample = session.query(Sample).filter(query_filter == sample_hash).first()
-                if sample is not None:
-                    path = os.path.join(CUCKOO_ROOT, "storage", "binaries", sample.sha256)
+
+                db_sample = session.query(Sample).filter(
+                    query_filter == sample_hash).first()
+                if db_sample is not None:
+                    path = os.path.join(
+                        CUCKOO_ROOT, "storage", "binaries", db_sample.sha256)
                     if os.path.exists(path):
-                      sample = [path]
-                
+                        sample = [path]
+
                 if sample is None:
                     # search in temp folder if not found in binaries
-                    samples = session.query(Task).filter(query_filter == sample_hash).filter(Sample.id == Task.sample_id).all()
-                    if samples is not None:
-                        sample = filter(None, [sample.to_dict().get("target", "") for sample in samples])
+                    db_sample = session.query(Task).filter(
+                        query_filter == sample_hash).filter(Sample.id == Task.sample_id).all()
+                    if db_sample is not None:
+                        samples = filter(None, [sample.to_dict().get(
+                            "target", "") for sample in db_sample])
+                        #hash validation and if exist
+                        samples = [
+                            path for path in samples if os.path.exists(path)]
+                        for path in samples:
+                            f = open(path, "rb").read()
+                            if sample_hash == sizes[len(sample_hash)](f).hexdigest():
+                                sample = [path]
+                                break
+                            f.close()
             except AttributeError:
                 return None
             except SQLAlchemyError as e:
