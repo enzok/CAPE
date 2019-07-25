@@ -18,7 +18,7 @@ try:
     from sflock.abstracts import File as sfFile
     HAS_SFLOCK = True
 except ImportError:
-    print("Warining: sflock not installed; archives will not be handled.\n"\
+    print("Warning: sflock not installed; archives will not be handled.\n"\
     "sudo apt-get install p7zip-full rar unace-nonfree cabextract\n"\
     "pip install -U sflock")
     HAS_SFLOCK = False
@@ -39,7 +39,7 @@ demux_extensions_list = [
         ".html", ".hta",
     ]
 
-office_pkgs = ["doc", "xls", "ppt"]
+office_pkgs = ["doc", "xls", "ppt", "pub"]
 
 
 # list of valid file types to extract - TODO: add more types
