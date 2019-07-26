@@ -189,7 +189,7 @@ def demux_sample(filename, package, options):
     # original file
     if not retlist:
         retlist.append(filename)
-        log.debug("Not an archive file - {}".format(filename))
+        log.warn("Not an archive file or does not contain valid files- {}".format(filename))
     else:
         if len(retlist) > 10:
             retlist = retlist[:10]
