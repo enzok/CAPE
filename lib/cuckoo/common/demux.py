@@ -110,7 +110,7 @@ def get_filenames(retlist, tmp_dir, children):
                 base, ext = os.path.splitext(at['filename'])
                 ext = ext.lower()
                 if ext in demux_extensions_list or is_valid_type(magic):
-                    retlist.append(os.path.join(tmp_dir, at['filename']))
+                    retlist.append(os.path.join(tmp_dir, at['filename'].encode('utf8', 'replace')))
             elif 'container' in at['type'] and child.package not in office_pkgs:
                 get_filenames(retlist, tmp_dir, child.children)
     except Exception as err:
