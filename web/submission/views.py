@@ -66,7 +66,7 @@ def download_file(content, request, db, task_ids, url, params, headers, service,
 
     onesuccess = False
 
-    if content is False:
+    if not content:
         try:
             r = requests.get(url, params=params, headers=headers, verify=False)
         except requests.exceptions.RequestException as e:
@@ -81,7 +81,7 @@ def download_file(content, request, db, task_ids, url, params, headers, service,
             return "error", render(request, "error.html",
                                    {"error": "API key is not valid/authorized for {0} downloads".format(service)})
 
-    if content and len(content) == 0:
+    if not content:
         return "error", render(request, "error.html", {"error": "Error downloading file from {}".format(service)})
 
     try:
@@ -474,7 +474,7 @@ def index(request, resubmit_hash=False):
                     elif settings.VTDL_INTEL_KEY:
                         headers = {'x-apikey': settings.VTDL_INTEL_KEY}
 
-                    if content is False:
+                    if not content:
                         status, task_ids = download_file(content, request, db, task_ids, url, params, headers,
                                                          "VirusTotal", filename, package, timeout, options, priority,
                                                          machine, gateway, clock, custom, memory, enforce_timeout,
