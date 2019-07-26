@@ -138,7 +138,7 @@ def index(request, resubmit_hash=False):
         opt_filename = ""
         for option in options.split(","):
             if option.startswith("filename="):
-                opt_filename = option.split("filename=")[1]
+                opt_filename = option.split("filename=")[1].encode('utf8', 'replace')
                 break
         task_gateways = []
         ipaddy_re = re.compile(r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
