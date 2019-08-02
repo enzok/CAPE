@@ -84,7 +84,6 @@ plugx = {
     'exe': 'PlugX',
 }
 
-
 class SubmitCAPE(Report):
     def process_cape_yara(self, cape_yara, detections):
 
@@ -239,30 +238,30 @@ class SubmitCAPE(Report):
                 multipart_file = [
                     ("file", (os.path.basename(target), open(target, "rb")))]
                 try:
-                    res = requests.post(
-                        reporting_conf.submitCAPE.url, files=multipart_file, data=options)
+                    res = requests.post( reporting_conf.submitCAPE.url, files=multipart_file, data=options)
                     if res and res.ok:
                         task_id = res.json()["data"]["task_ids"][0]
                 except Exception as e:
                     log.error(e)
             else:
                 task_id = db.add_path(
-                    file_path=target,
-                    package=package,
-                    timeout=timeout,
-                    options=task_options,
-                    priority=priority,   # increase priority to expedite related submission
-                    machine=machine,
-                    platform=platform,
-                    memory=memory,
-                    enforce_timeout=enforce_timeout,
-                    clock=None,
-                    tags=None,
-                    parent_id=parent_id,
+                            file_path=target,
+                            package=package,
+                            timeout=timeout,
+                            options=task_options,
+                            priority=priority,   # increase priority to expedite related submission
+                            machine=machine,
+                            platform=platform,
+                            memory=memory,
+                            enforce_timeout=enforce_timeout,
+                            clock=None,
+                            tags=None,
+                            parent_id=parent_id,
                 )
             if task_id:
-                log.info(
-                    u"CAPE detection on file \"{0}\": {1} - added as CAPE task with ID {2}".format(target, package, task_id))
+                log.info(u"CAPE detection on file \"{0}\": {1} - added as CAPE task with ID {2}".format(target,
+                                                                                                        package,
+                                                                                                        task_id))
             else:
                 log.warn("Error adding CAPE task to database: {0}".format(package))
         else:
@@ -325,8 +324,8 @@ class SubmitCAPE(Report):
 
                     elif entry["name"] == "Extraction":
                         if parent_package == 'doc':
-                            #    detections.add('Extraction_doc')
-                            # Word triggers this so removed
+                        #    detections.add('Extraction_doc')
+                        # Word triggers this so removed
                             continue
 
                         if parent_package in extractions:
@@ -338,18 +337,19 @@ class SubmitCAPE(Report):
                             detections.add(compressions[parent_package])
                             continue
 
-                    elif entry["name"] == "Doppelganging" and parent_package == 'exe':
-                        detections.add('Doppelganging')
-
                     # Specific malware family packages
                     elif entry["name"] == "PlugX" and parent_package in plugx:
                         detections.add(plugx[parent_package])
                         package = plugx[parent_package]
                         continue
 
-                    elif entry["name"] == "EvilGrab" and parent_package == 'exe':
-                        detections.add('EvilGrab')
-                        package = 'EvilGrab'
+                    elif parent_package == 'exe':
+                        if entry["name"] == "Doppelganging":
+                            detections.add('Doppelganging')
+
+                        elif entry["name"] == "EvilGrab":
+                            detections.add('EvilGrab')
+                            package = 'EvilGrab'
 
         if 'Sedreco' in detections:
             if parent_package == 'dll':
@@ -357,49 +357,44 @@ class SubmitCAPE(Report):
             elif parent_package == 'exe':
                 package = 'Sedreco'
 
-        if 'TrickBot' in detections:
+        elif 'TrickBot' in detections:
             if parent_package == 'doc':
                 package = 'TrickBot_doc'
             elif parent_package == 'exe':
                 package = 'TrickBot'
 
-        if 'Ursnif' in detections:
+        elif 'Ursnif' in detections:
             if parent_package in ('doc', 'Injection_doc'):
                 package = 'Ursnif_doc'
             elif parent_package in ('exe', 'Injection'):
                 package = 'Ursnif'
 
-        if 'Hancitor' in detections:
+        elif 'Hancitor' in detections:
             if parent_package in ('doc', 'Injection_doc'):
                 package = 'Hancitor_doc'
             elif parent_package in ('exe', 'Injection', 'Compression'):
                 package = 'Hancitor'
 
-        if parent_package == 'exe':
+        # if 'RegBinary' in detections or 'CreatesLargeKey' in detections:
+        elif 'RegBinary' in detections:
+            package = 'RegBinary'
+
+        elif 'Emotet' in detections:
+            if parent_package == 'doc':
+                package = 'Emotet_doc'
+            elif parent_package in ('exe', 'Extraction'):
+                package = 'Emotet'
+
+        elif parent_package == 'exe':
             if 'QakBot' in detections:
                 package = 'QakBot'
 
             if 'IcedID' in detections:
                 package = 'IcedID'
 
-        # if 'RegBinary' in detections or 'CreatesLargeKey' in detections:
-        if 'RegBinary' in detections:
-            package = 'RegBinary'
-
-        if 'Emotet' in detections:
-            if parent_package == 'doc':
-                package = 'Emotet_doc'
-            elif parent_package in ('exe', 'Extraction'):
-                package = 'Emotet'
-
-        #if 'RegBinary' in detections or 'CreatesLargeKey' in detections and parent_package=='exe':
-        if 'RegBinary' in detections and parent_package=='exe':
-            package = 'RegBinary'	
-
         # we want to switch off automatic process dumps in CAPE submissions
         if self.task_options and 'procdump=1' in self.task_options:
-            self.task_options = self.task_options.replace(
-                u"procdump=1", u"procdump=0", 1)
+            self.task_options = self.task_options.replace(u"procdump=1", u"procdump=0", 1)
         if self.task_options_stack:
             self.task_options = ','.join(self.task_options_stack)
 
@@ -411,15 +406,13 @@ class SubmitCAPE(Report):
         if package and package != parent_package:
             self.task_custom = "Parent_Task_ID:%s" % results["info"]["id"]
             if results.get("info", {}).get("custom"):
-                self.task_custom = "%s Parent_Custom:%s" % (
-                    self.task_custom, results["info"]["custom"])
+                self.task_custom = "%s Parent_Custom:%s" % (self.task_custom, results["info"]["custom"])
             self.submit_task(
                 self.task["target"],
                 package,
                 self.task["timeout"],
                 self.task_options,
-                # increase priority to expedite related submission
-                self.task["priority"] + 1,
+                self.task["priority"] + 1, # increase priority to expedite related submission
                 self.task["machine"],
                 self.task["platform"],
                 self.task["memory"],
@@ -429,14 +422,13 @@ class SubmitCAPE(Report):
                 parent_id,
             )
 
-        else:  # nothing submitted, only 'dumpers' left
+        else: # nothing submitted, only 'dumpers' left
             if parent_package in cape_package_list:
                 return
 
             self.task_custom = "Parent_Task_ID:%s" % results["info"]["id"]
             if results.get("info", {}).get("custom"):
-                self.task_custom = "%s Parent_Custom:%s" % (
-                    self.task_custom, results["info"]["custom"])
+                self.task_custom = "%s Parent_Custom:%s" % (self.task_custom, results["info"]["custom"])
 
             for dumper in detections:
                 self.submit_task(
@@ -444,8 +436,7 @@ class SubmitCAPE(Report):
                     dumper,
                     self.task["timeout"],
                     self.task_options,
-                    # increase priority to expedite related submission
-                    self.task["priority"]+1,
+                    self.task["priority"] + 1,   # increase priority to expedite related submission
                     self.task["machine"],
                     self.task["platform"],
                     self.task["memory"],
