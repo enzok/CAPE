@@ -836,7 +836,7 @@ def report(request, task_id):
 
     children = 0
     # If compressed, decompress CAPE data
-    if "CAPE" in report:
+    if "CAPE" in report and report["CAPE"]:
         try:
             report["CAPE"] = json.loads(zlib.decompress(report["CAPE"]))
         except:
