@@ -1,9 +1,9 @@
-rule POSLoader
+rule BackOffLoader
 {
     meta:
         author = "enzo"
-        description = "POSLoader Payload"
-        cape_type = "POSLoader Payload"
+        description = "BackOffLoader Payload"
+        cape_type = "BackOffLoader Payload"
     strings:
         $str1 = "uid=%I64u&uinfo=%s&win=%d.%d&bits=%d&vers=%s&build=%s"
         $str2 = "&bots="
