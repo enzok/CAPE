@@ -291,6 +291,9 @@ class RunProcessing(object):
                         if isgood:
                             family = famcheck.title()
 
+                    elif alert["signature"].lower().startswith("crowdstrike"):
+                        family = "CS_Signature"
+
         if not family and self.results["info"]["category"] == "file" and "virustotal" in self.results and "results" in self.results["virustotal"] and self.results["virustotal"]["results"]:
             detectnames = []
             for res in self.results["virustotal"]["results"]:
