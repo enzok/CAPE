@@ -227,6 +227,11 @@ def index(request, resubmit_hash=False):
                 options += ","
             options += "loader=oldloader.exe,loader_64=oldloader_x64.exe"
 
+        if request.POST.get("addpassword"):
+            if options:
+                options += ","
+            options += "password={}".format(settings.ZIP_PWD)
+
         orig_options = options
 
         if gateway and gateway.lower() == "all":
@@ -504,6 +509,7 @@ def index(request, resubmit_hash=False):
         enabledconf = dict()
         enabledconf["vt"] = settings.VTDL_ENABLED
         enabledconf["kernel"] = settings.OPT_ZER0M0N
+        enabledconf["zip_pwd"] = settings.ZIP_PWD
         enabledconf["posproc"] = Config("auxiliary").posproc.get("enabled")
         enabledconf["memory"] = Config("processing").memory.get("enabled")
         enabledconf["procmemory"] = Config("processing").procmemory.get("enabled")
