@@ -4,6 +4,8 @@ import codecs
 
 from lib.cuckoo.common.abstracts import Report
 from lib.cuckoo.common.exceptions import CuckooReportError
+from lib.cuckoo.core.database import Database, Task
+
 
 class RefinedJson(Report):
     """Saves a subset of analysis results in JSON format."""
@@ -29,6 +31,7 @@ class RefinedJson(Report):
                        "ctldl.windowsupdate.com"]
 
         try:
+            db = Database()
             miniresults = {}
             if 'file' in results['target']:
                 miniresults['file'] = results['target']['file']
@@ -74,6 +77,15 @@ class RefinedJson(Report):
                 miniresults['network'] = mininet
             if 'executed_commands' in results['behavior']['summary']:
                 miniresults['executed_commands'] = results['behavior']['summary']['executed_commands']
+
+            session = db.Session()
+            task_id = results['info']['id']
+            children = [c for c in session.query(Task.id, Task.package).filter(Task.parent_id == task_id)]
+
+            if children:
+                miniresults['cape'] = []
+                for child in children:
+                    miniresults['cape'].append(child[1])
 
             path = os.path.join(self.reports_path, "refined-report.json")
             with codecs.open(path, "w", "utf-8") as report:
