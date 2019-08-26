@@ -29,11 +29,8 @@ class ElasticsearchDB(Report):
         @raise CuckooReportError: if unable to connect.
         """
         self.es = Elasticsearch(
-            hosts = [{
-                'host': self.options.get("host", "127.0.0.1"),
-                'port': self.options.get("port", 9200),
-            }],
-            timeout = 300
+            hosts=[{'host': self.options.get("host", "127.0.0.1"), 'port': self.options.get("port", 9200)}],
+            timeout=300
         )
 
     def run(self, results):
@@ -48,8 +45,8 @@ class ElasticsearchDB(Report):
                                         "(install with `pip install elasticsearch`)")
 
         self.connect()
-        index_prefix  = self.options.get("index", "cuckoo")
-        search_only   = self.options.get("searchonly", False)
+        index_prefix = self.options.get("index", "cuckoo")
+        search_only = self.options.get("searchonly", False)
 
         # Create a copy of the dictionary. This is done in order to not modify
         # the original dictionary and possibly compromise the following
@@ -130,8 +127,8 @@ class ElasticsearchDB(Report):
         else:
             report = {}
             report["task_id"] = results["info"]["id"]
-            report["info"]    = results.get("info")
-            report["target"]  = results.get("target")
+            report["info"] = results.get("info")
+            report["target"] = results.get("target")
             report["summary"] = results.get("behavior", {}).get("summary")
             report["network"] = results.get("network")
             report["malfamily"] = results.get("malfamily", "")
