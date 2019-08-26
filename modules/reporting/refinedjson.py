@@ -83,9 +83,12 @@ class RefinedJson(Report):
             children = [c for c in session.query(Task.id, Task.package).filter(Task.parent_id == task_id)]
 
             if children:
-                miniresults['children'] = []
+                miniresults['cape'] = []
+                cape = miniresults['cape']
+                cape['parent_id'] = task_id
+                cape['children'] = []
                 for child in children:
-                    miniresults['cape'].append(child)
+                    cape['children'].append(child)
 
             path = os.path.join(self.reports_path, "refined-report.json")
             with codecs.open(path, "w", "utf-8") as report:
