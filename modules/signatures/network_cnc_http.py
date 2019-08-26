@@ -38,6 +38,7 @@ class NetworkCnCHTTP(Signature):
             "^http://.*\.microsoft\.com/.*",
             "^http://.*\.windowsupdate\.com/.*",
             "http://.*\.adobe\.com/.*",
+            "^http://.*\.digicert\.com/.*",
             ]
 
         # HTTP request Features. Done like this due to for loop appending data each time instead of once so we wait to end of checks to add summary of anomalies

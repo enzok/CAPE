@@ -21,6 +21,14 @@ class HTTP_Request(Signature):
                                "acroipm2.adobe.com",
                                "armmf.adobe.com",
                                "microsoft.com",
+                               "ocsp.digicert.com",
+                               "crl1.digicert.com",
+                               "crl2.digicert.com",
+                               "crl3.digicert.com",
+                               "crl4.digicert.com",
+                               "crl5.digicert.com",
+                               "crl6.digicert.com",
+                               "ieframe.dll",
                                "apps.identrust.com"]
 
     filter_apinames = set(["HttpOpenRequestA", "HttpOpenRequestW", "InternetConnectA",
