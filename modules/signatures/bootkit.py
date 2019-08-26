@@ -24,7 +24,8 @@ class Bootkit(Signature):
         self.handles = dict()
         self.saw_stealth = False
 
-    filter_apinames = set(["NtCreateFile", "NtDuplicateObject", "NtOpenFile", "NtClose", "NtSetInformationFile", "NtWriteFile", "DeviceIoControl", "NtDeviceIoControlFile"])
+    filter_apinames = set(["NtCreateFile", "NtDuplicateObject", "NtOpenFile", "NtClose", "NtSetInformationFile",
+                           "NtWriteFile", "DeviceIoControl", "NtDeviceIoControlFile"])
 
     def on_call(self, call, process):
         if process is not self.lastprocess:
@@ -46,7 +47,8 @@ class Bootkit(Signature):
             handle = int(self.get_argument(call, "FileHandle"), 16)
             access = int(self.get_argument(call, "DesiredAccess"), 16)
             # FILE_WRITE_ACCESS or GENERIC_WRITE
-            if filename and (filename.lower() == "\\??\\physicaldrive0" or filename.lower().startswith("\\device\\harddisk")) and access & 0x40000002:
+            if filename and (filename.lower() == "\\??\\physicaldrive0" or \
+                             filename.lower().startswith("\\device\\harddisk")) and access & 0x40000002:
                 if handle not in self.handles:
                     self.handles[handle] = filename
         elif call["api"] == "DeviceIoControl" or call["api"] == "NtDeviceIoControlFile":
@@ -65,7 +67,7 @@ class Bootkit(Signature):
         
         return None
     
-    class DirectHDDAccess(Signature):
+class DirectHDDAccess(Signature):
     name = "direct_hdd_access"
     description = "Attempted to write to a harddisk volume"
     severity = 2
