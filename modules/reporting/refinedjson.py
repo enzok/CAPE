@@ -32,7 +32,7 @@ class RefinedJson(Report):
 
         try:
             db = Database()
-            miniresults = {}
+            miniresults = dict()
             if 'file' in results['target']:
                 miniresults['file'] = results['target']['file']
                 del miniresults['file']['yara']
@@ -49,7 +49,7 @@ class RefinedJson(Report):
                     miniresults['signatures'].append({'description': sig['description']})
             if 'network' in results:
                 net = results['network']
-                mininet ={}
+                mininet = dict()
                 mininet['hosts'] = []
                 for host in net['hosts']:
                     if host['ip'] in host_filter or host['hostname'] in host_filter:
@@ -83,11 +83,13 @@ class RefinedJson(Report):
             children = [c for c in session.query(Task.id, Task.package).filter(Task.parent_id == task_id)]
 
             if children:
-                miniresults['cape'] = []
+                miniresults['cape'] = dict()
                 cape = miniresults['cape']
                 cape['parent_id'] = task_id
                 cape['children'] = []
-                for child in children:
+                for kid in children:
+                    child = dict()
+                    child['task_id'], child['type'] = kid
                     cape['children'].append(child)
 
             path = os.path.join(self.reports_path, "refined-report.json")
