@@ -19,6 +19,7 @@ class HTTP_Request(Signature):
         self.lasthost = str()
         self.host_whitelist = ["acroipm.adobe.com",
                                "acroipm2.adobe.com",
+                               "armmf.adobe.com",
                                "microsoft.com",
                                "apps.identrust.com"]
 

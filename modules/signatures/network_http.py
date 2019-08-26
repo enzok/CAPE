@@ -38,6 +38,7 @@ class NetworkHTTP(Signature):
             "^http://www\.microsoft\.com/.*\.crl$",
             "^http://ctldl\.windowsupdate\.com/.*",
             "^http://go\.microsoft\.com/.*",
+            "^http://armmf\.adobe\.com/.*",
             ]
         if "file" in self.results["target"]:
             if "PDF" in self.results["target"]["file"]["type"] or self.results["info"]["package"] == "pdf":
