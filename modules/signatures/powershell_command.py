@@ -95,9 +95,9 @@ class PowershellCommandSuspicious(Signature):
                             b64 = False
                         if b64:
                             decoded = base64.b64decode(encoded)
-                            if "\\x00" in decoded:
-                                decoded = base64.b64decode(encoded).decode('UTF-16')
-                            self.data.append({"decoded_base64_string": convert_to_printable(decoded)})
+                            if "\x00" in decoded:
+                                decoded = base64.b64decode(encoded).decode('UTF-16') 
+                            self.data.append({"decoded_base64_string" : convert_to_printable(decoded)})
 
                 if "frombase64string(" in lower:
                     b64strings = re.findall(r'[fF][rR][oO][mM][bB][aA][sS][eE]64[sS][tT][rR][iI][nN][gG]\([\"\'](\S+)[\"\']\)', cmdline)
@@ -110,9 +110,9 @@ class PowershellCommandSuspicious(Signature):
                             b64 = False
                         if b64:
                             decoded = base64.b64decode(encoded)
-                            if "\\x00" in decoded:
-                                decoded = base64.b64decode(encoded).decode('UTF-16')
-                            self.data.append({"decoded_base64_string": convert_to_printable(decoded)})
+                            if "\x00" in decoded:
+                                decoded = base64.b64decode(encoded).decode('UTF-16') 
+                            self.data.append({"decoded_base64_string" : convert_to_printable(decoded)})
 
         return ret
 
@@ -180,7 +180,7 @@ class PowershellRenamed(Signature):
                             ret = True
                             self.data.append({"command": cmdline})
                             decoded = base64.b64decode(encoded)
-                            if "\\x00" in decoded:
+                            if "\x00" in decoded:
                                 decoded = base64.b64decode(encoded).decode('UTF-16')
                             self.data.append({"decoded_base64_string": convert_to_printable(decoded)})
 
@@ -192,8 +192,7 @@ class PowershellRenamed(Signature):
                             ret = True
                             self.data.append({"command": cmdline})
                             decoded = base64.b64decode(encoded)
-                            self.data.append({"decoded_base64_string": convert_to_printable(decoded)})
-                            if "\\x00" in decoded:
+                            if "\x00" in decoded:
                                 decoded = base64.b64decode(encoded).decode('UTF-16')
                             self.data.append({"decoded_base64_string": convert_to_printable(decoded)})
 
