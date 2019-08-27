@@ -1,4 +1,4 @@
-# Copyright (C) 2016 Kevin Ross
+# Copyright (C) 2019 Kevin Ross
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,29 +15,68 @@
 
 from lib.cuckoo.common.abstracts import Signature
 
-class CVE2015_2419_JS(Signature):
-    name = "cve_2015_2419_js"
-    description = "Executes obfuscated JavaScript containing CVE-2015-2419 Internet Explorer Jscript9 JSON.stringify double free memory corruption attempt"
+class WMICreateProcess(Signature):
+    name = "wmi_create_process"
+    description = "Attempted to create a process using Windows Management Instrumentation (WMI)"
     severity = 3
-    categories = ["exploit"]
+    categories = ["martians"]
     authors = ["Kevin Ross"]
     minimum = "1.3"
-    references = ["https://www.fireeye.com/blog/threat-research/2015/08/cve-2015-2419_inte.html", "blog.checkpoint.com/2016/02/10/too-much-freedom-is-dangerous-understanding-ie-11-cve-2015-2419-exploitation/"]
     evented = True
+    ttp = ["T1047"]
 
     def __init__(self, *args, **kwargs):
         Signature.__init__(self, *args, **kwargs)
+        self.ret = False
 
-    filter_categories = set(["browser"])
-    # backward compat
-    filter_apinames = set(["JsEval", "COleScript_Compile", "COleScript_ParseScriptText"])
+    filter_apinames = set(["CreateProcessInternalW"])
 
     def on_call(self, call, process):
+        pname = process["process_name"]
+        if "wmiprvse" in pname.lower():
+            self.ret = True
+            cmdline = self.get_argument(call, "CommandLine")
+            self.data.append({"cmdline" : cmdline})
 
-        if call["api"] == "JsEval":
-            buf = self.get_argument(call, "Javascript")
-        else:
-            buf = self.get_argument(call, "Script")
+    def on_complete(self):
+        return self.ret
 
-        if "JSON[" in buf and "prototype" in buf and "stringify" in buf:
-            return True
+class WMIScriptProcess(Signature):
+    name = "wmi_script_process"
+    description = "Windows Management Instrumentation (WMI) attempted to execute a command or scripting utility"
+    severity = 3
+    confidence = 100
+    categories = ["martians"]
+    authors = ["Kevin Ross"]
+    minimum = "1.3"
+    evented = True
+    ttp = ["T1047"]
+
+    def __init__(self, *args, **kwargs):
+        Signature.__init__(self, *args, **kwargs)
+        self.ret = False
+        self.utilities = [
+            "cmd ",
+            "cmd.exe",
+            "cscript",
+            "jscript",
+            "mshta",
+            "powershell",
+            "vbscript",
+            "wscript",
+        ]
+
+    filter_apinames = set(["CreateProcessInternalW"])
+
+    def on_call(self, call, process):
+        pname = process["process_name"]
+        if "wmiprvse" in pname.lower():
+            cmdline = self.get_argument(call, "CommandLine")
+            for utility in self.utilities:
+                if utility in cmdline.lower():
+                    self.ret = True
+                    self.data.append({"cmdline" : cmdline})
+                    break
+
+    def on_complete(self):
+        return self.ret
