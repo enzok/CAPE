@@ -23,6 +23,7 @@ except ImportError:
 
 log = logging.getLogger(__name__)
 
+
 class MongoDB(Report):
     """Stores report in MongoDB."""
     order = 9999
@@ -39,23 +40,23 @@ class MongoDB(Report):
         db = self.options.get("db", "cuckoo")
 
         try:
-            self.conn = MongoClient( host,
+            self.conn = MongoClient(host,
                                 port=port,
                                 username=self.options.get("username", None),
                                 password=self.options.get("password", None),
-                                authSource=db
-                                )
+                                authSource=db)
             self.db = self.conn[db]
         except TypeError:
-            raise CuckooReportError("Mongo connection port must be integer")
+            raise CuckooReportError("Mongo connection port must be an integer.")
         except ConnectionFailure:
-            raise CuckooReportError("Cannot connect to MongoDB")
+            raise CuckooReportError("Cannot connect to MongoDB.")
 
     def debug_dict_size(self, dct):
         if type(dct) == list:
             dct = dct[0]
 
         totals = dict((k, 0) for k in dct)
+
         def walk(root, key, val):
             if isinstance(val, dict):
                 for k, v in val.iteritems():
@@ -81,8 +82,7 @@ class MongoDB(Report):
         # We put the raise here and not at the import because it would
         # otherwise trigger even if the module is not enabled in the config.
         if not HAVE_MONGO:
-            raise CuckooDependencyError("Unable to import pymongo "
-                                        "(install with `pip install pymongo`)")
+            raise CuckooDependencyError("Unable to import pymongo (install with `pip install pymongo`.)")
 
         self.connect()
 
@@ -91,7 +91,7 @@ class MongoDB(Report):
         # only one time at startup.
         if "cuckoo_schema" in self.db.collection_names():
             if self.db.cuckoo_schema.find_one()["version"] != self.SCHEMA_VERSION:
-                CuckooReportError("Mongo schema version not expected, check data migration tool")
+                CuckooReportError("Mongo schema version not expected, check data migration tool.")
         else:
             self.db.cuckoo_schema.save({"version": self.SCHEMA_VERSION})
 
@@ -167,20 +167,22 @@ class MongoDB(Report):
                     report["f_mlist_cnt"] = len(entry["data"])
 
         # Other info we want quick access to from the web UI
-        if results.has_key("virustotal") and results["virustotal"] and results["virustotal"].has_key("positives") and results["virustotal"].has_key("total"):
-            report["virustotal_summary"] = "%s/%s" % (results["virustotal"]["positives"],results["virustotal"]["total"])
-        if results.has_key("suricata") and results["suricata"]:
-            if results["suricata"].has_key("tls") and len(results["suricata"]["tls"]) > 0:
+        if "virustotal" in results and results["virustotal"] and "positives" in results["virustotal"] and \
+                "total" in results:
+            report["virustotal_summary"] = "%s/%s" % (results["virustotal"]["positives"],
+                                                      results["virustotal"]["total"])
+        if "suricata" in results and results["suricata"]:
+            if "tls" in results["suricata"] and len(results["suricata"]["tls"]) > 0:
                 report["suri_tls_cnt"] = len(results["suricata"]["tls"])
-            if results["suricata"].has_key("alerts") and len(results["suricata"]["alerts"]) > 0:
+            if "alerts" in results["suricata"] and len(results["suricata"]["alerts"]) > 0:
                 report["suri_alert_cnt"] = len(results["suricata"]["alerts"])
-            if results["suricata"].has_key("files") and len(results["suricata"]["files"]) > 0:
+            if "files" in results["suricata"] and len(results["suricata"]["files"]) > 0:
                 report["suri_file_cnt"] = len(results["suricata"]["files"])
-            if results["suricata"].has_key("http") and len(results["suricata"]["http"]) > 0:
+            if "http" in results["suricata"] and len(results["suricata"]["http"]) > 0:
                 report["suri_http_cnt"] = len(results["suricata"]["http"])
-            if results["suricata"].has_key("ssh") and len(results["suricata"]["ssh"]) > 0:
+            if "ssh" in results["suricata"] and len(results["suricata"]["ssh"]) > 0:
                 report["suri_ssh_cnt"] = len(results["suricata"]["ssh"])
-            if results["suricata"].has_key("dns") and len(results["suricata"]["dns"]) > 0:
+            if "dns" in results["suricata"] and len(results["suricata"]["dns"]) > 0:
                 report["suri_dns_cnt"] = len(results["suricata"]["dns"])
         
         # Create an index based on the info.id dict key. Increases overall scalability
@@ -193,13 +195,14 @@ class MongoDB(Report):
             self.db.analysis.save(report)
         except InvalidDocument as e:
             if "key" in e:
-                log.error("Error saving to MongoDB: {}".format(e))
+                CuckooReportError("Error saving to MongoDB: {}".format(e))
             else:
                 parent_key, psize = self.debug_dict_size(report)[0]
                 if not self.options.get("fix_large_docs", False):
                     # Just log the error and problem keys
-                    log.error(str(e))
-                    log.error("Largest parent key: %s (%d MB)" % (parent_key, int(psize) / MEGABYTE))
+                    CuckooReportError("{} - Largest parent key: {} ({} MB)".format(e,
+                                                                                   parent_key,
+                                                                                   int(psize) / MEGABYTE))
                 else:
                     # Delete the problem keys and check for more
                     error_saved = True
@@ -212,26 +215,31 @@ class MongoDB(Report):
                                 for j, parent_dict in enumerate(report[parent_key]):
                                     child_key, csize = self.debug_dict_size(parent_dict)[0]
                                     if csize > size_filter:
-                                        log.warn("results['%s']['%s'] deleted due to size: %s" % (parent_key, child_key, csize))
+                                        log.warn("results['%s']['%s'] deleted due to size: {}".format(parent_key,
+                                                                                                      child_key,
+                                                                                                      csize))
                                         del report[parent_key][j][child_key]
                             else:
                                 child_key, csize = self.debug_dict_size(report[parent_key])[0]
                                 if csize > size_filter:
-                                    log.warn("results['%s']['%s'] deleted due to size: %s" % (parent_key, child_key, csize))
+                                    log.warn("results['%s']['%s'] deleted due to size: {}".format(parent_key,
+                                                                                                  child_key,
+                                                                                                  csize))
                                     del report[parent_key][child_key]
                             try:
                                 self.db.analysis.save(report)
                                 error_saved = False
                             except InvalidDocument as e:
                                 parent_key, psize = self.debug_dict_size(report)[0]
-                                log.error(str(e))
-                                log.error("Largest parent key: %s (%d MB)" % (parent_key, int(psize) / MEGABYTE))
+                                CuckooReportError("{} - Largest parent key: {} ({} MB)".format(e,
+                                                                                               parent_key,
+                                                                                               int(psize) / MEGABYTE))
                                 size_filter = size_filter - MEGABYTE
                         except WriteError as e:
-                            log.error("Failed to write document:  {}".format(e))
+                            CuckooReportError("Failed to write document:  {}".format(e))
                             error_saved = False
                         except Exception as e:
-                            log.error("Failed to delete child key: %s" % str(e))
+                            CuckooReportError("Failed to delete child key: {}".format(e))
                             error_saved = False
 
         self.conn.close()
