@@ -55,24 +55,29 @@ class MongoDB(Report):
         if type(dct) == list:
             dct = dct[0]
 
-        totals = dict((k, 0) for k in dct)
+        try:
+            totals = dict((k, 0) for k in dct)
 
-        def walk(root, key, val):
-            if isinstance(val, dict):
-                for k, v in val.iteritems():
-                    walk(root, k, v)
+            def walk(root, key, val):
+                if isinstance(val, dict):
+                    for k, v in val.iteritems():
+                        walk(root, k, v)
 
-            elif isinstance(val, (list, tuple, set)):
-                for el in val:
-                    walk(root, None, el)
+                elif isinstance(val, (list, tuple, set)):
+                    for el in val:
+                        walk(root, None, el)
 
-            elif isinstance(val, basestring):
-                totals[root] += len(val)
+                elif isinstance(val, basestring):
+                    totals[root] += len(val)
 
-        for key, val in dct.iteritems():
-            walk(key, key, val)
+            for key, val in dct.iteritems():
+                walk(key, key, val)
 
-        return sorted(totals.items(), key=lambda item: item[1], reverse=True)
+            return sorted(totals.items(), key=lambda item: item[1], reverse=True)
+        except Exception as e:
+            log.error("Failed process dict size: {}".format(e))
+            return []
+
 
     def run(self, results):
         """Writes report.
@@ -201,9 +206,7 @@ class MongoDB(Report):
                 if not self.options.get("fix_large_docs", False):
                     # Just log the error and problem keys
                     log.error("Document too large: {}".format(e))
-                    log.error("{} - Largest parent key: {} ({} MB)".format(e,
-                                                                           parent_key,
-                                                                           int(psize) / MEGABYTE))
+                    log.error("Largest parent key: {} ({} MB)".format(parent_key, int(psize) / MEGABYTE))
                 else:
                     # Delete the problem keys and check for more
                     error_saved = True
@@ -215,17 +218,23 @@ class MongoDB(Report):
                             if type(report[parent_key]) == list:
                                 for j, parent_dict in enumerate(report[parent_key]):
                                     child_key, csize = self.debug_dict_size(parent_dict)[0]
+                                    if not child_key or not csize:
+                                        error_saved = False
+                                        break
                                     if csize > size_filter:
-                                        log.warn("results['%s']['%s'] deleted due to size: {}".format(parent_key,
-                                                                                                      child_key,
-                                                                                                      csize))
+                                        log.warn("results[{}][{}] deleted due to size: {}".format(parent_key,
+                                                                                                  child_key,
+                                                                                                  csize))
                                         del report[parent_key][j][child_key]
                             else:
                                 child_key, csize = self.debug_dict_size(report[parent_key])[0]
+                                if not child_key or not csize:
+                                    error_saved = False
+                                    continue
                                 if csize > size_filter:
-                                    log.warn("results['%s']['%s'] deleted due to size: {}".format(parent_key,
-                                                                                                  child_key,
-                                                                                                  csize))
+                                    log.warn("results[{}][{}] deleted due to size: {}".format(parent_key,
+                                                                                              child_key,
+                                                                                              csize))
                                     del report[parent_key][child_key]
                             try:
                                 self.db.analysis.save(report)
@@ -233,17 +242,13 @@ class MongoDB(Report):
                             except InvalidDocument as e:
                                 parent_key, psize = self.debug_dict_size(report)[0]
                                 log.error("Document invalid: {}".format(e))
-                                log.error("{} - Largest parent key: {} ({} MB)".format(e,
-                                                                                       parent_key,
-                                                                                       int(psize) / MEGABYTE))
+                                log.error("Largest parent key: {} ({} MB)".format(parent_key, int(psize) / MEGABYTE))
                                 size_filter = size_filter - MEGABYTE
                         except WriteError as e:
-                            log.error("Document write error: {}".format(e))
-                            CuckooReportError("Failed to write document: {}".format(e))
+                            log.error("Failed to write document: {}".format(e))
                             error_saved = False
                         except Exception as e:
-                            log.error("Delete key error: {}".format(e))
-                            CuckooReportError("Failed to delete child key: {}".format(e))
+                            log.error("Failed to delete child key: {}".format(e))
                             error_saved = False
 
         self.conn.close()
