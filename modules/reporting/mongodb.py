@@ -55,29 +55,24 @@ class MongoDB(Report):
         if type(dct) == list:
             dct = dct[0]
 
-        try:
-            totals = dict((k, 0) for k in dct)
+        totals = dict((k, 0) for k in dct)
 
-            def walk(root, key, val):
-                if isinstance(val, dict):
-                    for k, v in val.iteritems():
-                        walk(root, k, v)
+        def walk(root, key, val):
+            if isinstance(val, dict):
+                for k, v in val.iteritems():
+                    walk(root, k, v)
 
-                elif isinstance(val, (list, tuple, set)):
-                    for el in val:
-                        walk(root, None, el)
+            elif isinstance(val, (list, tuple, set)):
+                for el in val:
+                    walk(root, None, el)
 
-                elif isinstance(val, basestring):
-                    totals[root] += len(val)
+            elif isinstance(val, basestring):
+                totals[root] += len(val)
 
-            for key, val in dct.iteritems():
-                walk(key, key, val)
+        for key, val in dct.iteritems():
+            walk(key, key, val)
 
-            return sorted(totals.items(), key=lambda item: item[1], reverse=True)
-        except Exception as e:
-            log.error("Failed process dict size: {}".format(e))
-            return []
-
+        return sorted(totals.items(), key=lambda item: item[1], reverse=True)
 
     def run(self, results):
         """Writes report.
@@ -218,9 +213,6 @@ class MongoDB(Report):
                             if type(report[parent_key]) == list:
                                 for j, parent_dict in enumerate(report[parent_key]):
                                     child_key, csize = self.debug_dict_size(parent_dict)[0]
-                                    if not child_key or not csize:
-                                        error_saved = False
-                                        break
                                     if csize > size_filter:
                                         log.warn("results[{}][{}] deleted due to size: {}".format(parent_key,
                                                                                                   child_key,
@@ -228,9 +220,6 @@ class MongoDB(Report):
                                         del report[parent_key][j][child_key]
                             else:
                                 child_key, csize = self.debug_dict_size(report[parent_key])[0]
-                                if not child_key or not csize:
-                                    error_saved = False
-                                    continue
                                 if csize > size_filter:
                                     log.warn("results[{}][{}] deleted due to size: {}".format(parent_key,
                                                                                               child_key,
