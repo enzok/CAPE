@@ -195,11 +195,13 @@ class MongoDB(Report):
             self.db.analysis.save(report)
         except InvalidDocument as e:
             if "key" in e:
+                log.error("Error saving to MongoDB: {}".format(e))
                 CuckooReportError("Error saving to MongoDB: {}".format(e))
             else:
                 parent_key, psize = self.debug_dict_size(report)[0]
                 if not self.options.get("fix_large_docs", False):
                     # Just log the error and problem keys
+                    log.error("Key error: {}".format(e))
                     CuckooReportError("{} - Largest parent key: {} ({} MB)".format(e,
                                                                                    parent_key,
                                                                                    int(psize) / MEGABYTE))
@@ -231,14 +233,17 @@ class MongoDB(Report):
                                 error_saved = False
                             except InvalidDocument as e:
                                 parent_key, psize = self.debug_dict_size(report)[0]
+                                log.error("Key error: {}".format(e))
                                 CuckooReportError("{} - Largest parent key: {} ({} MB)".format(e,
                                                                                                parent_key,
                                                                                                int(psize) / MEGABYTE))
                                 size_filter = size_filter - MEGABYTE
                         except WriteError as e:
-                            CuckooReportError("Failed to write document:  {}".format(e))
+                            log.error("Document write error: {}".format(e))
+                            CuckooReportError("Failed to write document: {}".format(e))
                             error_saved = False
                         except Exception as e:
+                            log.error("Key error: {}".format(e))
                             CuckooReportError("Failed to delete child key: {}".format(e))
                             error_saved = False
 
