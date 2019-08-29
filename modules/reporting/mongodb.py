@@ -194,6 +194,7 @@ class MongoDB(Report):
         try:
             self.db.analysis.insert_one(report, bypass_document_validation=True)
         except InvalidDocument as e:
+            log.error("Mongodb error: {}".format(e))
             parent_key, psize = self.debug_dict_size(report)[0]
             if not self.options.get("fix_large_docs", False):
                 # Just log the error and problem keys
