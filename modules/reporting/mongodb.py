@@ -192,52 +192,49 @@ class MongoDB(Report):
 
         # Store the report and retrieve its object id.
         try:
-            self.db.analysis.save(report)
+            self.db.analysis.insert_one(report, bypass_document_validation=True)
         except InvalidDocument as e:
-            if "key" in e:
-                log.error("Error saving to MongoDB: {}".format(e))
+            parent_key, psize = self.debug_dict_size(report)[0]
+            if not self.options.get("fix_large_docs", False):
+                # Just log the error and problem keys
+                log.error("Document too large: {}".format(e))
+                log.error("Largest parent key: {} ({} MB)".format(parent_key, int(psize) / MEGABYTE))
             else:
-                parent_key, psize = self.debug_dict_size(report)[0]
-                if not self.options.get("fix_large_docs", False):
-                    # Just log the error and problem keys
-                    log.error("Document too large: {}".format(e))
-                    log.error("Largest parent key: {} ({} MB)".format(parent_key, int(psize) / MEGABYTE))
-                else:
-                    # Delete the problem keys and check for more
-                    error_saved = True
-                    size_filter = MONGOSIZELIMIT
-                    while error_saved:
-                        if type(report) == list:
-                            report = report[0]
-                        try:
-                            if type(report[parent_key]) == list:
-                                for j, parent_dict in enumerate(report[parent_key]):
-                                    child_key, csize = self.debug_dict_size(parent_dict)[0]
-                                    if csize > size_filter:
-                                        log.warn("results[{}][{}] deleted due to size: {}".format(parent_key,
-                                                                                                  child_key,
-                                                                                                  csize))
-                                        del report[parent_key][j][child_key]
-                            else:
-                                child_key, csize = self.debug_dict_size(report[parent_key])[0]
+                # Delete the problem keys and check for more
+                error_saved = True
+                size_filter = MONGOSIZELIMIT
+                while error_saved:
+                    if type(report) == list:
+                        report = report[0]
+                    try:
+                        if type(report[parent_key]) == list:
+                            for j, parent_dict in enumerate(report[parent_key]):
+                                child_key, csize = self.debug_dict_size(parent_dict)[0]
                                 if csize > size_filter:
                                     log.warn("results[{}][{}] deleted due to size: {}".format(parent_key,
                                                                                               child_key,
                                                                                               csize))
-                                    del report[parent_key][child_key]
-                            try:
-                                self.db.analysis.save(report)
-                                error_saved = False
-                            except InvalidDocument as e:
-                                parent_key, psize = self.debug_dict_size(report)[0]
-                                log.error("Document invalid: {}".format(e))
-                                log.error("Largest parent key: {} ({} MB)".format(parent_key, int(psize) / MEGABYTE))
-                                size_filter = size_filter - MEGABYTE
-                        except WriteError as e:
-                            log.error("Failed to write document: {}".format(e))
+                                    del report[parent_key][j][child_key]
+                        else:
+                            child_key, csize = self.debug_dict_size(report[parent_key])[0]
+                            if csize > size_filter:
+                                log.warn("results[{}][{}] deleted due to size: {}".format(parent_key,
+                                                                                          child_key,
+                                                                                          csize))
+                                del report[parent_key][child_key]
+                        try:
+                            self.db.analysis.insert_one(report, bypass_document_validation=True)
                             error_saved = False
-                        except Exception as e:
-                            log.error("Failed to delete child key: {}".format(e))
-                            error_saved = False
+                        except InvalidDocument as e:
+                            parent_key, psize = self.debug_dict_size(report)[0]
+                            log.error("Document invalid: {}".format(e))
+                            log.error("Largest parent key: {} ({} MB)".format(parent_key, int(psize) / MEGABYTE))
+                            size_filter = size_filter - MEGABYTE
+                    except WriteError as e:
+                        log.error("Failed to write document: {}".format(e))
+                        error_saved = False
+                    except Exception as e:
+                        log.error("Failed to delete child key: {}".format(e))
+                        error_saved = False
 
         self.conn.close()
