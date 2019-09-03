@@ -36,7 +36,7 @@ demux_extensions_list = [
         ".doc", ".dot", ".docx", ".dotx", ".docm", ".dotm", ".docb", ".mht", ".mso", ".js", ".jse", ".vbs", ".vbe",
         ".xls", ".xlt", ".xlm", ".xlsx", ".xltx", ".xlsm", ".xltm", ".xlsb", ".xla", ".xlam", ".xll", ".xlw", ".htm",
         ".ppt", ".pot", ".pps", ".pptx", ".pptm", ".potx", ".potm", ".ppam", ".ppsx", ".ppsm", ".sldx", ".sldm", ".wsf",
-        ".html", ".hta", ".bat", ".ps1"
+        ".html", ".hta", ".bat", ".ps1", ".cmd",
     ]
 
 office_pkgs = ["doc", "xls", "ppt", "pub"]
