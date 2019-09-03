@@ -1109,7 +1109,7 @@ def procdump(request, task_id, process_id, start, end):
         if tmp_file_path:
             os.unlink(tmp_file_path)
         if tmpdir:
-            os.rmdir(tmpdir)
+            shutil.rmtree(tmpdir)
     except:
         pass
 
