@@ -192,7 +192,7 @@ class MongoDB(Report):
 
         # Store the report and retrieve its object id.
         try:
-            self.db.analysis.save(report)
+            self.db.analysis.save(report, check_keys=False)
         except InvalidDocument as e:
             log.error("Mongodb error: {}".format(e))
             parent_key, psize = self.debug_dict_size(report)[0]
@@ -224,7 +224,7 @@ class MongoDB(Report):
                                                                                           csize))
                                 del report[parent_key][child_key]
                         try:
-                            self.db.analysis.insert_one(report)
+                            self.db.analysis.save(report, check_keys=False)
                             error_saved = False
                         except InvalidDocument as e:
                             parent_key, psize = self.debug_dict_size(report)[0]
