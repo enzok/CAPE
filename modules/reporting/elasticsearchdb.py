@@ -33,6 +33,29 @@ class ElasticsearchDB(Report):
             timeout=300
         )
 
+    def replace_dots(self, signatures):
+        """Removes $ and . from key
+        @param signatures: original signatures dictionary
+        """
+        new_sigs = []
+        for sig in signatures:
+            temp = {}
+            for key, val in sig.items():
+                if key != 'data':
+                    temp[key] = val
+                else:
+                    new_data = []
+                    for data in val:
+                        data_temp = {}
+                        for oldkey, dval in data.items():
+                            newkey = oldkey.replace(".", "_")
+                            data_temp[newkey] = dval
+                        new_data.append(data_temp)
+                    temp[key] = new_data
+            new_sigs.append(temp)
+
+        return new_sigs
+
     def run(self, results):
         """Writes report.
         @param results: analysis results dictionary.
@@ -139,7 +162,7 @@ class ElasticsearchDB(Report):
                 for cape in cape_result:
                     if "cape_config" in cape:
                         report["CAPE"] = cape
-            report["signatures"] = results.get("signatures")
+            report["signatures"] = self.replace_dots(results.get("signatures"))
             report["strings"] = results.get("strings")
             report["mmbot"] = results.get("mmbot", {})
 
