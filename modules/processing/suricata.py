@@ -97,6 +97,8 @@ class Suricata(Processing):
         suricata["ssh_log_full_path"] = None
         suricata["dns_log_full_path"] = None
 
+        tls_items = ["fingerprint", "issuer", "version", "subject", "sni", "ja3", "serial"]
+
         SURICATA_ALERT_LOG_FULL_PATH = "%s/%s" % (self.logs_path, SURICATA_ALERT_LOG)
         SURICATA_TLS_LOG_FULL_PATH = "%s/%s" % (self.logs_path, SURICATA_TLS_LOG)
         SURICATA_HTTP_LOG_FULL_PATH = "%s/%s" % (self.logs_path, SURICATA_HTTP_LOG)
@@ -313,10 +315,9 @@ class Suricata(Processing):
                         tlog["dstport"] = parsed["dest_port"]
                         tlog["dstip"] = parsed["dest_ip"]
                         tlog["timestamp"] = parsed["timestamp"].replace("T", " ")
-                        tlog["fingerprint"] = parsed["tls"]["fingerprint"]
-                        tlog["issuer"] = parsed["tls"]["issuerdn"]
-                        tlog["version"] = parsed["tls"]["version"]
-                        tlog["subject"] = parsed["tls"]["subject"]
+                        for key in tls_items:
+                            if key in parsed["tls"]:
+                                tlog[key] = parsed["tls"][key]
                         suricata["tls"].append(tlog)
 
                     elif parsed["event_type"] == "ssh":
