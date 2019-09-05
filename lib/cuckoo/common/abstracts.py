@@ -36,6 +36,8 @@ from lib.cuckoo.core.database import Database
 from lib.cuckoo.core.resultserver import ResultServer
 from django.core.validators import URLValidator
 
+log = logging.getLogger(__name__)
+
 try:
     import libvirt
     HAVE_LIBVIRT = True
@@ -48,7 +50,14 @@ try:
 except ImportError:
     HAVE_TLDEXTRACT = False
 
-log = logging.getLogger(__name__)
+try:
+    from pyattck import Attck
+    mitre = Attck()
+    HAVE_MITRE = True
+    log.error("Missed pyattck dependency")
+except ImportError:
+    HAVE_MITRE = False
+
 
 myresolver = dns.resolver.Resolver()
 myresolver.timeout = 5.0
@@ -1546,6 +1555,10 @@ class Report(object):
         self.task = None
         self.options = None
         self.rmemory_path = None
+
+        if not hasattr(Report, "mitre") and HAVE_MITRE:
+            # initialize only once
+            Report.mitre = mitre
 
     def set_path(self, analysis_path):
         """Set analysis folder path.
