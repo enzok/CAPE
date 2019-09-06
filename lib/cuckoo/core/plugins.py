@@ -327,7 +327,7 @@ class RunSignatures(object):
     def __init__(self, task, results):
         self.task = task
         self.results = results
-        self.ttps = list()
+        self.ttps = dict()
 
     def _load_overlay(self):
         """Loads overlay data from a json file.
@@ -532,7 +532,7 @@ class RunSignatures(object):
                 else:
                     if result is True:
                         if hasattr(sig, "ttp"):
-                            self.ttps += sig.ttp
+                            [self.ttps.setdefault(ttp, sig.name) for ttp in sig.ttp]
                         log.debug("Analysis matched signature \"%s\"", sig.name)
                         matched.append(sig.as_result())
                         if sig in complete_list:
@@ -560,7 +560,7 @@ class RunSignatures(object):
                     # If the signature is matched, add it to the list.
                     if match:
                         if hasattr(signature, "ttp"):
-                            self.ttps += signature.ttp
+                            [self.ttps.setdefault(ttp, signature.name) for ttp in signature.ttp]
                         matched.append(match)
 
         # Sort the matched signatures by their severity level.
