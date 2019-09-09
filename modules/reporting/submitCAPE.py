@@ -84,6 +84,7 @@ plugx = {
     'exe': 'PlugX',
 }
 
+
 class SubmitCAPE(Report):
     def process_cape_yara(self, cape_yara, detections):
 
@@ -261,17 +262,18 @@ class SubmitCAPE(Report):
                 log.info(u"CAPE detection on file \"{0}\": {1} - added as CAPE task with ID {2}".format(target,
                                                                                                         package,
                                                                                                         task_id))
+                return task_id
             else:
                 log.warn("Error adding CAPE task to database: {0}".format(package))
         else:
             log.info("File doesn't exists")
 
     def run(self, results):
-
         self.task_options_stack = []
         self.task_options = None
         self.task_custom = None
         detections = set()
+        children = []
 
         # We only want to submit a single job if we have a
         # malware detection. A given package should do
@@ -291,7 +293,7 @@ class SubmitCAPE(Report):
         parent_package = results["info"].get("package")
 
         # Initial static hits from CAPE's yara signatures
-        for entry in results("target", {}).get("file", {}).get("cape_yara", []):
+        for entry in results.get("target", {}).get("file", {}).get("cape_yara", []):
             self.process_cape_yara(entry, detections)
 
         for pattern in ("procdump", "CAPE", "dropped"):
@@ -315,8 +317,8 @@ class SubmitCAPE(Report):
 
                     elif entry["name"] == "Extraction":
                         if parent_package == 'doc':
-                        #    detections.add('Extraction_doc')
-                        # Word triggers this so removed
+                            # detections.add('Extraction_doc')
+                            # Word triggers this so removed
                             continue
 
                         if parent_package in extractions:
@@ -397,12 +399,13 @@ class SubmitCAPE(Report):
             self.task_custom = "Parent_Task_ID:%s" % results["info"]["id"]
             if results.get("info", {}).get("custom"):
                 self.task_custom = "%s Parent_Custom:%s" % (self.task_custom, results["info"]["custom"])
-            self.submit_task(
+            task_id = self.submit_task(
                 self.task["target"],
                 package,
                 self.task["timeout"],
                 self.task_options,
-                self.task["priority"] + 1, # increase priority to expedite related submission
+                # increase priority to expedite related submission
+                self.task["priority"] + 1,
                 self.task["machine"],
                 self.task["platform"],
                 self.task["memory"],
@@ -411,6 +414,8 @@ class SubmitCAPE(Report):
                 None,
                 parent_id,
             )
+            if task_id:
+                children.append([task_id, package])
 
         else: # nothing submitted, only 'dumpers' left
             if parent_package in cape_package_list:
@@ -421,12 +426,13 @@ class SubmitCAPE(Report):
                 self.task_custom = "%s Parent_Custom:%s" % (self.task_custom, results["info"]["custom"])
 
             for dumper in detections:
-                self.submit_task(
+                task_id = self.submit_task(
                     self.task["target"],
                     dumper,
                     self.task["timeout"],
                     self.task_options,
-                    self.task["priority"] + 1,   # increase priority to expedite related submission
+                    # increase priority to expedite related submission
+                    self.task["priority"] + 1,
                     self.task["machine"],
                     self.task["platform"],
                     self.task["memory"],
@@ -435,4 +441,10 @@ class SubmitCAPE(Report):
                     None,
                     parent_id,
                 )
+                if task_id:
+                    children.append([task_id, dumper])
+
+        if children:
+            results["CAPE_children"] = children
+
         return
