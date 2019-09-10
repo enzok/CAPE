@@ -79,15 +79,15 @@ class Suricata(Processing):
         # Command Line
         SURICATA_BIN = self.options.get("bin", None)
 
-        suricata = {}
-        suricata["alerts"]=[]
-        suricata["tls"]=[]
-        suricata["perf"]=[]
-        suricata["files"]=[]
-        suricata["http"]=[]
-        suricata["dns"]=[]
-        suricata["ssh"]=[]
-        suricata["file_info"]=[]
+        suricata = dict()
+        suricata["alerts"] = []
+        suricata["tls"] = []
+        suricata["perf"] = []
+        suricata["files"] = []
+        suricata["http"] = []
+        suricata["dns"] = []
+        suricata["ssh"] = []
+        suricata["file_info"] = []
 
         suricata["eve_log_full_path"] = None
         suricata["alert_log_full_path"] = None
@@ -165,7 +165,7 @@ class Suricata(Processing):
             maxloops = 24
             loopsleep = 5
 
-            args = {}
+            args = dict()
             args["filename"] = self.pcap_path
             args["output-dir"] = self.logs_path
 
@@ -200,7 +200,7 @@ class Suricata(Processing):
                 log.warning("Unable to Run Suricata: Bin File %s Does Not Exist" % (SURICATA_CONF))
                 return suricata["alerts"]
             cmd = "%s -c %s -k none -l %s -r %s" % (SURICATA_BIN,SURICATA_CONF,self.logs_path,self.pcap_path)
-            ret,stdout,stderr = self.cmd_wrapper(cmd)
+            ret, stdout, stderr = self.cmd_wrapper(cmd)
             if ret != 0:
                log.warning("Suricata returned a Exit Value Other than Zero %s" % (stderr))
                return suricata
@@ -377,7 +377,7 @@ class Suricata(Processing):
         if SURICATA_FILES_DIR_FULL_PATH and os.path.exists(SURICATA_FILES_DIR_FULL_PATH) and Z7_PATH and os.path.exists(Z7_PATH):
             # /usr/bin/7z a -pinfected -y files.zip files files-json.log
             cmd = "cd %s && %s a -p%s -y files.zip %s %s" % (self.logs_path,Z7_PATH,FILES_ZIP_PASS,SURICATA_FILE_LOG,SURICATA_FILES_DIR)
-            ret,stdout,stderr = self.cmd_wrapper(cmd)
+            ret, stdout, stderr = self.cmd_wrapper(cmd)
             if ret != 0:
                 log.warning("Suricata: Failed to create %s/files.zip" % (self.logs_path))
 
