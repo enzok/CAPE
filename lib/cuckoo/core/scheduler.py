@@ -233,15 +233,14 @@ class AnalysisManager(threading.Thread):
         succeeded = False
         dead_machine = False
 
-        log.info(u"Task #{0}: Starting analysis of {1} '{2}'".format(
-                 self.task.id, self.task.category.upper(), self.task.target)
-                )
+        log.info("Task #{0}: Starting analysis of {1} '{2}'".format(
+                 self.task.id, self.task.category.upper(), self.task.target))
 
         # Initialize the analysis folders.
         if not self.init_storage():
             return False
 
-        if self.task.category in ["file", "pcap"]:
+        if self.task.category in ["file", "pcap", "static"]:
             # Check whether the file has been changed for some unknown reason.
             # And fail this analysis if it has been modified.
             if not self.check_file():
@@ -251,12 +250,12 @@ class AnalysisManager(threading.Thread):
             if not self.store_file():
                 return False
 
-        if self.task.category == "pcap":
-            # symlink the "binary" to dump.pcap
-            if hasattr(os, "symlink"):
-                os.symlink(self.binary, os.path.join(self.storage, "dump.pcap"))
-            else:
-                shutil.copy(self.binary, os.path.join(self.storage, "dump.pcap"))
+        if self.task.category in ("pcap", "static"):
+            if self.task.category == "pcap":
+                if hasattr(os, "symlink"):
+                    os.symlink(self.binary, os.path.join(self.storage, "dump.pcap"))
+                else:
+                    shutil.copy(self.binary, os.path.join(self.storage, "dump.pcap"))
             # create the logs/files directories as
             # normally the resultserver would do it
             dirnames = ["logs", "files", "aux"]

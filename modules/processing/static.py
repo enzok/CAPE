@@ -3,7 +3,6 @@
 # See the file 'docs/LICENSE' for copying permission.
 
 import json
-from lib.cuckoo.common.utils import store_temp_file
 import logging
 import os
 import re
@@ -14,11 +13,10 @@ import base64
 import hashlib
 import zipfile
 
-from lxml import etree
-from datetime import datetime, date, time
 from lib.cuckoo.common.icon import PEGroupIconDir
 from PIL import Image
 from StringIO import StringIO
+from datetime import datetime, date, time
 from subprocess import Popen, PIPE
 import struct
 
@@ -1668,7 +1666,7 @@ class Static(Processing):
         self.key = "static"
         static = {}
 
-        if self.task["category"] == "file":
+        if self.task["category"] in ("file", "static"):
             package = ""
             if "info" in self.results and "package" in self.results["info"]:
                 package = self.results["info"]["package"]

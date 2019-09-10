@@ -75,7 +75,7 @@ class URL:
         """@param url: URL"""
         self.url = url
 
-class File:
+class File(object):
     """Basic file object class with all useful utilities."""
 
     YARA_RULEPATH = \
@@ -131,9 +131,9 @@ class File:
 
     def calc_hashes(self):
         """Calculate all possible hashes for this file."""
-        crc = 0
-        md5 = hashlib.md5()
-        sha1 = hashlib.sha1()
+        crc    = 0
+        md5    = hashlib.md5()
+        sha1   = hashlib.sha1()
         sha256 = hashlib.sha256()
         sha512 = hashlib.sha512()
 
@@ -144,9 +144,9 @@ class File:
             sha256.update(chunk)
             sha512.update(chunk)
 
-        self._crc32 = "".join("%02X" % ((crc >> i) & 0xff) for i in [24, 16, 8, 0])
-        self._md5 = md5.hexdigest()
-        self._sha1 = sha1.hexdigest()
+        self._crc32  = "".join("%02X" % ((crc>>i)&0xff) for i in [24, 16, 8, 0])
+        self._md5    = md5.hexdigest()
+        self._sha1   = sha1.hexdigest()
         self._sha256 = sha256.hexdigest()
         self._sha512 = sha512.hexdigest()
 
@@ -284,23 +284,6 @@ class File:
             new = "{ %s }" % s
 
         return new
-
-    def _yara_matches_177(self, matches):
-        """Extract matches from the Yara output for version 1.7.7."""
-        ret = []
-        for _, rule_matches in matches.items():
-            for match in rule_matches:
-                strings = set()
-
-                for s in match["strings"]:
-                    strings.add(self._yara_encode_string(s["data"]))
-
-                ret.append({
-                    "name": match["rule"],
-                    "meta": match["meta"],
-                    "strings": list(strings),
-                })
-        return ret
 
     def get_yara(self, rulepath=YARA_RULEPATH):
         """Get Yara signatures matches.
@@ -465,6 +448,9 @@ class File:
 
         return infos
 
+class Static(File):
+
+
 class ProcDump(object):
     def __init__(self, dump_file, pretty=False):
         self._dumpfile = open(dump_file, "rb")
@@ -499,26 +485,20 @@ class ProcDump(object):
         return self.protmap[prot]
 
     def pretty_print(self):
-        last_map = 0
-        try:
-            new_addr_space = copy.deepcopy(self.address_space)
-            for map in new_addr_space:
-                last_map = map["start"]
-                map["start"] = "0x%.08x" % map["start"]
-                map["end"] = "0x%.08x" % map["end"]
-                map["size"] = "0x%.08x" % map["size"]
-                if map["prot"] is None:
-                    map["prot"] = "Mixed"
-                else:
-                    map["prot"] = self._prot_to_str(map["prot"])
-                for chunk in map["chunks"]:
-                    chunk["start"] = "0x%.08x" % chunk["start"]
-                    chunk["end"] = "0x%.08x" % chunk["end"]
-                    chunk["size"] = "0x%.08x" % chunk["size"]
-                    chunk["prot"] = self._prot_to_str(chunk["prot"])
-        except:
-            log.warning("Exception parsing memory dump, last map = 0x%x", last_map)
-            return
+        new_addr_space = copy.deepcopy(self.address_space)
+        for map in new_addr_space:
+            map["start"] = "0x%.08x" % map["start"]
+            map["end"] = "0x%.08x" % map["end"]
+            map["size"] = "0x%.08x" % map["size"]
+            if map["prot"] is None:
+                map["prot"] = "Mixed"
+            else:
+                map["prot"] = self._prot_to_str(map["prot"])
+            for chunk in map["chunks"]:
+                chunk["start"] = "0x%.08x" % chunk["start"]
+                chunk["end"] = "0x%.08x" % chunk["end"]
+                chunk["size"] = "0x%.08x" % chunk["size"]
+                chunk["prot"] = self._prot_to_str(chunk["prot"])
         return new_addr_space
 
     def _coalesce_chunks(self, chunklist):
@@ -530,7 +510,7 @@ class ProcDump(object):
             if chunk["prot"] != prot:
                 prot = None
         return { "start" : low, "end" : high, "size" : high - low, "prot" : prot, "PE" : PE, "chunks" : chunklist }
- 
+
     def parse_dump(self):
         f = self.dumpfile
         address_space = []
