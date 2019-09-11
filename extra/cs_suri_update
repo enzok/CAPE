@@ -1,0 +1,108 @@
+#!/usr/bin/env python
+'''
+Download and extract CrowdStrike suricata rules for use with CAPE
+-- enzok
+'''
+
+from sys import stdout
+from os import path
+from io import BytesIO
+from zipfile import ZipFile, is_zipfile
+from argparse import ArgumentParser
+import requests
+import json
+import logging
+import re
+
+parser = ArgumentParser()
+parser.add_argument("--debug", "-d", action="store_true", help="Debug logging.")
+parser.add_argument("--force", "-f", action="store_true", help="Force download.")
+parser.add_argument("--modify", "-m", action="store_true", help="Remove established from flow.")
+
+cs_url = "https://intelapi.crowdstrike.com/rules/entities/latest-files/v1?type=snort-suricata-master"
+suri_root = "/etc/suricata"
+#suri_root = "cs_suri_update"
+rules_dir = path.join(suri_root, "rules")
+lastmod_path = path.join(suri_root, "cs_lastmodified")
+myid = ""
+mykey = ""
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+log_handler = logging.StreamHandler(stdout)
+log.addHandler(log_handler)
+
+
+def get_last_mod():
+    result = None
+    if path.exists(lastmod_path):
+        with open(lastmod_path, "r") as json_file:
+            result = json.load(json_file)["mod_date"]
+    log.debug("Last-Modified: {}".format(result))
+    return result
+
+
+def write_last_mod(date):
+    out = dict()
+    out["mod_date"] = date
+    with open(lastmod_path, "w") as json_file:
+        json.dump(out, json_file)
+        log.debug("Wrote Last-Modified to file.")
+    return
+
+
+def download_rules(force):
+    headers = {
+        "X-CSIX-CUSTID": myid,
+        "X-CSIX-CUSTKEY": mykey
+    }
+    last_mod = get_last_mod()
+    if last_mod and not force:
+        headers["If-Modified-Since"] = last_mod
+    try:
+        r = requests.get(cs_url, headers=headers)
+    except Exception as e:
+        print e
+
+    if r.status_code == 200:
+        log.debug("Rules downloaded.")
+        data = BytesIO(r.content)
+        if is_zipfile(data):
+            z = ZipFile(data)
+            rulename = z.namelist()[0]
+            z.extractall(rules_dir)
+            mod_date = r.headers["Last-Modified"]
+            if mod_date:
+                write_last_mod(mod_date)
+            return rulename
+        else:
+            log.error("Not a zip file.")
+    else:
+        log.debug("{}: {}".format(r.status_code, r.reason))
+    return
+
+
+def main():
+    args = parser.parse_args()
+    if args.debug:
+        log.setLevel(logging.DEBUG)
+
+    rule_name = download_rules(args.force)
+    if args.modify and rule_name:
+        data = ""
+        rule_path = path.join(rules_dir, rule_name)
+        if path.exists(rule_path):
+            est_pattern = r"[\s,]*established[\s,]*"
+            flow_pattern = r"flow:\s*;"
+            with open(rule_path, "r") as rfile:
+                data = rfile.read()
+                data = re.sub(est_pattern, "", data)
+                data = re.sub(flow_pattern, "", data)
+            if data:
+                with open(rule_path, "w") as rfile:
+                    rfile.write(data)
+
+
+if __name__ == "__main__":
+    main()
+
