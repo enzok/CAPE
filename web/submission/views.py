@@ -122,7 +122,8 @@ def download_file(content, request, db, task_ids, url, params, headers, service,
                                                          memory=memory,
                                                          enforce_timeout=enforce_timeout,
                                                          tags=tags,
-                                                         clock=clock)
+                                                         clock=clock,
+                                                         static=static)
             if isinstance(task_ids, list):
                 task_ids.extend(task_ids_new)
 
@@ -149,6 +150,7 @@ def index(request, resubmit_hash=False):
         enforce_timeout = bool(request.POST.get("enforce_timeout", False))
         referrer = validate_referrer(request.POST.get("referrer", None))
         tags = request.POST.get("tags", None)
+        static = bool(request.POST.get("static", False))
         opt_filename = ""
         for option in options.split(","):
             if option.startswith("filename="):
@@ -278,6 +280,7 @@ def index(request, resubmit_hash=False):
         else:
             task_machines.append(machine)
 
+        failed_hashes = list()
         status = "ok"
         if "hash" in request.POST and request.POST.get("hash", False) and request.POST.get("hash")[0] != '':
             resubmission_hash = request.POST.get("hash").strip()
@@ -305,7 +308,7 @@ def index(request, resubmit_hash=False):
                 status, task_ids = download_file(content, request, db, task_ids, url, params, headers, "Local",
                                                  path, package, timeout, options, priority, machine, gateway,
                                                  clock, custom, memory, enforce_timeout, referrer, tags, orig_options,
-                                                 task_gateways, task_machines)
+                                                 task_gateways, task_machines, static)
 
         elif "sample" in request.FILES:
             samples = request.FILES.getlist("sample")
@@ -345,7 +348,8 @@ def index(request, resubmit_hash=False):
                                                                          memory=memory,
                                                                          enforce_timeout=enforce_timeout,
                                                                          tags=tags,
-                                                                         clock=clock)
+                                                                         clock=clock,
+                                                                         static=static)
                             task_ids.extend(task_ids_new)
                         except CuckooDemuxError as err:
                             return render(request, "error.html", {"error": err})
@@ -399,7 +403,8 @@ def index(request, resubmit_hash=False):
                                                                      memory=memory,
                                                                      enforce_timeout=enforce_timeout,
                                                                      tags=tags,
-                                                                     clock=clock)
+                                                                     clock=clock,
+                                                                     static=static)
                         task_ids.extend(task_ids_new)
         elif "pcap" in request.FILES:
             samples = request.FILES.getlist("pcap")
@@ -497,12 +502,15 @@ def index(request, resubmit_hash=False):
                         status, task_ids = download_file(content, request, db, task_ids, url, params, headers,
                                                          "VirusTotal", filename, package, timeout, options, priority,
                                                          machine, gateway, clock, custom, memory, enforce_timeout,
-                                                         referrer, tags, orig_options, task_gateways, task_machines)
+                                                         referrer, tags, orig_options, task_gateways, task_machines,
+                                                         static)
                     else:
                         status, task_ids = download_file(content, request, db, task_ids, url, params, headers, "Local",
                                                          filename, package, timeout, options, priority, machine,
                                                          gateway, clock, custom, memory, enforce_timeout, referrer,
-                                                         tags, orig_options, task_gateways, task_machines)
+                                                         tags, orig_options, task_gateways, task_machines, static)
+                if status != "ok":
+                    failed_hashes.append(h)
 
         if status == "error":
             # is render msg

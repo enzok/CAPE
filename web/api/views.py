@@ -217,7 +217,7 @@ def tasks_create_file(request):
         shrike_msg = request.POST.get("shrike_msg", None)
         shrike_sid = request.POST.get("shrike_sid", None)
         shrike_refer = request.POST.get("shrike_refer", None)
-
+        static = bool(request.POST.get("static", False))
         task_ids = []
         task_machines = []
         vm_list = []
@@ -273,8 +273,9 @@ def tasks_create_file(request):
                             "error_value": "File size exceeds API limit"}
                     return jsonize(resp, response=True)
 
-                
+
                 tmp_path = store_temp_file(sample.read(), sample.name)
+
                 if pcap:
                     if sample.name.lower().endswith(".saz"):
                         saz = saz_to_pcap(tmp_path)
@@ -283,7 +284,7 @@ def tasks_create_file(request):
                                 os.remove(tmp_path)
                             except:
                                 pass
-                            path = saz  
+                            path = saz
                         else:
                              resp = {"error": True,
                                      "error_value": "Failed to convert SAZ to PCAP"}
@@ -292,8 +293,12 @@ def tasks_create_file(request):
                         path = tmp_path
                     task_id = db.add_pcap(file_path=path)
                     task_ids.append(task_id)
-                    continue 
-            
+                    continue
+                if static:
+                    task_id = db.add_static(file_path=tmp_path, priority=priority)
+                    task_ids.append(task_id)
+                    continue
+
                 if quarantine:
                     path = unquarantine(tmp_path)
                     try:
@@ -328,7 +333,8 @@ def tasks_create_file(request):
                                           shrike_url=shrike_url,
                                           shrike_msg=shrike_msg,
                                           shrike_sid=shrike_sid,
-                                          shrike_refer=shrike_refer
+                                          shrike_refer=shrike_refer,
+                                          static=static,
                                           )
                     except CuckooDemuxError as e:
                         resp = {"error": True,
@@ -370,6 +376,11 @@ def tasks_create_file(request):
                 task_id = db.add_pcap(file_path=path)
                 task_ids.append(task_id)
 
+            if static:
+                task_id = db.add_static(file_path=tmp_path, priority=priority)
+                task_ids.append(task_id)
+                continue
+
             if quarantine:
                 path = unquarantine(tmp_path)
                 try:
@@ -403,7 +414,8 @@ def tasks_create_file(request):
                                           shrike_url=shrike_url,
                                           shrike_msg=shrike_msg,
                                           shrike_sid=shrike_sid,
-                                          shrike_refer=shrike_refer
+                                          shrike_refer=shrike_refer,
+                                          static=static,
                                           )
                     if task_ids_new:
                         task_ids.extend(task_ids_new)
@@ -516,7 +528,7 @@ def tasks_create_url(request):
                 if request.POST.get("all_gw_in_group"):
                     tgateway = settings.GATEWAYS[gateway].split(",")
                     for e in tgateway:
-                        task_gateways.append(settings.GATEWAYS[e]) 
+                        task_gateways.append(settings.GATEWAYS[e])
                 else:
                     tgateway = random.choice(settings.GATEWAYS[gateway].split(","))
                     task_gateways.append(settings.GATEWAYS[tgateway])
@@ -550,7 +562,7 @@ def tasks_create_url(request):
                              )
                 if task_id:
                     task_ids.append(task_id)
-                 
+
         if len(task_ids):
             resp["data"] = {}
             resp["data"]["task_ids"] = task_ids
@@ -583,7 +595,7 @@ def tasks_vtdl(request):
             resp = {"error": True,
                     "error_value": "VTDL Create API is Disabled"}
             return jsonize(resp, response=True)
-        
+
         vtdl = request.POST.get("vtdl".strip(),None)
         resp["error"] = False
         # Parse potential POST options (see submission/views.py)
@@ -597,6 +609,7 @@ def tasks_vtdl(request):
         custom = request.POST.get("custom", "")
         memory = bool(request.POST.get("memory", False))
         clock = request.POST.get("clock", None)
+        static = bool(request.POST.get("static", False))
 
         task_machines = []
         vm_list = []
@@ -671,9 +684,21 @@ def tasks_vtdl(request):
                     onesuccess = True
 
                     for entry in task_machines:
-                        task_ids_new = db.demux_sample_and_add_to_db(file_path=filename, package=package, timeout=timeout, options=options, priority=priority,
-                                                                     machine=entry, custom=custom, memory=memory, enforce_timeout=enforce_timeout, tags=tags, clock=clock,
-                                                                     shrike_url=shrike_url, shrike_msg=shrike_msg, shrike_sid=shrike_sid, shrike_refer=shrike_refer)
+                        task_ids_new = db.demux_sample_and_add_to_db(file_path=filename,
+                                                                     package=package,
+                                                                     timeout=timeout,
+                                                                     options=options,
+                                                                     priority=priority,
+                                                                     machine=entry,
+                                                                     custom=custom,
+                                                                     memory=memory,
+                                                                     enforce_timeout=enforce_timeout,
+                                                                     tags=tags, clock=clock,
+                                                                     shrike_url=shrike_url,
+                                                                     shrike_msg=shrike_msg,
+                                                                     shrike_sid=shrike_sid,
+                                                                     shrike_refer=shrike_refer,
+                                                                     static=static)
                         task_ids.extend(task_ids_new)
                 elif r.status_code == 403:
                     resp = {"error": True, "error_value": "API key provided is not a valid VirusTotal key or is not authorized for VirusTotal downloads"}
@@ -682,7 +707,7 @@ def tasks_vtdl(request):
             if not onesuccess:
                 resp = {"error": True, "error_value": "Provided hash(s) not found on VirusTotal {0}".format(hashlist)}
                 return jsonize(resp, response=True)
-         
+
         if len(task_ids) > 0:
             resp["data"] = {}
             resp["data"]["task_ids"] = task_ids
@@ -1732,7 +1757,7 @@ if apiconf.rollingsuri.get("enabled"):
 
 @ratelimit(key="ip", rate=raterps, block=rateblock)
 @ratelimit(key="ip", rate=raterpm, block=rateblock)
-    
+
 def tasks_rollingsuri(request, window=60):
     window = int(window)
     if request.method != "GET":
@@ -1749,7 +1774,7 @@ def tasks_rollingsuri(request, window=60):
             resp = {"error": True,
                     "error_value": "The Window You Specified is greater than the configured maximum"}
             return jsonize(resp, response=True)
-         
+
     gen_time = datetime.now() - timedelta(minutes=window)
     dummy_id = ObjectId.from_datetime(gen_time)
     result = list(results_db.analysis.find({"suricata.alerts": {"$exists": True}, "_id": {"$gte": dummy_id}},{"suricata.alerts":1,"info.id":1}))
@@ -1787,9 +1812,9 @@ def tasks_rollingshrike(request, window=60, msgfilter=None):
 
     gen_time = datetime.now() - timedelta(minutes=window)
     dummy_id = ObjectId.from_datetime(gen_time)
-    if msgfilter: 
+    if msgfilter:
        result = results_db.analysis.find({"info.shrike_url": {"$exists": True, "$ne":None }, "_id": {"$gte": dummy_id},"info.shrike_msg": {"$regex" : msgfilter, "$options" : "-1"}},{"info.id":1,"info.shrike_msg":1,"info.shrike_sid":1,"info.shrike_url":1,"info.shrike_refer":1},sort=[("_id", pymongo.DESCENDING)])
-    else:   
+    else:
         result = results_db.analysis.find({"info.shrike_url": {"$exists": True, "$ne":None }, "_id": {"$gte": dummy_id}},{"info.id":1,"info.shrike_msg":1,"info.shrike_sid":1,"info.shrike_url":1,"info.shrike_refer":1},sort=[("_id", pymongo.DESCENDING)])
 
     resp=[]

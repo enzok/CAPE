@@ -11,6 +11,7 @@ import random
 import tempfile
 import xmlrpclib
 import errno
+import logging
 import inspect
 import threading
 import multiprocessing
@@ -18,9 +19,9 @@ import operator
 from datetime import datetime
 from collections import defaultdict
 
-from lib.cuckoo.common.exceptions import CuckooOperationalError
 from lib.cuckoo.common.config import Config
 from lib.cuckoo.common.constants import CUCKOO_ROOT
+from lib.cuckoo.common.exceptions import CuckooOperationalError
 
 try:
     import re2 as re
@@ -1780,6 +1781,22 @@ def to_unicode(s):
 
     return result
 
+def get_user_filename(options, customs):
+    opt_filename = ""
+    for block in (options, customs):
+            for pattern in ("filename=", "file_name=", "name="):
+                if pattern in block:
+                    for option in block.split(","):
+                        if option.startswith(pattern):
+                            opt_filename = option.split(pattern)[1]
+                            break
+                    if opt_filename:
+                        break
+            if opt_filename:
+                break
+
+    return opt_filename
+
 def sanitize_filename(x):
     """Kind of awful but necessary sanitizing of filenames to
     get rid of unicode problems."""
@@ -1840,7 +1857,6 @@ class SuperLock(object):
     def __exit__(self, type, value, traceback):
         self.mlock.release()
         self.tlock.release()
-
 
 def get_options(optstring):
     """Get analysis options.
