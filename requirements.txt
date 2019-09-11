@@ -25,9 +25,9 @@ java-random
 python-whois
 bs4
 pathos==0.2.1
-pefile2==1.2.11
+pefile2>=1.2.11
 git+https://github.com/crackinglandia/pype32.git
-git+https://github.com/jsocol/django-ratelimit
+django-ratelimit==2.0.0
 git+https://github.com/kbandla/pydeep.git
 pyvmomi>=6.0
 imagehash
@@ -38,22 +38,19 @@ requests
 sqlalchemy
 # upx
 maec
-oletools==0.54.1
+oletools>=0.54.1
 networkx>=2.1
 regex
 graphviz>=0.8.4
 pydot>=1.2.4
-olefile==0.45.1
+olefile>=0.45.1
 mixbox
 matplotlib==2.2.2
 numpy==1.15.0
 six==1.11.0
-statistics==1.0.3.5
+statistics>=1.0.3.5
 xmltodict
 pyyaml
 pyelftools
-gunicorn
-suricata-update
 git+https://github.com/enzok/sflock.git
-socks5man
 git+https://github.com/doomedraven/pyattck
