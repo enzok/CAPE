@@ -83,7 +83,7 @@ def load_vms_tags():
 
 def download_file(content, request, db, task_ids, url, params, headers, service, filename, package, timeout, options,
                   priority, machine, gateway, clock, custom, memory, enforce_timeout, referrer, tags, orig_options,
-                  task_gateways, task_machines):
+                  task_gateways, task_machines, static):
 
     onesuccess = False
 
