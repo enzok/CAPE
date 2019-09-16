@@ -1060,22 +1060,22 @@ class Database(object):
                     task_id = self.add_static(file_path=file, priority=priority)
             if not config:
                 task_id = self.add_path(file_path=file,
-                                    timeout=timeout,
-                                    priority=priority,
-                                    options=options,
-                                    package=package,
-                                    machine=machine,
-                                    platform=platform,
-                                    memory=memory,
-                                    custom=custom,
-                                    enforce_timeout=enforce_timeout,
-                                    tags=tags,
-                                    clock=clock,
-                                    shrike_url=shrike_url,
-                                    shrike_msg=shrike_msg,
-                                    shrike_sid=shrike_sid,
-                                    shrike_refer=shrike_refer,
-                                    parent_id=parent_id)
+                                        timeout=timeout,
+                                        priority=priority,
+                                        options=options,
+                                        package=package,
+                                        machine=machine,
+                                        platform=platform,
+                                        memory=memory,
+                                        custom=custom,
+                                        enforce_timeout=enforce_timeout,
+                                        tags=tags,
+                                        clock=clock,
+                                        shrike_url=shrike_url,
+                                        shrike_msg=shrike_msg,
+                                        shrike_sid=shrike_sid,
+                                        shrike_refer=shrike_refer,
+                                        parent_id=parent_id)
             if task_id:
                 task_ids.append(task_id)
 
