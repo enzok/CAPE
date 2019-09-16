@@ -73,6 +73,13 @@ def update_options(gw, orig_options):
 
     return options
 
+def load_vms_tags():
+    all_tags = list()
+    for machine in Database().list_machines():
+        for tag in machine.tags:
+            all_tags.append(tag.name)
+
+    return all_tags
 
 def download_file(content, request, db, task_ids, url, params, headers, service, filename, package, timeout, options,
                   priority, machine, gateway, clock, custom, memory, enforce_timeout, referrer, tags, orig_options,
@@ -561,14 +568,25 @@ def index(request, resubmit_hash=False):
         else:
             enabledconf["gateways"] = False
         enabledconf["tags"] = False
-        # Get enabled machinery
-        machinery = Config("cuckoo").cuckoo.get("machinery")
-        # Get VM names for machinery config elements
-        vms = [x.strip() for x in getattr(Config(machinery), machinery).get("machines").split(",")]
-        # Check each VM config element for tags
-        for vmtag in vms:
-            if "tags" in getattr(Config(machinery), vmtag).keys():
-                enabledconf["tags"] = True
+
+        all_tags = load_vms_tags()
+        if all_tags:
+            enabledconf["tags"] = True
+
+        if not enabledconf["tags"]:
+            # load multi machinery tags:
+            if machinery == "multi":
+                for mmachinery in Config(machinery).multi.get("machinery").split(","):
+                    vms = [x.strip() for x in getattr(Config(mmachinery), mmachinery).get("machines").split(",")]
+                    if any(["tags" in getattr(Config(mmachinery), vmtag).keys() for vmtag in vms]):
+                        enabledconf["tags"] = True
+                        break
+            else:
+                # Get VM names for machinery config elements
+                vms = [x.strip() for x in getattr(Config(machinery), machinery).get("machines").split(",")]
+                # Check each VM config element for tags
+                if any(["tags" in getattr(Config(machinery), vmtag).keys() for vmtag in vms]):
+                    enabledconf["tags"] = True
 
         files = os.listdir(os.path.join(settings.CUCKOO_PATH, "analyzer", "windows", "modules", "packages"))
 
