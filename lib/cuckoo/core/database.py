@@ -1097,7 +1097,7 @@ class Database(object):
     def add_static(self, file_path, timeout=0, package="", options="", priority=1,
                 custom="", machine="", platform="", tags=None, memory=False,
                 enforce_timeout=False, clock=None, shrike_url=None, shrike_msg=None,
-                shrike_sid=None, shrike_refer=None, parent_id=None, static=True):
+                shrike_sid=None, shrike_refer=None, parent_id=None):
         return self.add(Static(file_path), timeout, package, options, priority,
                         custom, machine, platform, tags, memory,
                         enforce_timeout, clock, shrike_url, shrike_msg,
