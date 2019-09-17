@@ -895,6 +895,7 @@ class Database(object):
         @param memory: toggle full memory dump.
         @param enforce_timeout: toggle full timeout execution.
         @param clock: virtual machine clock time
+        @param parent_id: parent task id
         @return: cursor or None.
         """
         session = self.Session()
@@ -916,7 +917,8 @@ class Database(object):
                             sha512=fileobj.get_sha512(),
                             file_size=fileobj.get_size(),
                             file_type=file_type,
-                            ssdeep=fileobj.get_ssdeep())
+                            ssdeep=fileobj.get_ssdeep(),
+                            )
             session.add(sample)
 
             try:
@@ -1099,7 +1101,7 @@ class Database(object):
         return self.add(Static(file_path), timeout, package, options, priority,
                         custom, machine, platform, tags, memory,
                         enforce_timeout, clock, shrike_url, shrike_msg,
-                        shrike_sid, shrike_refer, parent_id, static)
+                        shrike_sid, shrike_refer, parent_id)
 
 
     @classlock
