@@ -95,7 +95,7 @@ def get_analysis_info(db, id=-1, task=None):
         return None
 
     new = task.to_dict()
-    if new["category"] in ["file", "pcap"] and new["sample_id"] != None:
+    if new["category"] in ["file", "pcap", "static"] and new["sample_id"] != None:
         new["sample"] = db.view_sample(new["sample_id"]).to_dict()
         filename = os.path.basename(new["target"])
         new.update({"filename": filename})
@@ -111,11 +111,11 @@ def get_analysis_info(db, id=-1, task=None):
                    {"info.id": int(new["id"])},
                    {
                        "info": 1, "virustotal_summary": 1, "cape": 1,
-                       "info.custom":1, "info.shrike_msg":1, "malscore": 1, "malfamily": 1,
+                       "info.custom": 1, "info.shrike_msg":1, "malscore": 1, "malfamily": 1,
                        "network.pcap_sha256": 1,
                        "mlist_cnt": 1, "f_mlist_cnt": 1, "info.package": 1, "target.file.clamav": 1,
                        "suri_tls_cnt": 1, "suri_alert_cnt": 1, "suri_http_cnt": 1, "suri_file_cnt": 1,
-                       "trid" : 1
+                       "trid": 1
                    }, sort=[("_id", pymongo.DESCENDING)]
                )
 
