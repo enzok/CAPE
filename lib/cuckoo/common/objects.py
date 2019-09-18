@@ -364,7 +364,7 @@ class File(object):
                     filename = self.file_name
                 if self.guest_paths:
                     filepath = self.guest_paths[0]
-                rules = yara.compile(rulepath, externals={"filepath":filepath, "filename":filename})
+                rules = yara.compile(rulepath, externals={"filepath": filepath, "filename": filename})
             except yara.SyntaxError as e:
                 if 'duplicated identifier' in e.args[0]:
                     log.warning("Duplicate rule in %s, rulepath")
