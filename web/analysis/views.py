@@ -1621,7 +1621,7 @@ def configdownload(request, task_id, cape_name):
     rtmp = None
     if enabledconf["mongodb"]:
         rtmp = results_db.analysis.find_one({"info.id": int(task_id)}, sort=[("_id", pymongo.DESCENDING)])
-    if es_as_db:
+    elif es_as_db:
         rtmp = es.search(index=fullidx, doc_type="analysis", q="info.id: \"%s\"" % str(task_id))["hits"]["hits"]
         if len(rtmp) > 1:
             rtmp = rtmp[-1]["_source"]
@@ -1629,6 +1629,9 @@ def configdownload(request, task_id, cape_name):
             rtmp = rtmp[0]["_source"]
         else:
             pass
+    else:
+        return render(request, "error.html",
+                      {"error": "WebGui storage Mongo/ES disabled"})
 
     if rtmp:
         if rtmp.get("CAPE", False):
