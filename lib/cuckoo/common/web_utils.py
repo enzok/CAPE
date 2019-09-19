@@ -10,7 +10,7 @@ _current_dir = os.path.abspath(os.path.dirname(__file__))
 CUCKOO_ROOT = os.path.normpath(os.path.join(_current_dir, "..", "..", ".."))
 sys.path.append(CUCKOO_ROOT)
 
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 from django.http import HttpResponse
 
 hashes = {
