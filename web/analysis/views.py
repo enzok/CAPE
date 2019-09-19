@@ -19,15 +19,13 @@ import tempfile
 import requests
 import zlib
 
-from bson.binary import Binary
 from django.conf import settings
 from wsgiref.util import FileWrapper
-from django.http import HttpResponse, StreamingHttpResponse
+from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_safe
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-
 from django.core.exceptions import PermissionDenied
 from urllib import quote
 sys.path.append(settings.CUCKOO_PATH)
@@ -875,9 +873,8 @@ def report(request, task_id):
         for root, dirs, files in os.walk(debugger_log_path):
             for name in files:
                 if name.endswith('.log'):
-                    debugger_log_file = open(os.path.join(root, name), "r")
-                    report["debugger_logs"][int(name.strip('.log'))] = debugger_log_file.read()
-                    debugger_log_file.close()
+                    with open(os.path.join(root, name), "r") as f:
+                        report["debugger_logs"][int(name.strip('.log'))] = f.read()
 
     if settings.MOLOCH_ENABLED and "suricata" in report:
         suricata = report["suricata"]
@@ -1634,7 +1631,7 @@ def configdownload(request, task_id, cape_name):
             pass
 
     if rtmp:
-        if "CAPE" in rtmp:
+        if rtmp.get("CAPE", False):
             try:
                 rtmp["CAPE"] = json.loads(zlib.decompress(rtmp["CAPE"]))
             except:
