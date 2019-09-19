@@ -12,7 +12,6 @@ from django.conf import settings
 from wsgiref.util import FileWrapper
 from django.http import HttpResponse, StreamingHttpResponse
 from django.shortcuts import render
-from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_safe
 from ratelimit.decorators import ratelimit
@@ -26,11 +25,12 @@ from lib.cuckoo.common.constants import CUCKOO_ROOT, CUCKOO_VERSION
 from lib.cuckoo.common.quarantine import unquarantine
 from lib.cuckoo.common.saztopcap import saz_to_pcap
 from lib.cuckoo.common.exceptions import CuckooDemuxError
-from lib.cuckoo.common.utils import store_temp_file, delete_folder
-from lib.cuckoo.common.utils import convert_to_printable, validate_referrer
+from lib.cuckoo.common.utils import store_temp_file, delete_folder, sanitize_filename
+from lib.cuckoo.common.utils import convert_to_printable, validate_referrer, get_user_filename
 from lib.cuckoo.core.database import Database, Task
 from lib.cuckoo.core.database import TASK_REPORTED
 from lib.cuckoo.common.objects import File
+from lib.cuckoo.common.web_utils import download_file, get_file_content, jsonize
 
 # Config variables
 apiconf = Config("api")
@@ -98,20 +98,7 @@ def update_options(gw, orig_options):
 
     return options
 
-# Same jsonize function from api.py except we can now return Django
-# HttpResponse objects as well. (Shortcut to return errors)
-def jsonize(data, response=False):
-    """Converts data dict to JSON.
-    @param data: data dict
-    @return: JSON formatted data or HttpResponse object with json data
-    """
-    if response:
-        jdata = json.dumps(data, sort_keys=False, indent=4)
         return HttpResponse(jdata,
-                            content_type="application/json; charset=UTF-8")
-    else:
-        return json.dumps(data, sort_keys=False, indent=4)
-
 # Chunked file reading. Useful for large files like memory dumps.
 def validate_task(tid):
     task = db.view_task(tid)
@@ -587,6 +574,7 @@ if apiconf.vtdl.get("enabled"):
 @ratelimit(key="ip", rate=raterpm, block=rateblock)
 @csrf_exempt
 def tasks_vtdl(request):
+    status = "ok"
     resp = {}
     if request.method == "POST":
         # Check if this API function is enabled
@@ -595,7 +583,7 @@ def tasks_vtdl(request):
                     "error_value": "VTDL Create API is Disabled"}
             return jsonize(resp, response=True)
 
-        vtdl = request.POST.get("vtdl".strip(),None)
+        vtdl = request.POST.get("vtdl".strip(), None)
         resp["error"] = False
         # Parse potential POST options (see submission/views.py)
         package = request.POST.get("package", "")
@@ -609,6 +597,7 @@ def tasks_vtdl(request):
         memory = bool(request.POST.get("memory", False))
         clock = request.POST.get("clock", None)
         static = bool(request.POST.get("static", False))
+        opt_filename = get_user_filename(options, custom)
 
         task_machines = []
         vm_list = []
@@ -633,14 +622,11 @@ def tasks_vtdl(request):
                 resp = {"error": True,
                         "error_value": ("Machine '{0}' does not exist. "
                                         "Available: {1}".format(machine,
-                                        ", ".join(vm_list)))}
+                                                                ", ".join(vm_list)))}
                 return jsonize(resp, response=True)
         enforce_timeout = bool(request.POST.get("enforce_timeout", False))
-        shrike_url = request.POST.get("shrike_url", None)
-        shrike_msg = request.POST.get("shrike_msg", None)
-        shrike_sid = request.POST.get("shrike_sid", None)
-        shrike_refer = request.POST.get("shrike_refer", None)
-        gateway = request.POST.get("gateway",None)
+        referrer = False
+        orig_options = options
 
         if not vtdl:
             resp = {"error": True, "error_value": "vtdl (hash list) value is empty"}
@@ -650,63 +636,44 @@ def tasks_vtdl(request):
             resp = {"error": True, "error_value": "You specified VirusTotal but must edit the file and specify your VTDL_PRIV_KEY or VTDL_INTEL_KEY variable and VTDL_PATH base directory"}
             return jsonize(resp, response=True)
         else:
-            base_dir = tempfile.mkdtemp(prefix='cuckoovtdl',dir=settings.VTDL_PATH)
+            base_dir = tempfile.mkdtemp(prefix='cuckoovtdl', dir=settings.VTDL_PATH)
             hashlist = []
             if "," in vtdl:
-                hashlist=vtdl.split(",")
+                hashlist = vtdl.replace(" ", "").strip().split(",")
             else:
                 hashlist.append(vtdl)
-            onesuccess = False
-
+            params = {}
+            headers = {}
             for h in hashlist:
-                filename = base_dir + "/" + h
-                if settings.VTDL_PRIV_KEY:
-                    url = 'https://www.virustotal.com/vtapi/v2/file/download'
-                    params = {'apikey': settings.VTDL_PRIV_KEY, 'hash': h}
+                if opt_filename:
+                    filename = base_dir + "/" + opt_filename
                 else:
-                    url = 'https://www.virustotal.com/intelligence/download/'
-                    params = {'apikey': settings.VTDL_INTEL_KEY, 'hash': h}
-                try:
-                    r = requests.get(url, params=params, verify=True)
-                except requests.exceptions.RequestException as e:
-                    resp = {"error": True, "error_value": "Error completing connection to VirusTotal: {0}".format(e)}
-                    return jsonize(resp, response=True)
-                if r.status_code == 200:
-                    try:
-                        f = open(filename, 'wb')
-                        f.write(r.content)
-                        f.close()
-                    except:
-                        resp = {"error": True, "error_value": "Error writing VirusTotal download file to temporary path"}
-                        return jsonize(resp, response=True)
-
-                    onesuccess = True
-
-                    for entry in task_machines:
-                        task_ids_new = db.demux_sample_and_add_to_db(file_path=filename,
-                                                                     package=package,
-                                                                     timeout=timeout,
-                                                                     options=options,
-                                                                     priority=priority,
-                                                                     machine=entry,
-                                                                     custom=custom,
-                                                                     memory=memory,
-                                                                     enforce_timeout=enforce_timeout,
-                                                                     tags=tags, clock=clock,
-                                                                     shrike_url=shrike_url,
-                                                                     shrike_msg=shrike_msg,
-                                                                     shrike_sid=shrike_sid,
-                                                                     shrike_refer=shrike_refer,
-                                                                     static=static)
-                        task_ids.extend(task_ids_new)
-                elif r.status_code == 403:
-                    resp = {"error": True, "error_value": "API key provided is not a valid VirusTotal key or is not authorized for VirusTotal downloads"}
-                    return jsonize(resp, response=True)
-
-            if not onesuccess:
-                resp = {"error": True, "error_value": "Provided hash(s) not found on VirusTotal {0}".format(hashlist)}
-                return jsonize(resp, response=True)
-
+                    filename = base_dir + "/" + sanitize_filename(h)
+                url = "https://www.virustotal.com/api/v3/files/{id}/download".format(
+                    id=h)
+                paths = db.sample_path_by_hash(h)
+                content = False
+                if paths:
+                    content = get_file_content(paths)
+                if not content:
+                    if settings.VTDL_PRIV_KEY:
+                        headers = {'x-apikey': settings.VTDL_PRIV_KEY}
+                    elif settings.VTDL_INTEL_KEY:
+                        headers = {'x-apikey': settings.VTDL_INTEL_KEY}
+                    status, task_ids = download_file(True, content, request, db, task_ids, url, params, headers,
+                                                     "VirusTotal", filename, package, timeout, options, priority,
+                                                     machine, clock, custom, memory, enforce_timeout, referrer, tags,
+                                                     orig_options, task_machines=task_machines, static=static,
+                                                     fhash=False)
+                else:
+                    status, task_ids = download_file(True, content, request, db, task_ids, url, params, headers,
+                                                     "Local", filename, package, timeout, options, priority, machine,
+                                                     clock, custom, memory, enforce_timeout, referrer, tags,
+                                                     orig_options, task_machines=task_machines, static=static,
+                                                     fhash=False)
+        if status == "error":
+            # error
+            return task_ids
         if len(task_ids) > 0:
             resp["data"] = {}
             resp["data"]["task_ids"] = task_ids
@@ -942,71 +909,71 @@ def ext_tasks_search(request):
                 return jsonize(resp, response=True)
 
         if es_as_db:
-            if term == "name":
+            if option == "name":
                 records = es.search(index=fullidx, doc_type="analysis", q="target.file.name: %s" % value)["hits"]["hits"]
-            elif term == "type":
+            elif option == "type":
                 records = es.search(index=fullidx, doc_type="analysis", q="target.file.type: %s" % value)["hits"]["hits"]
-            elif term == "string":
+            elif option == "string":
                 records = es.search(index=fullidx, doc_type="analysis", q="strings: %s" % value)["hits"]["hits"]
-            elif term == "trid":
+            elif option == "trid":
                 records = es.search(index=fullidx, doc_type="analysis", q="trid: %s" % value)["hits"]["hits"]
-            elif term == "ssdeep":
+            elif option == "ssdeep":
                 records = es.search(index=fullidx, doc_type="analysis", q="target.file.ssdeep: %s" % value)["hits"]["hits"]
-            elif term == "crc32":
+            elif option == "crc32":
                 records = es.search(index=fullidx, doc_type="analysis", q="target.file.crc32: %s" % value)["hits"]["hits"]
-            elif term == "file":
+            elif option == "file":
                 records = es.search(index=fullidx, doc_type="analysis", q="behavior.summary.files: %s" % value)["hits"]["hits"]
-            elif term == "command":
+            elif option == "command":
                 records = es.search(index=fullidx, doc_type="analysis", q="behavior.summary.executed_commands: %s" % value)["hits"]["hits"]
-            elif term == "resolvedapi":
+            elif option == "resolvedapi":
                 records = es.search(index=fullidx, doc_type="analysis", q="behavior.summary.resolved_apis: %s" % value)["hits"]["hits"]
-            elif term == "key":
+            elif option == "key":
                 records = es.search(index=fullidx, doc_type="analysis", q="behavior.summary.keys: %s" % value)["hits"]["hits"]
-            elif term == "mutex":
+            elif option == "mutex":
                 records = es.search(index=fullidx, doc_type="analysis", q="behavior.summary.mutex: %s" % value)["hits"]["hits"]
-            elif term == "domain":
+            elif option == "domain":
                 records = es.search(index=fullidx, doc_type="analysis", q="network.domains.domain: %s" % value)["hits"]["hits"]
-            elif term == "ip":
+            elif option == "ip":
                 records = es.search(index=fullidx, doc_type="analysis", q="network.hosts.ip: %s" % value)["hits"]["hits"]
-            elif term == "signature":
+            elif option == "signature":
                 records = es.search(index=fullidx, doc_type="analysis", q="signatures.description: %s" % value)["hits"]["hits"]
-            elif term == "signame":
+            elif option == "signame":
                 records = es.search(index=fullidx, doc_type="analysis", q="signatures.name: %s" % value)["hits"]["hits"]
-            elif term == "malfamily":
+            elif option == "malfamily":
                 records = es.search(index=fullidx, doc_type="analysis", q="malfamily: %s" % value)["hits"]["hits"]
-            elif term == "url":
+            elif option == "url":
                 records = es.search(index=fullidx, doc_type="analysis", q="target.url: %s" % value)["hits"]["hits"]
-            elif term == "imphash":
+            elif option == "imphash":
                 records = es.search(index=fullidx, doc_type="analysis", q="static.pe.imphash: %s" % value)["hits"]["hits"]
-            elif term == "iconhash":
+            elif option == "iconhash":
                 records = es.search(index=fullidx, doc_type="analysis", q="static.pe.icon_hash: %s" % value)["hits"]["hits"]
-            elif term == "iconfuzzy":
+            elif option == "iconfuzzy":
                 records = es.search(index=fullidx, doc_type="analysis", q="static.pe.icon_fuzzy: %s" % value)["hits"]["hits"]
-            elif term == "surialert":
+            elif option == "surialert":
                 records = es.search(index=fullidx, doc_type="analysis", q="suricata.alerts.signature: %s" % value)["hits"]["hits"]
-            elif term == "surihttp":
+            elif option == "surihttp":
                 records = es.search(index=fullidx, doc_type="analysis", q="suricata.http: %s" % value)["hits"]["hits"]
-            elif term == "suritls":
+            elif option == "suritls":
                 records = es.search(index=fullidx, doc_type="analysis", q="suricata.tls: %s" % value)["hits"]["hits"]
-            elif term == "clamav":
+            elif option == "clamav":
                 records = es.search(index=fullidx, doc_type="analysis", q="target.file.clamav: %s" % value)["hits"]["hits"]
-            elif term == "yaraname":
+            elif option == "yaraname":
                 records = es.search(index=fullidx, doc_type="analysis", q="target.file.yara.name: %s" % value)["hits"]["hits"]
-            elif term == "capeyara":
+            elif option == "capeyara":
                 records = es.search(index=fullidx, doc_type="analysis", q="target.file.cape_yara.name: %s" % value)["hits"]["hits"]
-            elif term == "procmemyara":
+            elif option == "procmemyara":
                 records = es.search(index=fullidx, doc_type="analysis", q="procmemory.yara.name: %s" % value)["hits"]["hits"]
-            elif term == "virustotal":
+            elif option == "virustotal":
                 records = es.search(index=fullidx, doc_type="analysis", q="virustotal.results.sig: %s" % value)["hits"]["hits"]
-            elif term == "comment":
+            elif option == "comment":
                 records = es.search(index=fullidx, doc_type="analysis", q="info.comments.Data: %s" % value)["hits"]["hits"]
-            elif term == "md5":
+            elif option == "md5":
                 records = es.search(index=fullidx, doc_type="analysis", q="target.file.md5: %s" % value)["hits"]["hits"]
-            elif term == "sha1":
+            elif option == "sha1":
                 records = es.search(index=fullidx, doc_type="analysis", q="target.file.sha1: %s" % value)["hits"]["hits"]
-            elif term == "sha256":
+            elif option == "sha256":
                 records = es.search(index=fullidx, doc_type="analysis", q="target.file.sha256: %s" % value)["hits"]["hits"]
-            elif term == "sha512":
+            elif option == "sha512":
                 records = es.search(index=fullidx, doc_type="analysis", q="target.file.sha512: %s" % value)["hits"]["hits"]
             else:
                 resp = {"error": True,
@@ -1517,7 +1484,7 @@ def tasks_iocs(request, task_id, detail=None):
     if "dropped" in buf:
         for entry in buf["dropped"]:
             tmpdict = {}
-            if entry["clamav"]:
+            if entry.get("clamav", False):
                 tmpdict['clamav'] = entry["clamav"]
             if entry["sha256"]:
                 tmpdict['sha256'] = entry["sha256"]
@@ -1525,7 +1492,7 @@ def tasks_iocs(request, task_id, detail=None):
                 tmpdict['md5'] = entry["md5"]
             if entry["yara"]:
                 tmpdict['yara'] = entry["yara"]
-            if entry["trid"]:
+            if entry.get("trid", False):
                 tmpdict['trid'] = entry["trid"]
             if entry["type"]:
                 tmpdict["type"] = entry["type"]
@@ -1924,6 +1891,7 @@ def tasks_fullmemory(request, task_id):
     if check["error"]:
         return jsonize(check, response=True)
 
+    filename = ""
     file_path = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(task_id), "memory.dmp")
     if os.path.exists(file_path):
         filename = os.path.basename(file_path)
