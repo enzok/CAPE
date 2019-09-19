@@ -148,10 +148,10 @@ def index(request, resubmit_hash=False):
                 options += ","
             options += "import_reconstruction=1"
 
-        if request.POST.get("enable_cape"):
+        if request.POST.get("disable_cape"):
             if options:
                 options += ","
-            options += "enable_cape=yes"
+            options += "disable_cape=1"
 
         if request.POST.get("cuckoomon_dll"):
             if options:

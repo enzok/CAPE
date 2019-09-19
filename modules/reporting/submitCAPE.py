@@ -287,7 +287,7 @@ class SubmitCAPE(Report):
 
         self.task_options = self.task["options"]
 
-        if self.task_options and 'enable_cape=yes' not in self.task_options:
+        if self.task_options and 'disable_cape=1' in self.task_options:
             log.info("Cape submission disabled.")
             return
 
