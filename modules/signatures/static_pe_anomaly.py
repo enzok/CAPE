@@ -4,6 +4,7 @@
 
 from lib.cuckoo.common.abstracts import Signature
 from datetime import datetime
+import re
 
 class PEAnomaly(Signature):
     name = "static_pe_anomaly"
