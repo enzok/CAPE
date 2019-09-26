@@ -14,6 +14,8 @@ try:
     from sflock import unpack
     from sflock.unpack.office import OfficeFile
     from sflock.abstracts import File as sfFile
+    from sflock.exception import UnpackException
+
     HAS_SFLOCK = True
 except ImportError:
     print("Warning: sflock not installed; archives will not be handled.\n"
@@ -117,7 +119,11 @@ def demux_sflock(filename, options):
         if tmp_pass:
             password = tmp_pass
 
-        unpacked = unpack(filepath=filename, password=password)
+        try:
+            unpacked = unpack(filepath=filename, password=password)
+        except UnpackException:
+            unpacked = unpack(filename)
+
         if unpacked.children:
             target_path = os.path.join(TMP_PATH, "cuckoo-sflock")
             if not os.path.exists(target_path):
