@@ -6,11 +6,9 @@ import os
 import tempfile
 import logging
 
-try:
-    from rarfile import RarFile
-    HAS_RARFILE = True
-except ImportError:
-    HAS_RARFILE = False
+from lib.cuckoo.common.config import Config
+from lib.cuckoo.common.objects import File
+from lib.cuckoo.common.exceptions import CuckooDemuxError
 
 try:
     from sflock import unpack
@@ -18,17 +16,11 @@ try:
     from sflock.abstracts import File as sfFile
     HAS_SFLOCK = True
 except ImportError:
-    print("Warning: sflock not installed; archives will not be handled.\n"\
-    "sudo apt-get install p7zip-full rar unace-nonfree cabextract\n"\
-    "pip install -U sflock")
+    print("Warning: sflock not installed; archives will not be handled.\n"
+          "sudo apt-get install p7zip-full rar unace-nonfree cabextract\n"
+          "pip install -U sflock")
     HAS_SFLOCK = False
 
-
-from lib.cuckoo.common.config import Config
-from lib.cuckoo.common.objects import File
-from lib.cuckoo.common.exceptions import CuckooDemuxError
-
-logging.basicConfig()
 log = logging.getLogger(__name__)
 
 demux_extensions_list = [
@@ -41,9 +33,11 @@ demux_extensions_list = [
 
 office_pkgs = ["doc", "xls", "ppt", "pub"]
 
-
 # list of valid file types to extract - TODO: add more types
 VALID_TYPES = ["PE32", "Java Jar", "Outlook", "Message"]
+
+options = Config()
+TMP_PATH = options.cuckoo.get("tmppath", "/tmp")
 
 
 def options2passwd(options):
@@ -64,12 +58,8 @@ def options2passwd(options):
 
 def demux_office(filename, password):
     retlist = []
-
-    options = Config()
-    tmp_path = options.cuckoo.get("tmppath", "/tmp")
-
     basename = os.path.basename(filename)
-    target_path = os.path.join(tmp_path, "cuckoo-tmp/msoffice-crypt-tmp")
+    target_path = os.path.join(TMP_PATH, "cuckoo-tmp/msoffice-crypt-tmp")
     if not os.path.exists(target_path):
         os.mkdir(target_path)
     decrypted_name = os.path.join(target_path, basename)
@@ -129,9 +119,7 @@ def demux_sflock(filename, options):
 
         unpacked = unpack(filepath=filename, password=password)
         if unpacked.children:
-            options = Config()
-            tmp_path = options.cuckoo.get("tmppath", "/tmp")
-            target_path = os.path.join(tmp_path, "cuckoo-sflock")
+            target_path = os.path.join(TMP_PATH, "cuckoo-sflock")
             if not os.path.exists(target_path):
                 os.mkdir(target_path)
             tmp_dir = tempfile.mkdtemp(dir=target_path)
