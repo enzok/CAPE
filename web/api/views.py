@@ -8,6 +8,7 @@ import random
 import tempfile
 import requests
 from zlib import decompress
+import subprocess
 
 from django.conf import settings
 from wsgiref.util import FileWrapper
@@ -1840,10 +1841,8 @@ if apiconf.rollingsuri.get("enabled"):
     raterps = apiconf.rollingsuri.get("rps")
     raterpm = apiconf.rollingsuri.get("rpm")
     rateblock = limiter
-
 @ratelimit(key="ip", rate=raterps, block=rateblock)
 @ratelimit(key="ip", rate=raterpm, block=rateblock)
-
 def tasks_rollingsuri(request, window=60):
     window = int(window)
     if request.method != "GET":
@@ -1871,14 +1870,13 @@ def tasks_rollingsuri(request, window=60):
             resp.append(alert)
 
     return jsonize(resp, response=True)
+
 if apiconf.rollingshrike.get("enabled"):
     raterps = apiconf.rollingshrike.get("rps")
     raterpm = apiconf.rollingshrike.get("rpm")
     rateblock = limiter
-
 @ratelimit(key="ip", rate=raterps, block=rateblock)
 @ratelimit(key="ip", rate=raterpm, block=rateblock)
-
 def tasks_rollingshrike(request, window=60, msgfilter=None):
     window = int(window)
     if request.method != "GET":
@@ -2233,6 +2231,91 @@ def tasks_config(request, task_id):
         resp = {"error": True, "error_value": "Unable to retrieve results for task {}.".format(task_id)}
         return jsonize(resp, response=True)
 
+if apiconf.payloadfiles.get("enabled"):
+    raterps = apiconf.payloadfiles.get("rps")
+    raterpm = apiconf.payloadfiles.get("rpm")
+    rateblock = limiter
+@ratelimit(key="ip", rate=raterps, block=rateblock)
+@ratelimit(key="ip", rate=raterpm, block=rateblock)
+def tasks_payloadfiles(request, task_id):
+    if request.method != "GET":
+        resp = {"error": True, "error_value": "Method not allowed"}
+        return jsonize(resp, response=True)
+
+    if not apiconf.task.payloadfiles.get("enabled"):
+        resp = {"error": True,
+                "error_value": "CAPE payload file download API is disabled"}
+        return jsonize(resp, response=True)
+
+    check = validate_task(task_id)
+    if check["error"]:
+        return jsonize(check, response=True)
+
+    cd = "application/zip"
+    zippwd = settings.get("ZIP_PWD", "infected")
+
+    zip_file = os.path.join(settings.TEMP_PATH, "zip-upload", "cape_payloads_{}.zip".format(task_id))
+    capepath = os.path.join(CUCKOO_ROOT, "storage", "analyses", task_id, "CAPE")
+    if os.path.exists(capepath):
+        for fname in next(os.walk(capepath))[2]:
+            if len(fname) == 64:
+                filepath = os.path.join(capepath, fname)
+                rc = subprocess.call(['7z', 'a', '-p' + zippwd, '-tzip', '-y', zip_file] + [filepath])
+                if rc == 0:
+                    continue
+                else:
+                    return render(request, "error.html", {"error": "7z response code: {}".format(rc)})
+
+        resp = StreamingHttpResponse(FileWrapper(open(zip_file), 8192), content_type=cd)
+        resp["Content-Length"] = os.path.getsize(zip_file)
+        resp["Content-Disposition"] = "attachment; filename=" + zip_file
+        return resp
+    else:
+        resp = {"error": True, "error_value": "No CAPE file(s) for task {}.".format(task_id)}
+        return jsonize(resp, response=True)
+
+if apiconf.procdumpfiles.get("enabled"):
+    raterps = apiconf.procdumpfiles.get("rps")
+    raterpm = apiconf.procdumpfiles.get("rpm")
+    rateblock = limiter
+@ratelimit(key="ip", rate=raterps, block=rateblock)
+@ratelimit(key="ip", rate=raterpm, block=rateblock)
+def tasks_procdumpfiles(request, task_id):
+    if request.method != "GET":
+        resp = {"error": True, "error_value": "Method not allowed"}
+        return jsonize(resp, response=True)
+
+    if not apiconf.task.procdumpfiles.get("enabled"):
+        resp = {"error": True,
+                "error_value": "Procdump file download API is disabled"}
+        return jsonize(resp, response=True)
+
+    check = validate_task(task_id)
+    if check["error"]:
+        return jsonize(check, response=True)
+
+    cd = "application/zip"
+    zippwd = settings.get("ZIP_PWD", "infected")
+
+    zip_file = os.path.join(settings.TEMP_PATH, "zip-upload", "cape_procdumps_{}.zip".format(task_id))
+    procdumppath = os.path.join(CUCKOO_ROOT, "storage", "analyses", task_id, "procdump")
+    if os.path.exists(procdumppath):
+        for fname in next(os.walk(procdumppath))[2]:
+            if len(fname) == 64:
+                filepath = os.path.join(procdumppath, fname)
+                rc = subprocess.call(['7z', 'a', '-p' + zippwd, '-tzip', '-y', zip_file] + [filepath])
+                if rc == 0:
+                    continue
+                else:
+                    return render(request, "error.html", {"error": "7z response code: {}".format(rc)})
+
+        resp = StreamingHttpResponse(FileWrapper(open(zip_file), 8192), content_type=cd)
+        resp["Content-Length"] = os.path.getsize(zip_file)
+        resp["Content-Disposition"] = "attachment; filename=" + zip_file
+        return resp
+    else:
+        resp = {"error": True, "error_value": "No procdump file(s) for task {}.".format(task_id)}
+        return jsonize(resp, response=True)
 
 def limit_exceeded(request, exception):
     resp = {"error": True, "error_value": "Rate limit exceeded for this API"}
