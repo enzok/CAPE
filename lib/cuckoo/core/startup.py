@@ -6,12 +6,9 @@ import os
 import shutil
 import sys
 import copy
-import json
-import urllib
-import urllib2
 import logging
 import logging.handlers
-from  datetime import datetime
+from  datetime import datetime, timedelta
 
 import modules.auxiliary
 import modules.processing
@@ -29,6 +26,10 @@ from lib.cuckoo.core.database import Database, Task, TASK_RUNNING, TASK_FAILED_A
 from lib.cuckoo.core.plugins import import_plugin, import_package, list_plugins
 
 log = logging.getLogger()
+
+cuckoo = Config()
+rep_config = Config("reporting")
+
 
 def check_python_version():
     """Checks if Python version is supported by Cuckoo.
@@ -68,6 +69,7 @@ def check_configs():
 
     return True
 
+
 def create_structure():
     """Creates Cuckoo directories."""
     folders = [
@@ -83,6 +85,7 @@ def create_structure():
     except CuckooOperationalError as e:
         raise CuckooStartupError(e)
 
+
 class DatabaseHandler(logging.Handler):
     """Logging to database handler.
     Used to log errors related to tasks in database.
@@ -92,6 +95,7 @@ class DatabaseHandler(logging.Handler):
         if hasattr(record, "task_id"):
             db = Database()
             db.add_error(record.msg, int(record.task_id))
+
 
 class ConsoleHandler(logging.StreamHandler):
     """Logging to console handler."""
@@ -111,14 +115,14 @@ class ConsoleHandler(logging.StreamHandler):
 
         logging.StreamHandler.emit(self, colored)
 
+
 def init_logging():
     """Initializes logging."""
     formatter = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
 
-    cfg = Config()
-    if cfg.logging.enabled:
-        days = cfg.logging.backupCount
-        interval = cfg.logging.interval
+    if cuckoo.logging.enabled:
+        days = cuckoo.logging.backupCount
+        interval = cuckoo.logging.interval
         fh = logging.handlers.TimedRotatingFileHandler(os.path.join(CUCKOO_ROOT, "log", "cuckoo.log"),
                                                        when=interval, backupCount=days)
     else:
@@ -138,6 +142,7 @@ def init_logging():
 
     logging.getLogger("urllib3").setLevel(logging.WARNING)
 
+
 def init_console_logging():
     """Initializes logging only to console."""
     formatter = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
@@ -148,22 +153,23 @@ def init_console_logging():
 
     log.setLevel(logging.INFO)
 
+
 def init_tasks():
     """Check tasks and reschedule uncompleted ones."""
     db = Database()
-    cfg = Config()
 
     log.debug("Checking for locked tasks...")
     tasks = db.list_tasks(status=TASK_RUNNING)
 
     for task in tasks:
-        if cfg.cuckoo.reschedule:
+        if cuckoo.cuckoo.reschedule:
             db.reschedule(task.id)
             log.info("Rescheduled task with ID {0} and "
                      "target {1}".format(task.id, task.target))
         else:
             db.set_status(task.id, TASK_FAILED_ANALYSIS)
             log.info("Updated running task ID {0} status to failed_analysis".format(task.id))
+
 
 def init_modules():
     """Initializes plugins."""
@@ -181,7 +187,7 @@ def init_modules():
     import_package(modules.feeds)
 
     # Import machine manager.
-    import_plugin("modules.machinery." + Config().cuckoo.machinery)
+    import_plugin("modules.machinery." + cuckoo.cuckoo.machinery)
 
     for category, entries in list_plugins().items():
         log.debug("Imported \"%s\" modules:", category)
@@ -191,6 +197,7 @@ def init_modules():
                 log.debug("\t `-- %s", entry.__name__)
             else:
                 log.debug("\t |-- %s", entry.__name__)
+
 
 def init_yara():
     """Generates index for yara signatures."""
@@ -246,6 +253,50 @@ def init_yara():
             log.debug("\t |-- %s", entry)
 
 
+def connect_to_mongo():
+    conn = False
+    mdb = ""
+    # Check if MongoDB reporting is enabled and drop that if it is.
+    if rep_config.mongodb and rep_config.mongodb.enabled:
+        from pymongo import MongoClient
+        host = rep_config.mongodb.get("host", "127.0.0.1")
+        port = rep_config.mongodb.get("port", 27017)
+        mdb = rep_config.mongodb.get("db", "cuckoo")
+        user = rep_config.mongodb.get("username", None)
+        password = rep_config.mongodb.get("password", None)
+        try:
+            conn = MongoClient(
+                host=host,
+                port=port,
+                username=user,
+                password=password,
+                authSource=mdb
+            )
+        except Exception as e:
+            log.warning("Unable to connect to MongoDB database: {}, {}".format(mdb, e))
+
+    return conn, mdb
+
+
+def connect_to_es():
+    # Check if ElasticSearch is enabled and delete that data if it is.
+    if rep_config.elasticsearchdb and rep_config.elasticsearchdb.enabled and not rep_config.elasticsearchdb.searchonly:
+        from elasticsearch import Elasticsearch
+        delidx = rep_config.elasticsearchdb.index + "-*"
+        try:
+            es = Elasticsearch(
+                     hosts = [{
+                         "host": rep_config.elasticsearchdb.host,
+                         "port": rep_config.elasticsearchdb.port,
+                     }],
+                     timeout = 60
+                 )
+        except:
+            log.warning("Unable to connect to ElasticSearch")
+
+    return es, delidx
+
+
 def cuckoo_clean():
     """Clean up cuckoo setup.
     It deletes logs, all stored data from file system and configured databases (SQL
@@ -263,67 +314,44 @@ def cuckoo_clean():
     # Drop all tables.
     db.drop()
 
-    # Check if MongoDB reporting is enabled and drop that if it is.
-    cfg = Config("reporting")
-    if cfg.mongodb and cfg.mongodb.enabled:
-        from pymongo import MongoClient
-        host = cfg.mongodb.get("host", "127.0.0.1")
-        port = cfg.mongodb.get("port", 27017)
-        mdb = cfg.mongodb.get("db", "cuckoo")
-        user = cfg.mongodb.get("username", None)
-        password = cfg.mongodb.get("password", None)
-        try:
-            conn = MongoClient( cfg.mongodb.host,
-                                port=port,
-                                username=user,
-                                password=password,
-                                authSource=mdb
-                                )
-            conn.drop_database(mdb)
-            conn.close()
-        except:
-            log.warning("Unable to drop MongoDB database: %s", mdb)
+    conn, mdb = connect_to_mongo()
+    if not conn:
+        print("Can't connect to mongo")
+        return
+    try:
+        conn.drop_database(mdb)
+        conn.close()
+    except:
+        log.warning("Unable to drop MongoDB database: %s", mdb)
 
-    # Check if ElasticSearch is enabled and delete that data if it is.
-    if cfg.elasticsearchdb and cfg.elasticsearchdb.enabled and not cfg.elasticsearchdb.searchonly:
-        from elasticsearch import Elasticsearch
-        delidx = cfg.elasticsearchdb.index + "-*"
-        try:
-            es = Elasticsearch(
-                     hosts = [{
-                         "host": cfg.elasticsearchdb.host,
-                         "port": cfg.elasticsearchdb.port,
-                     }],
-                     timeout = 60
-                 )
-        except:
-            log.warning("Unable to connect to ElasticSearch")
-
-        if es:
-            analyses = es.search(
-                           index=delidx,
-                           doc_type="analysis",
-                           q="*"
-                       )["hits"]["hits"]
-        if analyses:
-            for analysis in analyses:
-                esidx = analysis["_index"]
-                esid = analysis["_id"]
-                # Check if behavior exists
-                if analysis["_source"]["behavior"]:
-                    for process in analysis["_source"]["behavior"]["processes"]:
-                        for call in process["calls"]:
-                            es.delete(
-                                index=esidx,
-                                doc_type="calls",
-                                id=call,
-                            )
-                # Delete the analysis results
-                es.delete(
-                    index=esidx,
-                    doc_type="analysis",
-                    id=esid,
-                )
+    es, delidx = connect_to_es()
+    if not es:
+        print("Can't connect to ElasticSearch")
+        return
+    analyses = es.search(
+        index=delidx,
+        doc_type="analysis",
+        q="*"
+        )["hits"]["hits"]
+    if analyses:
+        for analysis in analyses:
+            esidx = analysis["_index"]
+            esid = analysis["_id"]
+            # Check if behavior exists
+            if analysis["_source"]["behavior"]:
+                for process in analysis["_source"]["behavior"]["processes"]:
+                    for call in process["calls"]:
+                        es.delete(
+                            index=esidx,
+                            doc_type="calls",
+                            id=call,
+                        )
+            # Delete the analysis results
+            es.delete(
+                index=esidx,
+                doc_type="analysis",
+                id=esid,
+            )
 
     # Paths to clean.
     paths = [
@@ -353,6 +381,7 @@ def cuckoo_clean():
             except (IOError, OSError) as e:
                 log.warning("Error removing file %s: %s", path, e)
 
+
 def cuckoo_clean_failed_tasks():
     """Clean up failed tasks
     It deletes all stored data from file system and configured databases (SQL
@@ -367,43 +396,24 @@ def cuckoo_clean_failed_tasks():
     # Initialize the database connection.
     db = Database()
 
-    # Check if MongoDB reporting is enabled and drop that if it is.
-    cfg = Config("reporting")
-    if cfg.mongodb and cfg.mongodb.enabled:
-        from pymongo import MongoClient
-        host = cfg.mongodb.get("host", "127.0.0.1")
-        port = cfg.mongodb.get("port", 27017)
-        mdb = cfg.mongodb.get("db", "cuckoo")
-        user = cfg.mongodb.get("username", None)
-        password = cfg.mongodb.get("password", None)
-        try:
-            results_db = MongoClient( cfg.mongodb.host,
-                                port=port,
-                                username=user,
-                                password=password,
-                                authSource=mdb
-                                )[mdb]
-        except:
-            log.warning("Unable to connect to MongoDB database: %s", mdb)
-            return
+    results_db, mdb = connect_to_mongo()
 
-        failed_tasks_a = db.list_tasks(status=TASK_FAILED_ANALYSIS)
-        failed_tasks_p = db.list_tasks(status=TASK_FAILED_PROCESSING)
-        failed_tasks_r = db.list_tasks(status=TASK_FAILED_REPORTING)
-        failed_tasks_rc = db.list_tasks(status=TASK_RECOVERED)
-        for e in failed_tasks_a,failed_tasks_p,failed_tasks_r,failed_tasks_rc:
-            for el2 in e:
-                new = el2.to_dict()
-                print int(new["id"])
-                try:
-                    results_db.analysis.remove({"info.id": int(new["id"])})
-                except:
-                    print "failed to remove analysis info (may not exist) %s" % (int(new["id"]))
-                if db.delete_task(new["id"]):
-                    delete_folder(os.path.join(CUCKOO_ROOT, "storage", "analyses",
-                            "%s" % int(new["id"])))
-                else:
-                    print "failed to remove failed task %s from DB" % (int(new["id"]))
+    failed_tasks_a = db.list_tasks(status=TASK_FAILED_ANALYSIS)
+    failed_tasks_p = db.list_tasks(status=TASK_FAILED_PROCESSING)
+    failed_tasks_r = db.list_tasks(status=TASK_FAILED_REPORTING)
+    failed_tasks_rc = db.list_tasks(status=TASK_RECOVERED)
+    for e in failed_tasks_a, failed_tasks_p, failed_tasks_r, failed_tasks_rc:
+        for el2 in e:
+            new = el2.to_dict()
+            print(int(new["id"]))
+            try:
+                results_db.analysis.remove({"info.id": int(new["id"])})
+            except:
+                print("failed to remove analysis info (may not exist) %s" % (int(new["id"])))
+            if db.delete_task(new["id"]):
+                delete_folder(os.path.join(CUCKOO_ROOT, "storage", "analyses", "%s" % int(new["id"])))
+            else:
+                print("failed to remove failed task %s from DB" % (int(new["id"])))
 
 
 def cuckoo_remove_pending_tasks(pending_tasks):
@@ -453,6 +463,7 @@ def cuckoo_get_max_task_id():
 
     print("Max Task Id = {}".format(maxid))
 
+
 def cuckoo_clean_bson_suri_logs():
     """Clean up raw suri log files probably not needed if storing in mongo. Does not remove extracted files
     """
@@ -475,16 +486,17 @@ def cuckoo_clean_bson_suri_logs():
             id = new["id"]
             path = os.path.join(CUCKOO_ROOT, "storage", "analyses","%s" % id)
             if os.path.exists(path):
-                jsonlogs=glob("%s/logs/*json*" % (path))
-                bsondata=glob("%s/logs/*.bson" % (path))
-                filesmeta=glob("%s/logs/files/*.meta" %(path))
-                for f in jsonlogs,bsondata,filesmeta:
+                jsonlogs = glob("%s/logs/*json*" % (path))
+                bsondata = glob("%s/logs/*.bson" % (path))
+                filesmeta = glob("%s/logs/files/*.meta" % (path))
+                for f in jsonlogs, bsondata, filesmeta:
                     for fe in f:
                         try:
-                            print "removing %s" % (fe)
+                            print("removing %s" % (fe))
                             os.remove(fe)
                         except Exception as Err:
-                            print "failed to remove sorted_pcap from disk %s" % (Err)
+                            print("failed to remove sorted_pcap from disk %s" % (Err))
+
 
 def cuckoo_clean_failed_url_tasks():
     """Clean up failed tasks
@@ -500,46 +512,32 @@ def cuckoo_clean_failed_url_tasks():
     # Initialize the database connection.
     db = Database()
 
-    # Check if MongoDB reporting is enabled and drop that if it is.
-    cfg = Config("reporting")
-    if cfg.mongodb and cfg.mongodb.enabled:
-        from pymongo import MongoClient
-        host = cfg.mongodb.get("host", "127.0.0.1")
-        port = cfg.mongodb.get("port", 27017)
-        mdb = cfg.mongodb.get("db", "cuckoo")
-        user = cfg.mongodb.get("username", None)
-        password = cfg.mongodb.get("password", None)
-        try:
-            results_db = MongoClient( cfg.mongodb.host,
-                                port=port,
-                                username=user,
-                                password=password,
-                                authSource=mdb
-                                )[mdb]
-        except:
-            log.warning("Unable to connect MongoDB database: %s", mdb)
-            return
+    results_db, mdb = connect_to_mongo()
+    if not results_db:
+        log.info("Can't connect to mongo")
+        return
 
-        done = False
-        while not done:
-            rtmp = results_db.analysis.find({"info.category": "url", "network.http.0": {"$exists": False}},{"info.id": 1},sort=[("_id", -1)]).limit( 100 )
-            if rtmp and rtmp.count() > 0:
-                for e in rtmp:
-                    if e["info"]["id"]:
-                        print e["info"]["id"]
-                        if db.delete_task(e["info"]["id"]):
-                            delete_folder(os.path.join(CUCKOO_ROOT, "storage", "analyses",
-                                       "%s" % e["info"]["id"]))
-                        else:
-                            print "failed to remove %s" % (e["info"]["id"])
-                        try:
-                            results_db.analysis.remove({"info.id": int(e["info"]["id"])})
-                        except:
-                            print "failed to remove %s" % (e["info"]["id"])
+    done = False
+    while not done:
+        rtmp = results_db.analysis.find({"info.category": "url", "network.http.0": {"$exists": False}},{"info.id": 1},sort=[("_id", -1)]).limit( 100 )
+        if rtmp and rtmp.count() > 0:
+            for e in rtmp:
+                if e["info"]["id"]:
+                    print(e["info"]["id"])
+                    if db.delete_task(e["info"]["id"]):
+                        delete_folder(os.path.join(CUCKOO_ROOT, "storage", "analyses",
+                                    "%s" % e["info"]["id"]))
                     else:
-                        done = True
-            else:
-                done = True
+                        print("failed to remove %s" % (e["info"]["id"]))
+                    try:
+                        results_db.analysis.remove({"info.id": int(e["info"]["id"])})
+                    except:
+                        print("failed to remove %s" % (e["info"]["id"]))
+                else:
+                    done = True
+        else:
+            done = True
+
 
 def cuckoo_clean_before_day(args):
     """Clean up failed tasks
@@ -550,7 +548,7 @@ def cuckoo_clean_before_day(args):
     # This need to init a console logger handler, because the standard
     # logger (init_logging()) logs to a file which will be deleted.
     if not args.delete_older_than_days:
-        print "No days argument provided bailing"
+        print("No days argument provided bailing")
         return
     else:
         days = args.delete_older_than_days
@@ -561,66 +559,51 @@ def cuckoo_clean_before_day(args):
     # Initialize the database connection.
     db = Database()
 
-    # Check if MongoDB reporting is enabled and drop that if it is.
-    cfg = Config("reporting")
-    if cfg.mongodb and cfg.mongodb.enabled:
-        from pymongo import MongoClient
-        host = cfg.mongodb.get("host", "127.0.0.1")
-        port = cfg.mongodb.get("port", 27017)
-        mdb = cfg.mongodb.get("db", "cuckoo")
-        user = cfg.mongodb.get("username", None)
-        password = cfg.mongodb.get("password", None)
+    results_db, mdb = connect_to_mongo()
+    if not results_db:
+        log.info("Can't connect to mongo")
+        return
+
+    added_before = datetime.now() - timedelta(days=int(days))
+    if args.files_only_filter:
+        print("file filter applied")
+        old_tasks = db.list_tasks(added_before=added_before,category="file")
+    elif args.urls_only_filter:
+        print("url filter applied")
+        old_tasks = db.list_tasks(added_before=added_before,category="url")
+    else:
+        old_tasks = db.list_tasks(added_before=added_before)
+
+    for e in old_tasks:
+        new = e.to_dict()
+        print(int(new["id"]))
+        id_arr.append({"info.id": (int(new["id"]))})
+
+    print("number of matching records %s before suri/custom filter " % len(id_arr))
+    if id_arr and args.suricata_zero_alert_filter:
+        result = list(results_db.analysis.find({"suricata.alerts.alert": {"$exists": False}, "$or": id_arr},{"info.id":1}))
+        tmp_arr = []
+        for entry in result:
+            tmp_arr.append(entry["info"]["id"])
+        id_arr = tmp_arr
+    if id_arr and args.custom_include_filter:
+        result = list(results_db.analysis.find({"info.custom": {"$regex": args.custom_include_filter},"$or": id_arr},{"info.id":1}))
+        tmp_arr = []
+        for entry in result:
+            tmp_arr.append(entry["info"]["id"])
+        id_arr = tmp_arr
+    print("number of matching records %s" % len(id_arr))
+    for e in id_arr:
         try:
-            results_db = MongoClient( cfg.mongodb.host,
-                                port=port,
-                                username=user,
-                                password=password,
-                                authSource=mdb
-                                )[mdb]
+            print("removing %s from analysis db" % (e))
+            results_db.analysis.remove({"info.id": e})
         except:
-            log.warning("Unable to connect to MongoDB database: %s", mdb)
-            return
-
-        added_before = datetime.now() - timedelta(days=int(days))
-        if args.files_only_filter:
-            print("file filter applied")
-            old_tasks = db.list_tasks(added_before=added_before,category="file")
-        elif args.urls_only_filter:
-            print("url filter applied")
-            old_tasks = db.list_tasks(added_before=added_before,category="url")
+            print("failed to remove analysis info (may not exist) %s" % (e))
+        if db.delete_task(e):
+            delete_folder(os.path.join(CUCKOO_ROOT, "storage", "analyses", "%s" % e))
         else:
-            old_tasks = db.list_tasks(added_before=added_before)
+            print("failed to remove faile task %s from DB" % (e))
 
-        for e in old_tasks:
-            new = e.to_dict()
-            print int(new["id"])
-            id_arr.append({"info.id":(int(new["id"]))})
-
-        print "number of matching records %s before suri/custom filter " % len(id_arr)
-        if id_arr and args.suricata_zero_alert_filter:
-            result = list(results_db.analysis.find({"suricata.alerts.alert": {"$exists": False}, "$or": id_arr},{"info.id":1}))
-            tmp_arr =[]
-            for entry in result:
-                tmp_arr.append(entry["info"]["id"])
-            id_arr = tmp_arr
-        if id_arr and args.custom_include_filter:
-            result = list(results_db.analysis.find({"info.custom": {"$regex": args.custom_include_filter},"$or": id_arr},{"info.id":1}))
-            tmp_arr = []
-            for entry in result:
-                tmp_arr.append(entry["info"]["id"])
-            id_arr = tmp_arr
-        print "number of matching records %s" % len(id_arr)
-        for e in id_arr:
-            try:
-                print "removing %s from analysis db" % (e)
-                results_db.analysis.remove({"info.id": e})
-            except:
-                print "failed to remove analysis info (may not exist) %s" % (e)
-            if db.delete_task(e):
-                delete_folder(os.path.join(CUCKOO_ROOT, "storage", "analyses",
-                       "%s" % e))
-            else:
-                print "failed to remove faile task %s from DB" % (e)
 
 def cuckoo_clean_sorted_pcap_dump():
     """Clean up failed tasks
@@ -633,53 +616,38 @@ def cuckoo_clean_sorted_pcap_dump():
     create_structure()
     init_console_logging()
 
-    # Initialize the database connection.
-    db = Database()
+    results_db, mdb = connect_to_mongo()
+    if not results_db:
+        log.info("Can't connect to mongo")
+        return
 
-    # Check if MongoDB reporting is enabled and drop that if it is.
-    cfg = Config("reporting")
-    if cfg.mongodb and cfg.mongodb.enabled:
-        from pymongo import MongoClient
-        host = cfg.mongodb.get("host", "127.0.0.1")
-        port = cfg.mongodb.get("port", 27017)
-        mdb = cfg.mongodb.get("db", "cuckoo")
-        user = cfg.mongodb.get("username", None)
-        password = cfg.mongodb.get("password", None)
-        try:
-            results_db = MongoClient( cfg.mongodb.host,
-                                port=port,
-                                username=user,
-                                password=password,
-                                authSource=mdb
-                                )[mdb]
-        except:
-            log.warning("Unable to connect MongoDB database: %s", mdb)
-            return
-
-        done = False
-        while not done:
-            rtmp = results_db.analysis.find({"network.sorted_pcap_id": {"$exists": True}},{"info.id": 1},sort=[("_id", -1)]).limit( 100 )
-            if rtmp and rtmp.count() > 0:
-                for e in rtmp:
-                    if e["info"]["id"]:
-                        print e["info"]["id"]
-                        try:
-                            results_db.analysis.update({"info.id": int(e["info"]["id"])},{ "$unset": { "network.sorted_pcap_id": ""}})
-                        except:
-                            print "failed to remove sorted pcap from db for id %s" % (e["info"]["id"])
-                        try:
-                            path = os.path.join(CUCKOO_ROOT, "storage", "analyses","%s" % (e["info"]["id"]), "dump_sorted.pcap")
-                            os.remove(path)
-                        except Exception as e:
-                            print "failed to remove sorted_pcap from disk %s" % (e)
-                    else:
-                        done = True
-            else:
-                done = True
+    done = False
+    while not done:
+        rtmp = results_db.analysis.find({"network.sorted_pcap_id": {"$exists": True}},
+                                        {"info.id": 1}, sort=[("_id", -1)]).limit(100)
+        if rtmp and rtmp.count() > 0:
+            for e in rtmp:
+                if e["info"]["id"]:
+                    print(e["info"]["id"])
+                    try:
+                        results_db.analysis.update({"info.id": int(e["info"]["id"])},
+                                                   {"$unset": {"network.sorted_pcap_id": ""}})
+                    except:
+                        print("failed to remove sorted pcap from db for id %s" % (e["info"]["id"]))
+                    try:
+                        path = os.path.join(CUCKOO_ROOT, "storage", "analyses", "%s" % (e["info"]["id"]),
+                                            "dump_sorted.pcap")
+                        os.remove(path)
+                    except Exception as e:
+                        print("failed to remove sorted_pcap from disk %s" % (e))
+                else:
+                    done = True
+        else:
+            done = True
 
 
 def cuckoo_clean_tasks(tasks):
-    """Clean up list of tasks
+    """Clean up pending tasks
     It deletes all stored data from file system and configured databases (SQL
     and MongoDB for listed tasks.
     """
@@ -699,35 +667,21 @@ def cuckoo_clean_tasks(tasks):
     # Initialize the database connection.
     db = Database()
 
-    # Check if MongoDB reporting is enabled and drop that if it is.
-    cfg = Config("reporting")
-    if cfg.mongodb and cfg.mongodb.enabled:
-        from pymongo import MongoClient
-        host = cfg.mongodb.get("host", "127.0.0.1")
-        port = cfg.mongodb.get("port", 27017)
-        mdb = cfg.mongodb.get("db", "cuckoo")
-        user = cfg.mongodb.get("username", None)
-        password = cfg.mongodb.get("password", None)
+    results_db, mdb = connect_to_mongo()
+    if not results_db:
+        log.info("Can't connect to mongo")
+        return
+
+    while task <= end_task:
         try:
-            results_db = MongoClient( cfg.mongodb.host,
-                                port=port,
-                                username=user,
-                                password=password,
-                                authSource=mdb
-                                )[mdb]
+            results_db.analysis.remove({"info.id": task})
+            if db.delete_task(task):
+                delete_folder(os.path.join(CUCKOO_ROOT, "storage", "analyses", "%s" % task))
+                print "Task: {} was deleted".format(task)
+            else:
+                print "failed to remove failed task %s from DB" % (task)
         except:
-            log.warning("Unable to connect to MongoDB database: %s", mdb)
-            return
+            print "failed to remove analysis info (may not exist) %s" % (task)
 
-        while task <= end_task:
-            try:
-                results_db.analysis.remove({"info.id": task})
-                if db.delete_task(task):
-                    delete_folder(os.path.join(CUCKOO_ROOT, "storage", "analyses", "%s" % task))
-                    print "Task: {} was deleted".format(task)
-                else:
-                    print "failed to remove failed task %s from DB" % (task)
-            except:
-                print "failed to remove analysis info (may not exist) %s" % (task)
+        task += 1
 
-            task += 1
