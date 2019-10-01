@@ -1623,7 +1623,7 @@ def configdownload(request, task_id, cape_name):
                 # In case compress results processing module is not enabled
                 pass
             for cape in rtmp["CAPE"]:
-                if isinstance(cape, dict) and cape["cape_name"] == cape_name:
+                if cape.get("cape_name", "") == cape_name:
                     filepath = tempfile.NamedTemporaryFile(delete=False)
                     for key in cape["cape_config"]:
                         filepath.write("{}\t{}\n".format(key, cape["cape_config"][key]))
