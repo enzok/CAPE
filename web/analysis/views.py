@@ -548,8 +548,7 @@ def surialert(request,task_id):
                                               sort=[("_id", pymongo.DESCENDING)])
     if es_as_db:
         analysis = es.search(index=fullidx,
-                             doc_type="analysis",
-                             q="info.id: \"%s\"" % task_id)["hits"]["hits"][0]["_source"]
+                             doc_type="analysis", q="info.id: \"%s\"" % task_id)["hits"]["hits"][0]["_source"]
 
         alerts = analysis["suricata"]["alerts"]
         report = {"suricata": {"alerts": alerts}}
@@ -566,9 +565,7 @@ def surialert(request,task_id):
 
         suricata = gen_moloch_from_suri_alerts(suricata)
 
-    return render(request, "analysis/surialert.html",
-                              {"analysis": report,
-                               "config": enabledconf})
+    return render(request, "analysis/surialert.html", {"analysis": report, "config": enabledconf})
 
 @require_safe
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
@@ -597,11 +594,9 @@ def shrike(request,task_id):
                   }
 
     if not shrike:
-        return render(request, "error.html",
-                      {"error": "The specified analysis does not exist"})
+        return render(request, "error.html", {"error": "The specified analysis does not exist"})
 
-    return render(request, "analysis/shrike.html",
-                  {"shrike": shrike})
+    return render(request, "analysis/shrike.html", {"shrike": shrike})
 
 @require_safe
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
@@ -619,8 +614,7 @@ def surihttp(request,task_id):
         report = {"suricata": {"http": http}}
 
     if not report:
-        return render(request, "error.html",
-                      {"error": "The specified analysis does not exist"})
+        return render(request, "error.html", {"error": "The specified analysis does not exist"})
 
     suricata = report["suricata"]
 
@@ -630,9 +624,7 @@ def surihttp(request,task_id):
 
         suricata = gen_moloch_from_suri_http(suricata)
 
-    return render(request, "analysis/surihttp.html",
-                              {"analysis": report,
-                               "config": enabledconf})
+    return render(request, "analysis/surihttp.html", {"analysis": report, "config": enabledconf})
 
 @require_safe
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
@@ -650,8 +642,7 @@ def suritls(request,task_id):
         report = {"suricata": {"tls": tls}}
 
     if not report:
-        return render(request, "error.html",
-                      {"error": "The specified analysis does not exist"})
+        return render(request, "error.html", {"error": "The specified analysis does not exist"})
 
     suricata = report["suricata"]
 
@@ -661,9 +652,7 @@ def suritls(request,task_id):
 
         suricata = gen_moloch_from_suri_tls(suricata)
 
-    return render(request, "analysis/suritls.html",
-                              {"analysis": report,
-                               "config": enabledconf})
+    return render(request, "analysis/suritls.html", {"analysis": report, "config": enabledconf})
 
 @require_safe
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
@@ -684,8 +673,7 @@ def surifiles(request,task_id):
                   "info": {"id": id}}
 
     if not report:
-        return render(request, "error.html",
-                      {"error": "The specified analysis does not exist"})
+        return render(request, "error.html", {"error": "The specified analysis does not exist"})
 
     suricata = report["suricata"]
 
@@ -695,9 +683,7 @@ def surifiles(request,task_id):
 
         suricata = gen_moloch_from_suri_file_info(suricata)
 
-    return render(request, "analysis/surifiles.html",
-                              {"analysis": report,
-                               "config": enabledconf})
+    return render(request, "analysis/surifiles.html", {"analysis": report, "config": enabledconf})
 
 @require_safe
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
@@ -717,8 +703,7 @@ def antivirus(request,task_id):
                 "info": {"category": cat}}
 
     if not rtmp:
-        return render(request, "error.html",
-                      {"error": "The specified analysis does not exist"})
+        return render(request, "error.html", {"error": "The specified analysis does not exist"})
 
     if settings.MOLOCH_ENABLED:
         if settings.MOLOCH_BASE[-1] != "/":
@@ -726,8 +711,7 @@ def antivirus(request,task_id):
         if rtmp.has_key("virustotal"):
             rtmp["virustotal"]=gen_moloch_from_antivirus(rtmp["virustotal"])
 
-    return render(request, "analysis/antivirus.html",
-                  {"analysis": rtmp})
+    return render(request, "analysis/antivirus.html", {"analysis": rtmp})
 
 @csrf_exempt
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
@@ -810,8 +794,7 @@ def search_behavior(request, task_id):
                     'signs': process_results
                 })
 
-        return render(request, "analysis/behavior/_search_results.html",
-                                  {"results": results})
+        return render(request, "analysis/behavior/_search_results.html", {"results": results})
     else:
         raise PermissionDenied
 
@@ -835,8 +818,7 @@ def report(request, task_id):
         esdata = {"index": query["_index"], "id": query["_id"]}
         report["es"] = esdata
     if not report:
-        return render(request, "error.html",
-                                  {"error": "The specified analysis does not exist"})
+        return render(request, "error.html", {"error": "The specified analysis does not exist"})
 
     children = 0
     # If compressed, decompress CAPE data
@@ -1119,8 +1101,7 @@ def procdump(request, task_id, process_id, start, end):
     if response:
         return response
 
-    return render(request, "error.html",
-                                  {"error": "File not found"})
+    return render(request, "error.html", {"error": "File not found"})
 
 @require_safe
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
@@ -1150,8 +1131,7 @@ def filereport(request, task_id, category):
 
             return response
 
-    return render(request, "error.html",
-                              {"error": "File not found"})
+    return render(request, "error.html", {"error": "File not found"})
 
 @require_safe
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
@@ -1172,8 +1152,8 @@ def full_memory_dump_file(request, analysis_number):
         response['Content-Disposition'] = "attachment; filename=%s" % filename
         return response
     else:
-        return render(request, "error.html",
-                                  {"error": "File not found"})
+        return render(request, "error.html", {"error": "File not found"})
+
 @require_safe
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
 def full_memory_dump_strings(request, analysis_number):
@@ -1440,8 +1420,7 @@ def remove(request, task_id):
     db = Database()
     db.delete_task(task_id)
 
-    return render(request, "success_simple.html",
-                              {"message": message})
+    return render(request, "success_simple.html", {"message": message})
 
 @require_safe
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
@@ -1549,8 +1528,7 @@ def comments(request, task_id):
         return redirect('report', task_id=task_id)
 
     else:
-        return render(request, "error.html",
-                                  {"error": "Invalid Method"})
+        return render(request, "error.html", {"error": "Invalid Method"})
 
 @conditional_login_required(login_required, settings.WEB_AUTHENTICATION)
 def vtupload(request, category, task_id, filename, dlfile):
@@ -1645,7 +1623,7 @@ def configdownload(request, task_id, cape_name):
                 # In case compress results processing module is not enabled
                 pass
             for cape in rtmp["CAPE"]:
-                if "cape_name" in cape and cape["cape_name"] == cape_name:
+                if isinstance(cape, dict) and cape["cape_name"] == cape_name:
                     filepath = tempfile.NamedTemporaryFile(delete=False)
                     for key in cape["cape_config"]:
                         filepath.write("{}\t{}\n".format(key, cape["cape_config"][key]))
@@ -1660,6 +1638,8 @@ def configdownload(request, task_id, cape_name):
                         return resp
                     except Exception as e:
                         return render(request, "error.html", {"error": "{}".format(e)})
+                else:
+                    return render(request, "error.html", {"error": "data doesn't exist"}, status=404)
         else:
             return render(request, "error.html", {"error": "CAPE for task {} does not exist.".format(task_id)})
     else:
