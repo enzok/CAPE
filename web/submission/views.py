@@ -33,7 +33,12 @@ from lib.cuckoo.common.web_utils import get_magic_type, download_file, get_file_
 
 # this required for hash searches
 FULL_DB = False
+
+aux_conf = Config("auxiliary")
 repconf = Config("reporting")
+cfg = Config("cuckoo")
+processing_cfg = Config("processing")
+
 if repconf.mongodb.enabled:
     import pymongo
     results_db = pymongo.MongoClient(repconf.mongodb.host,
@@ -539,11 +544,11 @@ def index(request, resubmit_hash=False):
         enabledconf["vt"] = settings.VTDL_ENABLED
         enabledconf["kernel"] = settings.OPT_ZER0M0N
         enabledconf["zip_pwd"] = settings.ZIP_PWD
-        enabledconf["posproc"] = Config("auxiliary").posproc.get("enabled")
-        enabledconf["memory"] = Config("processing").memory.get("enabled")
-        enabledconf["procmemory"] = Config("processing").procmemory.get("enabled")
-        enabledconf["tor"] = Config("auxiliary").tor.get("enabled")
-        if Config("auxiliary").gateways:
+        enabledconf["posproc"] = aux_conf.posproc.get("enabled")
+        enabledconf["memory"] = processing_cfg.memory.get("enabled")
+        enabledconf["procmemory"] = processing_cfg.procmemory.get("enabled")
+        enabledconf["tor"] = aux_conf.tor.get("enabled")
+        if aux_conf.gateways:
             enabledconf["gateways"] = True
         else:
             enabledconf["gateways"] = False
