@@ -15,37 +15,35 @@ CUCKOO_PATH = os.path.join(os.getcwd(), "..")
 sys.path.append(CUCKOO_PATH)
 from lib.cuckoo.common.config import Config
 
-cfg = Config("reporting")
+
+cuckoo_cfg = Config()
+rep_cfg = Config("reporting")
+aux_cfg = Config("auxiliary")
+vtdl_cfg = aux_cfg.virustotaldli
+zip_cfg = aux_cfg.zipped_download
+moloch_cfg = rep_cfg.moloch
 
 # Error handling for database backends
-if not cfg.mongodb.get("enabled") and not cfg.elasticsearchdb.get("enabled"):
+if not rep_cfg.mongodb.get("enabled") and not rep_cfg.elasticsearchdb.get("enabled"):
     raise Exception("No database backend reporting module is enabled! Please enable either ElasticSearch or MongoDB.")
 
-if cfg.mongodb.get("enabled") and cfg.elasticsearchdb.get("enabled") and \
-    not cfg.elasticsearchdb.get("searchonly"):
+if rep_cfg.mongodb.get("enabled") and rep_cfg.elasticsearchdb.get("enabled") and \
+    not rep_cfg.elasticsearchdb.get("searchonly"):
     raise Exception("Both database backend reporting modules are enabled. Please only enable ElasticSearch or MongoDB.")
-
-aux_cfg = Config("auxiliary")
-vtdl_cfg = aux_cfg.virustotaldl
-tor_cfg = aux_cfg.tor
-zip_cfg = aux_cfg.zipped_download
 
 # Enable Django authentication for website
 WEB_AUTHENTICATION = False
 
 # Get connection options from reporting.conf.
-MONGO_HOST = cfg.mongodb.get("host", "127.0.0.1")
-MONGO_PORT = cfg.mongodb.get("port", 27017)
-MONGO_DB = cfg.mongodb.get("db", "cuckoo")
-MONGO_USER = cfg.mongodb.get("username", None)
-MONGO_PASS = cfg.mongodb.get("password", None)
+MONGO_HOST = rep_cfg.mongodb.get("host", "127.0.0.1")
+MONGO_PORT = rep_cfg.mongodb.get("port", 27017)
+MONGO_DB = rep_cfg.mongodb.get("db", "cuckoo")
+MONGO_USER = rep_cfg.mongodb.get("username", None)
+MONGO_PASS = rep_cfg.mongodb.get("password", None)
 
-
-ELASTIC_HOST = cfg.elasticsearchdb.get("host", "127.0.0.1")
-ELASTIC_PORT = cfg.elasticsearchdb.get("port", 9200)
-ELASTIC_INDEX = cfg.elasticsearchdb.get("index", "cuckoo")
-
-moloch_cfg = Config("reporting").moloch
+ELASTIC_HOST = rep_cfg.elasticsearchdb.get("host", "127.0.0.1")
+ELASTIC_PORT = rep_cfg.elasticsearchdb.get("port", 9200)
+ELASTIC_INDEX = rep_cfg.elasticsearchdb.get("index", "cuckoo")
 
 MOLOCH_BASE = moloch_cfg.get("base", None)
 MOLOCH_NODE = moloch_cfg.get("node", None)
@@ -62,7 +60,9 @@ ZIP_PWD = zip_cfg.get("zip_pwd", "inf3ct3d")
 CUCKOO_HOST = "cuckoo01"
 CUCKOO_PORT = "8090"
 
-TEMP_PATH = Config().cuckoo.get("tmppath", "/tmp")
+TEMP_PATH = cuckoo_cfg.cuckoo.get("tmppath", "/tmp")
+
+DLNEXEC = aux_cfg.dlnexec.get("enabled", False)
 
 ipaddy_re = re.compile(r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
 
@@ -76,7 +76,7 @@ if GATEWAYS:
  
 
 # Enabled/Disable Zer0m0n tickbox on the submission page
-OPT_ZER0M0N = True
+OPT_ZER0M0N = False
 
 
 # To disable comment support, change the below to False

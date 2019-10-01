@@ -16,7 +16,7 @@ dpkt
 nose
 dnspython
 pytz
-requests
+requests[socks]
 python-magic
 geoip
 pillow
@@ -34,7 +34,6 @@ imagehash
 pyparsing
 sflock
 pyinstaller
-requests
 sqlalchemy
 # upx
 maec
