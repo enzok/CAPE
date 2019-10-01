@@ -21,7 +21,6 @@ from lib.cuckoo.common.utils import get_ip_address
 
 
 cfg = Config("cuckoo")
-socks5_conf = Config("socks5")
 machinery = Config(cfg.cuckoo.machinery)
 disable_x64 = cfg.cuckoo.get("disable_x64", False)
 
@@ -103,6 +102,7 @@ def fix_section_permission(path):
            log.info(e)
    else:
        log.info("[-] Missed dependency pefile")
+
 
 def get_magic_type(data):
     try:
@@ -218,6 +218,7 @@ def download_file(api, content, request, db, task_ids, url, params, headers, ser
 
 
 def _download_file(route, url, options):
+    proxies = {}
     response = False
     headers = {
         "User-Agent": choice(user_agents)
