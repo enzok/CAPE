@@ -16,7 +16,7 @@ dpkt
 nose
 dnspython
 pytz
-requests[socks]
+requests
 python-magic
 geoip
 pillow
