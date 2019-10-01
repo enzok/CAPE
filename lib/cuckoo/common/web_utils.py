@@ -117,7 +117,7 @@ def get_magic_type(data):
 
 
 def download_file(api, content, request, db, task_ids, url, params, headers, service, filename, package, timeout,
-                  options, priority, machine, gateway, clock, custom, memory, enforce_timeout, referrer, tags,
+                  options, priority, machine, clock, custom, memory, enforce_timeout, referrer, tags,
                   orig_options, task_gateways, task_machines, static, fhash=False):
     onesuccess = False
     if not content:
@@ -181,17 +181,6 @@ def download_file(api, content, request, db, task_ids, url, params, headers, ser
             path".format(service)})
 
     onesuccess = True
-    if filename:
-        if disable_x64 is True:
-            magic_type = get_magic_type(filename)
-            if magic_type and ("x86-64" in magic_type or "PE32+" in magic_type):
-                if len(request.FILES) == 1:
-                    return "error", render(request, "error.html",
-                            {"error": "Sorry no x64 support yet"})
-
-    orig_options, timeout, enforce_timeout = recon(filename, orig_options, timeout, enforce_timeout)
-    if "pony" in filename:
-        fix_section_permission(filename)
 
     for entry in task_machines:
         task_ids_new = db.demux_sample_and_add_to_db(file_path=filename,
