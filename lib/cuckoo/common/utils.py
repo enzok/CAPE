@@ -8,6 +8,9 @@ import shutil
 import ntpath
 import string
 import random
+import struct
+import fcntl
+import socket
 import tempfile
 import xmlrpclib
 import errno
@@ -1797,6 +1800,15 @@ def get_user_filename(options, customs):
 
     return opt_filename
 
+def generate_fake_name(out):
+    ext = os.path.splitext(out)[-1].lower()
+    out = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for i in
+                  range(random.randint(5, 15)))
+    # Add original extension if it exists
+    if ext:
+        out = "".join([out, ext])
+    return out
+
 def sanitize_filename(x):
     """Kind of awful but necessary sanitizing of filenames to
     get rid of unicode problems."""
@@ -1810,11 +1822,8 @@ def sanitize_filename(x):
     """Prevent long filenames such as files named by hash
     as some malware checks for this."""
     if len(out) >= 32:
-        ext = os.path.splitext(out)[-1].lower()
-        out = ''.join(random.choice(string.ascii_uppercase+string.ascii_lowercase+string.digits) for i in range(random.randint(5,15)))
-        # Add original extension if it exists
-        if ext:
-            out = "".join([out, ext])
+        out = generate_fake_name(out)
+
     return out
 
 def default_converter(v):
@@ -1888,3 +1897,12 @@ def get_options(optstring):
                     options[key.strip()] = value.strip()
 
     return options
+
+#get iface ip
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', ifname[:15])
+    )[20:24])
