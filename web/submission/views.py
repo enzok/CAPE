@@ -28,8 +28,7 @@ from lib.cuckoo.common.saztopcap import saz_to_pcap
 from lib.cuckoo.common.exceptions import CuckooDemuxError
 from lib.cuckoo.core.database import Database
 from lib.cuckoo.common.objects import File
-from lib.cuckoo.common.web_utils import get_magic_type, download_file, get_file_content, \
-    fix_section_permission, _download_file
+from lib.cuckoo.common.web_utils import get_magic_type, download_file, get_file_content, _download_file
 
 
 # this required for hash searches
