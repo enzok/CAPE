@@ -2242,7 +2242,7 @@ def tasks_payloadfiles(request, task_id):
         resp = {"error": True, "error_value": "Method not allowed"}
         return jsonize(resp, response=True)
 
-    if not apiconf.task.payloadfiles.get("enabled"):
+    if not apiconf.payloadfiles.get("enabled"):
         resp = {"error": True,
                 "error_value": "CAPE payload file download API is disabled"}
         return jsonize(resp, response=True)
@@ -2285,7 +2285,7 @@ def tasks_procdumpfiles(request, task_id):
         resp = {"error": True, "error_value": "Method not allowed"}
         return jsonize(resp, response=True)
 
-    if not apiconf.task.procdumpfiles.get("enabled"):
+    if not apiconf.procdumpfiles.get("enabled"):
         resp = {"error": True,
                 "error_value": "Procdump file download API is disabled"}
         return jsonize(resp, response=True)
