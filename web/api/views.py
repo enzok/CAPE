@@ -2258,7 +2258,8 @@ def tasks_payloadfiles(request, task_id):
     except AttributeError:
         zippwd = "infected"
 
-    zip_file = os.path.join(settings.TEMP_PATH, "zip-upload", "cape_payloads_{}.zip".format(task_id))
+    zipname = "cape_payloads_{}.zip".format(task_id)
+    zip_file = os.path.join(settings.TEMP_PATH, "zip-upload", zipname)
     capepath = os.path.join(CUCKOO_ROOT, "storage", "analyses", task_id, "CAPE")
     if os.path.exists(capepath):
         for fname in next(os.walk(capepath))[2]:
@@ -2272,7 +2273,7 @@ def tasks_payloadfiles(request, task_id):
 
         resp = StreamingHttpResponse(FileWrapper(open(zip_file), 8192), content_type=cd)
         resp["Content-Length"] = os.path.getsize(zip_file)
-        resp["Content-Disposition"] = "attachment; filename=" + zip_file
+        resp["Content-Disposition"] = "attachment; filename=" + zipname
         return resp
     else:
         resp = {"error": True, "error_value": "No CAPE file(s) for task {}.".format(task_id)}
@@ -2305,7 +2306,8 @@ def tasks_procdumpfiles(request, task_id):
     except AttributeError:
         zippwd = "infected"
 
-    zip_file = os.path.join(settings.TEMP_PATH, "zip-upload", "cape_procdumps_{}.zip".format(task_id))
+    zipname = "cape_payloads_{}.zip".format(task_id)
+    zip_file = os.path.join(settings.TEMP_PATH, "zip-upload", zipname)
     procdumppath = os.path.join(CUCKOO_ROOT, "storage", "analyses", task_id, "procdump")
     if os.path.exists(procdumppath):
         for fname in next(os.walk(procdumppath))[2]:
@@ -2319,7 +2321,7 @@ def tasks_procdumpfiles(request, task_id):
 
         resp = StreamingHttpResponse(FileWrapper(open(zip_file), 8192), content_type=cd)
         resp["Content-Length"] = os.path.getsize(zip_file)
-        resp["Content-Disposition"] = "attachment; filename=" + zip_file
+        resp["Content-Disposition"] = "attachment; filename=" + zipname
         return resp
     else:
         resp = {"error": True, "error_value": "No procdump file(s) for task {}.".format(task_id)}
