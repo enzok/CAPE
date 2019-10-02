@@ -207,7 +207,10 @@ def download_file(api, content, request, db, task_ids, url, params, headers, ser
 
 
 def _download_file(route, url, options):
-    proxies = {}
+    proxies = {
+        "http": "socks5h://127.0.0.1:9050",
+        "https": "socks5h://127.0.0.1:9050",
+    }
     response = False
     headers = {
         "User-Agent": choice(user_agents)
