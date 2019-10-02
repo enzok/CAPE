@@ -262,7 +262,7 @@ def index(request, resubmit_hash=False):
                 params = {}
 
                 status, task_ids = download_file(False, content, request, db, task_ids, url, params, headers, "Local",
-                                                 path, package, timeout, options, priority, machine, gateway, clock,
+                                                 path, package, timeout, options, priority, machine, clock,
                                                  custom, memory, enforce_timeout, referrer, tags, orig_options,
                                                  task_gateways, task_machines, static)
 
@@ -461,18 +461,17 @@ def index(request, resubmit_hash=False):
             path = store_temp_file(response, name)
 
             for entry in task_machines:
-                task_id = db.demux_sample_and_add_to_db(
-                    file_path=path,
-                    package=package,
-                    timeout=timeout,
-                    options=options,
-                    priority=priority,
-                    machine=entry,
-                    custom=custom,
-                    memory=memory,
-                    enforce_timeout=enforce_timeout,
-                    tags=tags,
-                    clock=clock)
+                task_id = db.demux_sample_and_add_to_db(file_path=path,
+                                                        package=package,
+                                                        timeout=timeout,
+                                                        options=options,
+                                                        priority=priority,
+                                                        machine=entry,
+                                                        custom=custom,
+                                                        memory=memory,
+                                                        enforce_timeout=enforce_timeout,
+                                                        tags=tags,
+                                                        clock=clock)
                 if task_id:
                     task_ids += task_id
         elif settings.VTDL_ENABLED and "vtdl" in request.POST and request.POST.get("vtdl", False) \
@@ -512,15 +511,13 @@ def index(request, resubmit_hash=False):
                     if not content:
                         status, task_ids = download_file(False, content, request, db, task_ids, url, params, headers,
                                                          "VirusTotal", filename, package, timeout, options, priority,
-                                                         machine, gateway, clock, custom, memory, enforce_timeout,
-                                                         referrer, tags, orig_options, task_gateways, task_machines,
-                                                         static)
+                                                         machine, clock, custom, memory, enforce_timeout, referrer,
+                                                         tags, orig_options, task_gateways, task_machines, static)
                     else:
                         status, task_ids = download_file(False, content, request, db, task_ids, url, params, headers,
                                                          "Local", filename, package, timeout, options, priority,
-                                                         machine, gateway, clock, custom, memory, enforce_timeout,
-                                                         referrer, tags, orig_options, task_gateways, task_machines,
-                                                         static)
+                                                         machine, clock, custom, memory, enforce_timeout, referrer,
+                                                         tags, orig_options, task_gateways, task_machines, static)
                 if status != "ok":
                     failed_hashes.append(h)
 
