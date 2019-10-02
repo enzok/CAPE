@@ -2252,10 +2252,10 @@ def tasks_payloadfiles(request, task_id):
         return jsonize(check, response=True)
 
     cd = "application/zip"
-    zippwd = settings.DOG
+
     try:
         zippwd = settings.ZIP_PWD
-    except:
+    except AttributeError:
         zippwd = "infected"
 
     zip_file = os.path.join(settings.TEMP_PATH, "zip-upload", "cape_payloads_{}.zip".format(task_id))
@@ -2302,7 +2302,7 @@ def tasks_procdumpfiles(request, task_id):
 
     try:
         zippwd = settings.ZIP_PWD
-    except:
+    except AttributeError:
         zippwd = "infected"
 
     zip_file = os.path.join(settings.TEMP_PATH, "zip-upload", "cape_procdumps_{}.zip".format(task_id))
