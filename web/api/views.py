@@ -2295,7 +2295,11 @@ def tasks_procdumpfiles(request, task_id):
         return jsonize(check, response=True)
 
     cd = "application/zip"
-    zippwd = settings.get("ZIP_PWD", "infected")
+    zippwd = settings.DOG
+    try:
+        zippwd = settings.ZIP_PWD
+    except:
+        zippwd = "infected"
 
     zip_file = os.path.join(settings.TEMP_PATH, "zip-upload", "cape_procdumps_{}.zip".format(task_id))
     procdumppath = os.path.join(CUCKOO_ROOT, "storage", "analyses", task_id, "procdump")
