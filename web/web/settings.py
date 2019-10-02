@@ -19,7 +19,7 @@ from lib.cuckoo.common.config import Config
 cuckoo_cfg = Config()
 rep_cfg = Config("reporting")
 aux_cfg = Config("auxiliary")
-vtdl_cfg = aux_cfg.virustotaldli
+vtdl_cfg = aux_cfg.virustotaldl
 zip_cfg = aux_cfg.zipped_download
 moloch_cfg = rep_cfg.moloch
 
