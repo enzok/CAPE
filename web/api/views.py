@@ -28,7 +28,7 @@ from lib.cuckoo.common.quarantine import unquarantine
 from lib.cuckoo.common.saztopcap import saz_to_pcap
 from lib.cuckoo.common.exceptions import CuckooDemuxError
 from lib.cuckoo.common.utils import store_temp_file, delete_folder, sanitize_filename, generate_fake_name
-from lib.cuckoo.common.utils import convert_to_printable, validate_referrer, get_user_filename
+from lib.cuckoo.common.utils import convert_to_printable, validate_referrer, get_user_filename, get_options
 from lib.cuckoo.common.web_utils import _download_file
 from lib.cuckoo.core.database import Database, Task
 from lib.cuckoo.core.database import TASK_REPORTED
@@ -723,6 +723,11 @@ def tasks_vtdl(request):
         task_machines = []
         vm_list = []
         task_ids = []
+        opt_apikey = False
+
+        opts = get_options(options)
+        if opts:
+            opt_apikey = opts.get("apikey", False)
 
         for vm in db.list_machines():
             vm_list.append(vm.label)
@@ -753,8 +758,10 @@ def tasks_vtdl(request):
             resp = {"error": True, "error_value": "vtdl (hash list) value is empty"}
             return jsonize(resp, response=True)
 
-        if (not settings.VTDL_PRIV_KEY and not settings.VTDL_INTEL_KEY) or not settings.VTDL_PATH:
-            resp = {"error": True, "error_value": "You specified VirusTotal but must edit the file and specify your VTDL_PRIV_KEY or VTDL_INTEL_KEY variable and VTDL_PATH base directory"}
+        if (not settings.VTDL_PRIV_KEY and not settings.VTDL_INTEL_KEY) or not settings.VTDL_PATH or not opt_apikey:
+            resp = {"error": True, "error_value": "You specified VirusTotal but must edit the file and specify your "
+                                                  "VTDL_PRIV_KEY or VTDL_INTEL_KEY variable and VTDL_PATH "
+                                                  "base directory"}
             return jsonize(resp, response=True)
         else:
             base_dir = tempfile.mkdtemp(prefix='cuckoovtdl', dir=settings.VTDL_PATH)
@@ -770,14 +777,15 @@ def tasks_vtdl(request):
                     filename = base_dir + "/" + opt_filename
                 else:
                     filename = base_dir + "/" + sanitize_filename(h)
-                url = "https://www.virustotal.com/api/v3/files/{id}/download".format(
-                    id=h)
+                url = "https://www.virustotal.com/api/v3/files/{id}/download".format(id=h)
                 paths = db.sample_path_by_hash(h)
                 content = False
                 if paths:
                     content = get_file_content(paths)
                 if not content:
-                    if settings.VTDL_PRIV_KEY:
+                    if opt_apikey:
+                        headers = {'x-apikey': opt_apikey}
+                    elif settings.VTDL_PRIV_KEY:
                         headers = {'x-apikey': settings.VTDL_PRIV_KEY}
                     elif settings.VTDL_INTEL_KEY:
                         headers = {'x-apikey': settings.VTDL_INTEL_KEY}
