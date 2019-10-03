@@ -453,7 +453,7 @@ def index(request, resubmit_hash=False):
             response = _download_file(request.POST.get("route", None), url, options)
             if not response:
                  return render(request, "error.html",
-                               {"error": "Was impossible to retrieve url"})
+                               {"error": "URL not available - Status code: {}".format(response.status_code)})
 
             name = os.path.basename(url)
             if not "." in name:
