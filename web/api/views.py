@@ -814,7 +814,6 @@ def tasks_vtdl(request):
                     resp["url"] = ["{0}/submit/status/{1}/".format(
                                   apiconf.api.get("url"), task_ids[0])]
             else:
-                resp["data"]["task_ids"] = task_ids
                 resp["data"]["message"] = "Task IDs {0} have been submitted".format(
                                ", ".join(str(x) for x in task_ids))
                 if callback:
@@ -822,6 +821,7 @@ def tasks_vtdl(request):
                     for tid in task_ids:
                         resp["url"].append("{0}/submit/status/{1}".format(
                                            apiconf.api.get("url"), tid))
+            resp["data"]["task_ids"] = task_ids
         else:
             resp = {"error": True,
                     "error_value": "Error adding task to database"}
