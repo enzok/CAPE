@@ -187,7 +187,7 @@ class MongoDB(Report):
         # Other info we want quick access to from the web UI
         if "virustotal" in results and results["virustotal"] and "positives" in results["virustotal"] and \
                 "total" in results["virustotal"]:
-            report["virustotal_summary"] = "{}{}".format(results["virustotal"]["positives"],
+            report["virustotal_summary"] = "{}/{}".format(results["virustotal"]["positives"],
                                                          results["virustotal"]["total"])
         if results.get("suricata", False):
             keywords = ("tls", "alerts", "files", "http", "ssh", "dns")
