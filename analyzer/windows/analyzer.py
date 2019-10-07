@@ -444,8 +444,7 @@ class PipeHandler(Thread):
                     if process_id:
                         if process_id not in (PID, PPID):
                             if process_id not in PROCESS_LIST:
-                                proc = Process(options=self.options, config=self.config, pid=process_id,
-                                               thread_id=thread_id)
+                                proc = Process(options=self.options,config=self.config,pid=process_id,thread_id=thread_id)
                                 filepath = proc.get_filepath()
                                 filename = os.path.basename(filepath)
 
@@ -470,7 +469,7 @@ class PipeHandler(Thread):
                         dcom_pid = pid_from_service_name("DcomLaunch")
                         if dcom_pid:
                             log.info("Attaching to DcomLaunch service (pid %d)", dcom_pid)
-                            servproc = Process(options=self.options, config=self.config, pid=dcom_pid, suspended=False)
+                            servproc = Process(options=self.options,config=self.config,pid=dcom_pid,suspended=False)
                             CRITICAL_PROCESS_LIST.append(int(dcom_pid))
                             filepath = servproc.get_filepath()
                             servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
@@ -495,8 +494,7 @@ class PipeHandler(Thread):
                             dcom_pid = pid_from_service_name("DcomLaunch")
                             if dcom_pid:
                                 log.info("Attaching to DcomLaunch service (pid %d)", dcom_pid)
-                                servproc = Process(options=self.options, config=self.config, pid=dcom_pid,
-                                                   suspended=False)
+                                servproc = Process(options=self.options,config=self.config,pid=dcom_pid,suspended=False)
                                 CRITICAL_PROCESS_LIST.append(int(dcom_pid))
                                 filepath = servproc.get_filepath()
                                 servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
@@ -510,7 +508,7 @@ class PipeHandler(Thread):
                         wmi_pid = pid_from_service_name("winmgmt")
                         if wmi_pid:
                             log.info("Attaching to WMI service (pid %d)", wmi_pid)
-                            servproc = Process(options=self.options, config=self.config, pid=wmi_pid, suspended=False)
+                            servproc = Process(options=self.options,config=self.config,pid=wmi_pid,suspended=False)
                             CRITICAL_PROCESS_LIST.append(int(wmi_pid))
                             filepath = servproc.get_filepath()
                             servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
@@ -533,7 +531,7 @@ class PipeHandler(Thread):
 
                         sched_pid = pid_from_service_name("schedule")
                         if sched_pid:
-                            servproc = Process(options=self.options, config=self.config, pid=sched_pid, suspended=False)
+                            servproc = Process(options=self.options,config=self.config,pid=sched_pid,suspended=False)
                             CRITICAL_PROCESS_LIST.append(int(sched_pid))
                             filepath = servproc.get_filepath()
                             servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
@@ -558,8 +556,7 @@ class PipeHandler(Thread):
                             dcom_pid = pid_from_service_name("DcomLaunch")
                             if dcom_pid:
                                 log.info("Attaching to DcomLaunch service (pid %d)", dcom_pid)
-                                servproc = Process(options=self.options, config=self.config, pid=dcom_pid,
-                                                   suspended=False)
+                                servproc = Process(options=self.options,config=self.config,pid=dcom_pid,suspended=False)
                                 CRITICAL_PROCESS_LIST.append(int(dcom_pid))
                                 filepath = servproc.get_filepath()
                                 servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
@@ -573,7 +570,7 @@ class PipeHandler(Thread):
 
                         bits_pid = pid_from_service_name("BITS")
                         if bits_pid:
-                            servproc = Process(options=self.options, config=self.config, pid=bits_pid, suspended=False)
+                            servproc = Process(options=self.options,config=self.config,pid=bits_pid,suspended=False)
                             CRITICAL_PROCESS_LIST.append(int(bits_pid))
                             filepath = servproc.get_filepath()
                             servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
@@ -595,23 +592,22 @@ class PipeHandler(Thread):
                         subprocess.call("sc config " + servname + " type= own", startupinfo=si)
                         log.info("Announced starting service \"%s\"", servname)
 
-                    if not MONITORED_SERVICES:
-                        # Inject into services.exe so we can monitor service creation
-                        # if tasklist previously failed to get the services.exe PID we'll be
-                        # unable to inject
-                        if SERVICES_PID:
-                            log.info("Attaching to Service Control Manager (services.exe - pid %d)", SERVICES_PID)
-                            servproc = Process(options=self.options, config=self.config, pid=SERVICES_PID,
-                                               suspended=False)
-                            CRITICAL_PROCESS_LIST.append(int(SERVICES_PID))
-                            filepath = servproc.get_filepath()
-                            servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
-                            LASTINJECT_TIME = datetime.now()
-                            servproc.close()
-                            KERNEL32.Sleep(1000)
-                            MONITORED_SERVICES = True
-                        else:
-                            log.error('Unable to monitor service %s' % (servname))
+                        if not MONITORED_SERVICES:
+                            # Inject into services.exe so we can monitor service creation
+                            # if tasklist previously failed to get the services.exe PID we'll be
+                            # unable to inject
+                            if SERVICES_PID:
+                                log.info("Attaching to Service Control Manager (services.exe - pid %d)", SERVICES_PID)
+                                servproc = Process(options=self.options,config=self.config,pid=SERVICES_PID,suspended=False)
+                                CRITICAL_PROCESS_LIST.append(int(SERVICES_PID))
+                                filepath = servproc.get_filepath()
+                                servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
+                                LASTINJECT_TIME = datetime.now()
+                                servproc.close()
+                                KERNEL32.Sleep(1000)
+                                MONITORED_SERVICES = True
+                            else:
+                                log.error('Unable to monitor service %s' % (servname))
 
                 # For now all we care about is bumping up our LASTINJECT_TIME to account for long delays between
                 # injection and actual resume time where the DLL would have a chance to load in the new process
@@ -649,6 +645,7 @@ class PipeHandler(Thread):
                             # make sure process is aware of the termination
                             KERNEL32.SetEvent(event_handle)
                             KERNEL32.CloseHandle(event_handle)
+                            PROCESS_LIST.remove(process_id)
 
                     PROCESS_LOCK.release()
                 # Handle notification of capemon loading in a process
@@ -1177,6 +1174,7 @@ class Analyzer:
             pid_check = False
 
         time_counter = 0
+        time_start = datetime.now()
         kernel_analysis = self.config.get_options().get("kernel_analysis", False)
 
         if kernel_analysis != False:
@@ -1185,8 +1183,8 @@ class Analyzer:
         emptytime = None
 
         while True:
-            time_counter += 1
-            if time_counter >= int(self.config.timeout):
+            time_counter = datetime.now() - time_start
+            if time_counter.total_seconds() >= int(self.config.timeout):
                 log.info("Analysis timeout hit (%d seconds), terminating analysis.", self.config.timeout)
                 ANALYSIS_TIMED_OUT = True
                 break
@@ -1212,8 +1210,7 @@ class Analyzer:
 
                         # If none of the monitored processes are still alive, we
                         # can terminate the analysis.
-                        if not PROCESS_LIST and (not LASTINJECT_TIME or
-                                                 (datetime.now() >= (LASTINJECT_TIME + timedelta(seconds=15)))):
+                        if not PROCESS_LIST and (not LASTINJECT_TIME or (datetime.now() >= (LASTINJECT_TIME + timedelta(seconds=15)))):
                             if emptytime and (datetime.now() >= (emptytime + timedelta(seconds=5))):
                                 log.info("Process list is empty, "
                                         "terminating analysis.")
@@ -1255,7 +1252,7 @@ class Analyzer:
         # for a second to ensure they see it before they're terminated
         KERNEL32.Sleep(1000)
 
-        # Tell all processes to flush their logs and exit
+        # Tell all processes to complete their monitoring
         if not kernel_analysis:
             for pid in PROCESS_LIST:
                 proc = Process(pid=pid)
@@ -1265,10 +1262,10 @@ class Analyzer:
                     except:
                         log.error("Unable to set terminate event for process %d.", proc.pid)
                         continue
-                    log.info("Terminate event set for process %d.", proc.pid)
+
                 if self.config.terminate_processes:
                     # Try to terminate remaining active processes.
-                    # (This setting may render full system memory dumps less useful.)
+                    # (This setting may render full system memory dumps less useful!)
                     if not pid in CRITICAL_PROCESS_LIST and not proc.is_critical():
                         log.info("Terminating process %d before shutdown.", proc.pid)
                         proc_counter = 0
