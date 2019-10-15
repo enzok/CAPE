@@ -116,7 +116,7 @@ def buildBehaviors(entry, behaviorTags):
 
     behaviorCol["Invokes C# .NET Assemblies"] = [["Add-Type"]]
 
-    behaviorCol["Modifies Shadowcopy"] = [["Win32_Shadowcopy"]]
+    behaviorCol[""] = [["Win32_Shadowcopy"]]
 
     for event in entry:
         for message in entry[event]:
@@ -152,7 +152,7 @@ def formatReplace(inputString, MODFLAG):
     # NEW: "EXAMPLE"
     # Find group of obfuscated string
     obfGroup = re.search("(\"|\')(\{[0-9]{1,2}\})+(\"|\')[ -fF].+?\'.+?\'\)(?!(\"|\'|;))", inputString).group()
-     # There are issues with multiple nested groupings that I haven't been able to solve yet, but doesn't change the final output of the PS script
+    # There are issues with multiple nested groupings that I haven't been able to solve yet, but doesn't change the final output of the PS script
     #obfGroup = re.search("(\"|\')(\{[0-9]{1,2}\})+(\"|\')[ -fF]+?(\"|\').+?(\"|\')(?=\)([!.\"\';)( ]))", inputString).group()
 
     # Build index and string lists
