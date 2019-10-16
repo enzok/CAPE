@@ -205,6 +205,9 @@ def index(request, page=1):
     paging["next_page"] = str(page + 1)
     paging["prev_page"] = str(page - 1)
 
+    pages_files_num = 0
+    pages_urls_num = 0
+    pages_pcaps_num = 0
     tasks_files_number = db.count_matching_tasks(category="file", not_status=TASK_PENDING) or 0
     tasks_files_number += db.count_matching_tasks(category="static", not_status=TASK_PENDING) or 0
     tasks_urls_number = db.count_matching_tasks(category="url", not_status=TASK_PENDING) or 0
