@@ -944,6 +944,9 @@ class Database(object):
                 else:
                     tags = "64_bit"
 
+            # disable all tags
+            tags = ""
+
             task = Task(obj.file_path)
             task.sample_id = sample.id
 
