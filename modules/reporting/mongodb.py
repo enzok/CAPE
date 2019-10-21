@@ -15,7 +15,6 @@ MEGABYTE = 0x100000
 try:
     from pymongo import MongoClient
     from pymongo.errors import ConnectionFailure, InvalidDocument, WriteError
-    import pymongo.errors
     HAVE_MONGO = True
 except ImportError:
     HAVE_MONGO = False
