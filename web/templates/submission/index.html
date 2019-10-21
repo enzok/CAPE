@@ -177,7 +177,7 @@ $(document).ready( function() {
                                 <div class="form-group">
                                     <label for="form_machine">Machine</label>
                                     <select class="form-control" id="form_machine" name="machine">
-                                        {% for id,label in machines %}
+                                        {% for id,label in machines|dictsort:"0.lower" %}
                                         <option value="{{id}}">{{label}}</option>
                                         {% endfor %}
                                     </select>
@@ -192,7 +192,7 @@ $(document).ready( function() {
                                 <div class="form-group">
                                     <label for="form_gateway">Gateway</label>
                                     <select class="form-control" id="form_gateway" name="gateway">
-                                        {% for k,v in gateways.items %}
+                                        {% for k,v in gateways.items|dictsort:"0.lower" %}
                                         <option value="{{k}}">{{k}}</option>
                                         {% endfor %}
                                         <option value="All">All</option>
