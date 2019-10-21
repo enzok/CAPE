@@ -1262,7 +1262,7 @@ class Analyzer:
                     except:
                         log.error("Unable to set terminate event for process %d.", proc.pid)
                         continue
-
+                    log.info("Terminate event set for process %d.", proc.pid)
                 if self.config.terminate_processes:
                     # Try to terminate remaining active processes.
                     # (This setting may render full system memory dumps less useful!)
