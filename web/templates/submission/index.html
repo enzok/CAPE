@@ -193,7 +193,7 @@ $(document).ready( function() {
                                     <label for="form_gateway">Gateway</label>
                                     <select class="form-control" id="form_gateway" name="gateway">
                                         {% for k,v in gateways.items|dictsort:"0.lower" %}
-                                        <option value="{{k}}" {% if k=='tor' %}selected{% endif %}>{{k}}</option>
+                                        <option value="{{k}}" {% if k == 'tor' %}selected{% endif %}>{{k}}</option>
                                         {% endfor %}
                                         <option value="All">All</option>
                                     </select>
