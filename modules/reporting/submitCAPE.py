@@ -340,16 +340,14 @@ class SubmitCAPE(Report):
             return
 
         self.task_options = self.task["options"]
-
-        if self.task_options and 'disable_cape=1' in self.task_options:
-            log.info("Cape submission disabled.")
+        if not self.task_options:
             return
 
         parent_package = results["info"].get("package")
 
         # Initial static hits from CAPE's yara signatures
         for entry in results.get("target", {}).get("file", {}).get("cape_yara", []):
-            self.process_cape_yara(entry, detections)
+            self.process_cape_yara(entry, results, detections)
 
         for pattern in ("procdump", "CAPE", "dropped"):
             for file in results.get(pattern, []) or []:

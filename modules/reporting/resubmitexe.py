@@ -63,7 +63,7 @@ class ReSubmitExtractedEXE(Report):
             self.task_options=','.join(self.task_options_stack)
 
         report = dict(results)
-        for dropped in report["dropped"]:
+        for dropped in report.get("dropped", []):
             if self.resubcnt >= self.resublimit:
                 break
             if os.path.isfile(dropped["path"]):
@@ -71,8 +71,6 @@ class ReSubmitExtractedEXE(Report):
                     if not filesdict.has_key(dropped['sha256']):
                         srcpath = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(report["info"]["id"]), "files", dropped['sha256'])
                         linkdir = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(report["info"]["id"]), "files", dropped['sha256'] + "_link")
-                        if not os.path.exists(srcpath):
-                            continue
                         guest_paths = [line.strip() for line in open(srcpath + "_info.txt")]
                         guest_name = guest_paths[0].split("\\")[-1]
                         linkpath = os.path.join(linkdir, guest_name)
