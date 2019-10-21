@@ -6,7 +6,6 @@ import os
 
 from lib.common.abstracts import Package
 
-
 class DOC(Package):
     """Word analysis package."""
     PATHS = [

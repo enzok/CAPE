@@ -15,7 +15,6 @@ __email__   = "jwhite@paloaltonetworks.com"
 __version__ = "1.0.4"
 __date__    = "11OCT2019"
 
-
 class Curtain(Thread, Auxiliary):
 
     def __init__(self, options={}, config=None):

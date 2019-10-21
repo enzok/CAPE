@@ -47,4 +47,3 @@ Fore = AnsiCodes( AnsiFore )
 Back = AnsiCodes( AnsiBack )
 Style = AnsiCodes( AnsiStyle )
 
-

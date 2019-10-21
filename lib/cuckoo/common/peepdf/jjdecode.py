@@ -29,12 +29,7 @@
 #
 # Modified to integrate it with peepdf
 
-import sys
-
-try:
-    import re2 as re
-except ImportError:
-    import re
+import re, sys
 
 class JJDecoder(object):
 
@@ -331,4 +326,5 @@ class JJDecoder(object):
                             match += 1
                     continue
             return (-1,'No match in the code!!')
+            break
         return (0, out)

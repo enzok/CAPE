@@ -1,8 +1,5 @@
-try:
-    import re2 as re
-except ImportError:
-    import re
 
+import re
 import sys
 
 from .ansi import AnsiFore, AnsiBack, AnsiStyle, Style
@@ -176,5 +173,4 @@ class AnsiToWin32(object):
                     args = func_args[1:]
                     kwargs = dict(on_stderr=self.on_stderr)
                     func(*args, **kwargs)
-
 

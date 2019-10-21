@@ -26,4 +26,3 @@ class Injection_PS1(Package):
 
         args = "-NoProfile -ExecutionPolicy bypass -File \"{0}\"".format(path)
         return self.execute(powershell, args, path)
-        
