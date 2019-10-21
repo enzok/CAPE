@@ -64,7 +64,7 @@ def choose_package(file_type, file_name, exports, file_path):
         return "eml"
     elif file_name.endswith(".js") or file_name.endswith(".jse"):
         return "js"
-    elif "HTML" in file_type or file_name.endswith((".htm", ".html", ".mht", ".mhtml")):
+    elif "HTML" in file_type or file_name.endswith((".htm", ".html")):
         return "html"
     elif file_name.endswith(".hta"):
         return "hta"
@@ -74,5 +74,9 @@ def choose_package(file_type, file_name, exports, file_path):
         return "wsf"
     elif file_name.endswith(".sct"):
         return "sct"
+    elif "HTML" in file_type:
+        return "html"
+    elif file_name.endswith((".mht", ".hmtml")):
+        return "mht"
     else:
         return "generic"
