@@ -63,6 +63,12 @@ try:
 except ImportError:
     HAVE_VBA2GRAPH = False
 
+try:
+    from lxml import etree
+    HAVE_LXML = True
+except ImportError:
+    HAVE_LXML = False
+
 from lib.cuckoo.common.abstracts import Processing
 from lib.cuckoo.common.constants import CUCKOO_ROOT
 from lib.cuckoo.common.objects import File
@@ -1261,8 +1267,9 @@ class Office(object):
                 metares["SummaryInformation"]["last_saved_time"] = buf
                 ole.close()
             else:
-                officeresults["Metadata"] = self.get_xml_meta(filepath)
-                metares = officeresults["Metadata"]
+                if HAVE_LXML:
+                    officeresults["Metadata"] = self.get_xml_meta(filepath)
+                    metares = officeresults["Metadata"]
         except Exception as xcpt:
             metares["Metadata"] = dict()
             log.warning("Failed to parse Office meta data: %s", xcpt)
