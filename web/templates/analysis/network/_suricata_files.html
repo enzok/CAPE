@@ -84,7 +84,7 @@
                     <td>
                     {% if file.yara %}
                         <ul style="margin-bottom: 0;">
-                        {% for sign in file.fileinfo.yara %}
+                        {% for sign in file.file_info.yara %}
                             <li>{{sign.name}} - {{sign.meta.description}} 
                                 {% if sign.moloch_yara_url %}
                                     <a href={{file.moloch_yara_url}} target="_blank">[MLCH]</a>
