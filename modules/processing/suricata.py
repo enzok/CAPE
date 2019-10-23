@@ -433,7 +433,7 @@ class Suricata(Processing):
                             sfile["file_info"] = file_info
                         suricata["files"].append(sfile)
                 with open(SURICATA_FILE_LOG_FULL_PATH, "wb") as drop_log:
-                    json.dump(suricata["files"], drop_log)
+                    drop_log.write(json.dumps(suricata["files"], indent=4))
 
             # Cleanup file subdirectories left behind by messy Suricata
             for d in [dirpath for (dirpath, dirnames, filenames) in os.walk(SURICATA_FILES_DIR_FULL_PATH)

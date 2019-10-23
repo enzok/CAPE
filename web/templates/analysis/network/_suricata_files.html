@@ -113,13 +113,13 @@
                     <td>
                     {% if config.zipped_download %}
                         {% if file.fsver == 1 %}
-                        <a class="btn btn-primary btn-small" href="{% url "zipdownload" "suricata" analysis.info.id "file."file.id %}">Download</a>
+                        <a class="btn btn-primary btn-small" href="{% url "zipdownload" "suricata" analysis.info.id file.id %}">Download</a>
                         {% elif file.fsver == 2 %}
                         <a class="btn btn-primary btn-small" href="{% url "zipdownload" "suricata" analysis.info.id file.sha256 %}">Download</a>
                         {% endif %}
                     {% else  %}
                         {% if file.fsver == 1 %}
-                        <a class="btn btn-primary btn-small" href="{% url "file" "suricata" analysis.info.id "file."file.id %}">Download</a>
+                        <a class="btn btn-primary btn-small" href="{% url "file" "suricata" analysis.info.id file.id %}">Download</a>
                         {% elif file.fsver == 2 %}
                         <a class="btn btn-primary btn-small" href="{% url "file" "suricata" analysis.info.id file.sha256 %}">Download</a>
                         {% endif %}
