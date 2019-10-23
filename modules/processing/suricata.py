@@ -338,6 +338,8 @@ class Suricata(Processing):
                         flog["stored"] = parsed.get("fileinfo", {}).get("stored", "")
                         flog["sha256"] = parsed.get("fileinfo", {}).get("sha256", "")
                         flog["md5"] = parsed.get("fileinfo", {}).get("md5", "")
+                        flog["id"] = parsed.get("fileinfo", {}).get("file_id", "")
+                        flog["fsver"] = 2
                         flog["filename"] = parsed.get("fileinfo", {}).get("filename", "")
                         if "/" in flog["filename"]:
                             flog["filename"] = flog["filename"].split("/")[-1]
@@ -391,6 +393,7 @@ class Suricata(Processing):
                         d["file_info"] = file_info
                     if "/" in d["filename"]:
                         d["filename"] = d["filename"].split("/")[-1]
+                    d["fsver"] = 1
                     suricata["files"].append(d)
             else:
                 log.warning("Suricata: Failed to find file log at %s" % (SURICATA_FILE_LOG_FULL_PATH))
