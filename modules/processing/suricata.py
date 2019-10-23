@@ -330,14 +330,14 @@ class Suricata(Processing):
                         suricata["dns"].append(parsed)
                     elif parsed["event_type"] == "fileinfo":
                         flog = dict()
-                        flog["http_host"] = parsed_files.get("http", {}).get("hostname", "")
-                        flog["http_uri"] = parsed_files.get("http", {}).get("url", "")
-                        flog["http_referer"] = parsed_files.get("http", {}).get("referer", "")
-                        flog["magic"] = parsed_files.get("fileinfo", {}).get("magic", "")
-                        flog["size"] = parsed_files.get("fileinfo", {}).get("size", "")
-                        flog["stored"] = parsed_files.get("fileinfo", {}).get("stored", "")
-                        flog["sha256"] = parsed_files.get("fileinfo", {}).get("sha256", "")
-                        flog["filename"] = parsed_files.get("fileinfo", {}).get("filename", "")
+                        flog["http_host"] = parsed.get("http", {}).get("hostname", "")
+                        flog["http_uri"] = parsed.get("http", {}).get("url", "")
+                        flog["http_referer"] = parsed.get("http", {}).get("referer", "")
+                        flog["magic"] = parsed.get("fileinfo", {}).get("magic", "")
+                        flog["size"] = parsed.get("fileinfo", {}).get("size", "")
+                        flog["stored"] = parsed.get("fileinfo", {}).get("stored", "")
+                        flog["sha256"] = parsed.get("fileinfo", {}).get("sha256", "")
+                        flog["filename"] = parsed.get("fileinfo", {}).get("filename", "")
                         if "/" in flog["filename"]:
                             flog["filename"] = flog["filename"].split("/")[-1]
                         parsed_files.append(flog)
