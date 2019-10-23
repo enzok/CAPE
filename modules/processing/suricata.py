@@ -429,6 +429,8 @@ class Suricata(Processing):
                                     file_info["data"] = convert_to_printable(filedata)
                             sfile["file_info"] = file_info
                         suricata["files"].append(sfile)
+                with open(SURICATA_FILE_LOG_FULL_PATH, "wb") as drop_log:
+                    drop_log.write(suricata["files"])
 
             # Cleanup file subdirectories left behind by messy Suricata
             for d in [dirpath for (dirpath, dirnames, filenames) in os.walk(SURICATA_FILES_DIR_FULL_PATH)
@@ -442,8 +444,6 @@ class Suricata(Processing):
         if SURICATA_FILES_DIR_FULL_PATH and os.path.exists(SURICATA_FILES_DIR_FULL_PATH) and Z7_PATH \
                 and os.path.exists(Z7_PATH):
             # /usr/bin/7z a -pinfected -y files.zip files-json.log files
-            if SURICATA_FILESTORE_VERSION == 2:
-                SURICATA_FILE_LOG = ""
             cmd = "cd %s && %s a -p%s -y files.zip %s %s" % (self.logs_path,
                                                              Z7_PATH,
                                                              FILES_ZIP_PASS,
