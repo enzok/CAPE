@@ -442,7 +442,7 @@ class Suricata(Processing):
         if SURICATA_FILES_DIR_FULL_PATH and os.path.exists(SURICATA_FILES_DIR_FULL_PATH) and Z7_PATH \
                 and os.path.exists(Z7_PATH):
             # /usr/bin/7z a -pinfected -y files.zip files-json.log files
-            if SURICATA_FILESTORE_VERSION == "2":
+            if SURICATA_FILESTORE_VERSION == 2:
                 SURICATA_FILE_LOG = ""
             cmd = "cd %s && %s a -p%s -y files.zip %s %s" % (self.logs_path,
                                                              Z7_PATH,
@@ -451,7 +451,7 @@ class Suricata(Processing):
                                                              SURICATA_FILES_DIR)
             ret, stdout, stderr = self.cmd_wrapper(cmd)
             if ret != 0:
-                log.warning("Suricata: Failed to create %s/files.zip" % (self.logs_path))
+                log.warning("Suricata: Failed to create %s/files.zip - Error {}".format(self.logs_path, ret))
 
         suricata["alerts"] = self.sort_by_timestamp(suricata["alerts"])
         suricata["http"] = self.sort_by_timestamp(suricata["http"])
