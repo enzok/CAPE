@@ -75,7 +75,7 @@ class Suricata(Processing):
         # Socket
         SURICATA_SOCKET_PATH = self.options.get("socket_file", None)
         SURICATA_SOCKET_PYLIB = self.options.get("pylib_dir", None)
-        SURICATA_FILESTORE_VERSION = self.options.get("filestore_version", "1")
+        SURICATA_FILESTORE_VERSION = self.options.get("filestore_version", 1)
 
         # Command Line
         SURICATA_BIN = self.options.get("bin", None)
@@ -337,12 +337,13 @@ class Suricata(Processing):
                         flog["size"] = parsed.get("fileinfo", {}).get("size", "")
                         flog["stored"] = parsed.get("fileinfo", {}).get("stored", "")
                         flog["sha256"] = parsed.get("fileinfo", {}).get("sha256", "")
+                        flog["md5"] = parsed.get("fileinfo", {}).get("md5", "")
                         flog["filename"] = parsed.get("fileinfo", {}).get("filename", "")
                         if "/" in flog["filename"]:
                             flog["filename"] = flog["filename"].split("/")[-1]
                         parsed_files.append(flog)
 
-        if SURICATA_FILESTORE_VERSION == "1":
+        if SURICATA_FILESTORE_VERSION == 1:
             if os.path.exists(SURICATA_FILE_LOG_FULL_PATH):
                 suricata["file_log_full_path"] = SURICATA_FILE_LOG_FULL_PATH
                 f = open(SURICATA_FILE_LOG_FULL_PATH, "rb").readlines()
@@ -393,7 +394,7 @@ class Suricata(Processing):
                     suricata["files"].append(d)
             else:
                 log.warning("Suricata: Failed to find file log at %s" % (SURICATA_FILE_LOG_FULL_PATH))
-        elif SURICATA_FILESTORE_VERSION == "2":
+        elif SURICATA_FILESTORE_VERSION == 2:
             if parsed_files:
                 for sfile in parsed_files:
                     if sfile.get("stored", False):
