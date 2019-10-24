@@ -1579,8 +1579,6 @@ def zipdownload(request, category, task_id, dlfile):
         elif category == "CAPE":
             path = os.path.join(CUCKOO_ROOT, "storage", "analyses", task_id, "CAPE", dlfile)
         elif category == "suricata":
-            if len(dlfile) < 4:
-                dlfile = "file.{}".format(dlfile)
             path = os.path.join(CUCKOO_ROOT, "storage", "analyses", task_id, "logs", "files", dlfile)
 
         bin_path = path

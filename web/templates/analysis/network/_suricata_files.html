@@ -57,7 +57,7 @@
                 </tr>
                 <tr>
                     <th>SHA256</th>
-                    <td>{{file.file_info.sha256}}
+                    <td>{{file.sha256}}
                         {% if file.moloch_sha256_url %} 
                             <a href={{file.moloch_sha256_url}} target="_blank">[MLCH]</a>
                         {% endif %}
@@ -107,34 +107,24 @@
                     <td><a href="https://threatintel.proofpoint.com/search?q={{file.md5}}" target="_blank">Search for Analysis</a></td>
                 </tr>
                 {% endif %}
-                {% if file.id %}
                 <tr>
-                    <th></th>
-                    <td>
-                    {% if config.zipped_download %}
-                        {% if file.fsver == 1 %}
-                        <a class="btn btn-primary btn-small" href="{% url "zipdownload" "suricata" analysis.info.id file.id %}">Download</a>
-                        {% elif file.fsver == 2 %}
-                        <a class="btn btn-primary btn-small" href="{% url "zipdownload" "suricata" analysis.info.id file.sha256 %}">Download</a>
-                        {% endif %}
-                    {% else  %}
-                        {% if file.fsver == 1 %}
-                        <a class="btn btn-primary btn-small" href="{% url "file" "suricata" analysis.info.id file.id %}">Download</a>
-                        {% elif file.fsver == 2 %}
-                        <a class="btn btn-primary btn-small" href="{% url "file" "suricata" analysis.info.id file.sha256 %}">Download</a>
-                        {% endif %}
-                    {% endif %}
-                    {% if file.file_info.data %}
-                    &emsp;<a class="btn btn-primary btn-small" data-toggle="collapse" data-target="#{{file.sp}}{{file.dp}}{{file.id}}">Display Text</a>
-                    {% endif %}
-                    </td>
+                <th></th>
+                <td>
+                {% if config.zipped_download %}
+                    <a class="btn btn-primary btn-small" href="{% url "zipdownload" "suricata" analysis.info.id file.sha256 %}">Download</a>
+                {% else  %}
+                    <a class="btn btn-primary btn-small" href="{% url "file" "suricata" analysis.info.id file.sha256 %}">Download</a>
+                {% endif %}
+                {% if file.file_info.data %}
+                &emsp;<a class="btn btn-primary btn-small" data-toggle="collapse" data-target="#{{file.sha256}}">Display Text</a>
+                {% endif %}
+                </td>
                 </tr>
                 {% if file.file_info.data %}
-                <tr class="collapse" id="{{file.sp}}{{file.dp}}{{file.id}}">
+                <tr class="collapse" id="{{file.sha256}}">
                     <td colspan="2"><pre>{{file.file_info.data}}</pre></td>
                 </tr>
-                {% endif %}
-                {% endif %}
+            {% endif %}
             </table>
         </div>
     {% endfor %}

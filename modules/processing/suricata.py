@@ -75,7 +75,6 @@ class Suricata(Processing):
         # Socket
         SURICATA_SOCKET_PATH = self.options.get("socket_file", None)
         SURICATA_SOCKET_PYLIB = self.options.get("pylib_dir", None)
-        SURICATA_FILESTORE_VERSION = self.options.get("filestore_version", 1)
 
         # Command Line
         SURICATA_BIN = self.options.get("bin", None)
@@ -338,39 +337,23 @@ class Suricata(Processing):
                         flog["stored"] = parsed.get("fileinfo", {}).get("stored", "")
                         flog["sha256"] = parsed.get("fileinfo", {}).get("sha256", "")
                         flog["md5"] = parsed.get("fileinfo", {}).get("md5", "")
-                        flog["id"] = parsed.get("fileinfo", {}).get("file_id", "")
-                        flog["fsver"] = 2
                         flog["filename"] = parsed.get("fileinfo", {}).get("filename", "")
                         if "/" in flog["filename"]:
                             flog["filename"] = flog["filename"].split("/")[-1]
                         parsed_files.append(flog)
 
-        if SURICATA_FILESTORE_VERSION == 1:
-            if os.path.exists(SURICATA_FILE_LOG_FULL_PATH):
-                suricata["file_log_full_path"] = SURICATA_FILE_LOG_FULL_PATH
-                f = open(SURICATA_FILE_LOG_FULL_PATH, "rb").readlines()
-                for l in f:
-                    try:
-                        d = json.loads(l)
-                    except:
-                        log.warning("failed to load JSON from file log")
-                        continue
-                    # Some log entries do not have an id
-                    if "id" not in d:
-                        continue
-                    src_file = "%s/file.%s" % (SURICATA_FILES_DIR_FULL_PATH, d["id"])
+        if parsed_files:
+            for sfile in parsed_files:
+                if sfile.get("stored", False):
+                    filename = sfile["sha256"]
+                    src_file = "{}/{}/{}".format(SURICATA_FILES_DIR_FULL_PATH, filename[0:2], filename)
+                    dst_file = "{}/{}".format(SURICATA_FILES_DIR_FULL_PATH, filename)
                     if os.path.exists(src_file):
-                        if SURICATA_FILE_COPY_MAGIC_RE and SURICATA_FILE_COPY_DST_DIR and \
-                                os.path.exists(SURICATA_FILE_COPY_DST_DIR):
-                            try:
-                                m = re.search(SURICATA_FILE_COPY_MAGIC_RE, d["magic"])
-                                if m:
-                                    dst_file = "%s/%s" % (SURICATA_FILE_COPY_DST_DIR, d["md5"])
-                                    shutil.copy2(src_file, dst_file)
-                                    log.warning("copied %s to %s" % (src_file, dst_file))
-                            except Exception as e:
-                                log.warning("Unable to copy suricata file: %s" % e)
-                        file_info = File(file_path=src_file).get_all()
+                        try:
+                            shutil.move(src_file, dst_file)
+                        except OSError as e:
+                            log.warning("Unable to move suricata file: {}".format(e))
+                            break
                         texttypes = [
                             "ASCII",
                             "Windows Registry text",
@@ -378,6 +361,7 @@ class Suricata(Processing):
                             "Unicode text",
                         ]
                         readit = False
+                        file_info = File(file_path=dst_file).get_all()
                         for texttype in texttypes:
                             if texttype in file_info["type"]:
                                 readit = True
@@ -386,54 +370,14 @@ class Suricata(Processing):
                             with open(file_info["path"], "rb") as drop_open:
                                 filedata = drop_open.read(SURICATA_FILE_BUFFER + 1)
                             if len(filedata) > SURICATA_FILE_BUFFER:
-                                file_info["data"] = convert_to_printable(filedata[:SURICATA_FILE_BUFFER] +
-                                                                         " <truncated>")
+                                file_info["data"] = convert_to_printable(
+                                    filedata[:SURICATA_FILE_BUFFER] + " <truncated>")
                             else:
                                 file_info["data"] = convert_to_printable(filedata)
-                        d["file_info"] = file_info
-                    if "/" in d["filename"]:
-                        d["filename"] = d["filename"].split("/")[-1]
-                    d["fsver"] = 1
-                    suricata["files"].append(d)
-            else:
-                log.warning("Suricata: Failed to find file log at %s" % (SURICATA_FILE_LOG_FULL_PATH))
-        elif SURICATA_FILESTORE_VERSION == 2:
-            if parsed_files:
-                for sfile in parsed_files:
-                    if sfile.get("stored", False):
-                        filename = sfile["sha256"]
-                        src_file = "{}/{}/{}".format(SURICATA_FILES_DIR_FULL_PATH, filename[0:2], filename)
-                        dst_file = "{}/{}".format(SURICATA_FILES_DIR_FULL_PATH, filename)
-                        if os.path.exists(src_file):
-                            try:
-                                shutil.move(src_file, dst_file)
-                            except OSError as e:
-                                log.warning("Unable to move suricata file: {}".format(e))
-                                break
-                            texttypes = [
-                                "ASCII",
-                                "Windows Registry text",
-                                "XML document text",
-                                "Unicode text",
-                            ]
-                            readit = False
-                            file_info = File(file_path=dst_file).get_all()
-                            for texttype in texttypes:
-                                if texttype in file_info["type"]:
-                                    readit = True
-                                    break
-                            if readit:
-                                with open(file_info["path"], "rb") as drop_open:
-                                    filedata = drop_open.read(SURICATA_FILE_BUFFER + 1)
-                                if len(filedata) > SURICATA_FILE_BUFFER:
-                                    file_info["data"] = convert_to_printable(
-                                        filedata[:SURICATA_FILE_BUFFER] + " <truncated>")
-                                else:
-                                    file_info["data"] = convert_to_printable(filedata)
-                            sfile["file_info"] = file_info
-                        suricata["files"].append(sfile)
-                with open(SURICATA_FILE_LOG_FULL_PATH, "wb") as drop_log:
-                    drop_log.write(json.dumps(suricata["files"], indent=4))
+                        sfile["file_info"] = file_info
+                    suricata["files"].append(sfile)
+            with open(SURICATA_FILE_LOG_FULL_PATH, "wb") as drop_log:
+                drop_log.write(json.dumps(suricata["files"], indent=4))
 
             # Cleanup file subdirectories left behind by messy Suricata
             for d in [dirpath for (dirpath, dirnames, filenames) in os.walk(SURICATA_FILES_DIR_FULL_PATH)
