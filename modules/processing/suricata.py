@@ -332,6 +332,8 @@ class Suricata(Processing):
                         flog["http_host"] = parsed.get("http", {}).get("hostname", "")
                         flog["http_uri"] = parsed.get("http", {}).get("url", "")
                         flog["http_referer"] = parsed.get("http", {}).get("referer", "")
+                        flog["http_user_agent"] = parsed.get("http", {}).get("http_user_agent", "")
+                        flog["proto"] = parsed.get("proto", "")
                         flog["magic"] = parsed.get("fileinfo", {}).get("magic", "")
                         flog["size"] = parsed.get("fileinfo", {}).get("size", "")
                         flog["stored"] = parsed.get("fileinfo", {}).get("stored", "")
