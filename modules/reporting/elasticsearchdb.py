@@ -5,6 +5,7 @@
 import logging
 import os
 import re
+import json
 
 from lib.cuckoo.common.abstracts import Report
 from lib.cuckoo.common.exceptions import CuckooDependencyError
@@ -151,6 +152,8 @@ class ElasticsearchDB(Report):
             esreport = dict()
             esreport["task_id"] = results["info"]["id"]
             esreport["info"] = results.get("info")
+            if esreport.get("info", {}).get("machine", {}):
+                esreport["info"]["machine"] = json.dumps(esreport["info"]["machine"])
             esreport["target"] = results.get("target")
             esreport["summary"] = results.get("behavior", {}).get("summary")
             esreport["network"] = results.get("network")
