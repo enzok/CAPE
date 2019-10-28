@@ -400,7 +400,7 @@ class Suricata(Processing):
                                                              SURICATA_FILES_DIR)
             ret, stdout, stderr = self.cmd_wrapper(cmd)
             if ret != 0:
-                log.warning("Suricata: Failed to create %s/files.zip - Error {}".format(self.logs_path, ret))
+                log.warning("Suricata: Failed to create {}/files.zip - Error {}".format(self.logs_path, ret))
 
         suricata["alerts"] = self.sort_by_timestamp(suricata["alerts"])
         suricata["http"] = self.sort_by_timestamp(suricata["http"])
