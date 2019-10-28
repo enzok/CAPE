@@ -74,19 +74,19 @@ class ElasticsearchDB(Report):
         # Create a copy of the dictionary. This is done in order to not modify
         # the original dictionary and possibly compromise the following
         # reporting modules.
-        report = dict(results)
+        esreport = dict(results)
 
-        idxdate = report["info"]["started"].split(" ")[0]
+        idxdate = esreport["info"]["started"].split(" ")[0]
         self.index_name = '{0}-{1}'.format(index_prefix, idxdate)
 
         if not search_only:
-            if not "network" in report:
-                report["network"] = {}
+            if not "network" in esreport:
+                esreport["network"] = {}
 
             # Store API calls in chunks for pagination in Django
-            if "behavior" in report and "processes" in report["behavior"]:
+            if "behavior" in esreport and "processes" in esreport["behavior"]:
                 new_processes = []
-                for process in report["behavior"]["processes"]:
+                for process in esreport["behavior"]["processes"]:
                     new_process = dict(process)
                     chunk = []
                     chunks_ids = []
@@ -120,11 +120,11 @@ class ElasticsearchDB(Report):
                     new_processes.append(new_process)
 
                 # Store the results in the report.
-                report["behavior"] = dict(report["behavior"])
-                report["behavior"]["processes"] = new_processes
+                esreport["behavior"] = dict(esreport["behavior"])
+                esreport["behavior"]["processes"] = new_processes
 
             # Add screenshot paths
-            report["shots"] = []
+            esreport["shots"] = []
             shots_path = os.path.join(self.analysis_path, "shots")
             if os.path.exists(shots_path):
                 shots = [shot for shot in os.listdir(shots_path)
@@ -136,47 +136,47 @@ class ElasticsearchDB(Report):
                     if screenshot.valid():
                         # Strip the extension as it's added later 
                         # in the Django view
-                        report["shots"].append(shot_file.replace(".jpg", ""))
+                        esreport["shots"].append(shot_file.replace(".jpg", ""))
 
             if "suricata" in results and results["suricata"]:
                 if "tls" in results["suricata"] and len(results["suricata"]["tls"]) > 0:
-                    report["suri_tls_cnt"] = len(results["suricata"]["tls"])
+                    esreport["suri_tls_cnt"] = len(results["suricata"]["tls"])
                 if "alerts" in results["suricata"] and len(results["suricata"]["alerts"]) > 0:
-                    report["suri_alert_cnt"] = len(results["suricata"]["alerts"])
+                    esreport["suri_alert_cnt"] = len(results["suricata"]["alerts"])
                 if "files" in results["suricata"] and len(results["suricata"]["files"]) > 0:
-                    report["suri_file_cnt"] = len(results["suricata"]["files"])
+                    esreport["suri_file_cnt"] = len(results["suricata"]["files"])
                 if "http" in results["suricata"] and len(results["suricata"]["http"]) > 0:
-                    report["suri_http_cnt"] = len(results["suricata"]["http"])
+                    esreport["suri_http_cnt"] = len(results["suricata"]["http"])
         else:
-            report = {}
-            report["task_id"] = results["info"]["id"]
-            report["info"] = results.get("info")
-            report["target"] = results.get("target")
-            report["summary"] = results.get("behavior", {}).get("summary")
-            report["network"] = results.get("network")
-            report["malfamily"] = results.get("malfamily", "")
-            report["malscore"] = results.get("malscore", 0)
-            report["cape"] = results.get("cape", "")
+            esreport = dict()
+            esreport["task_id"] = results["info"]["id"]
+            esreport["info"] = results.get("info")
+            esreport["target"] = results.get("target")
+            esreport["summary"] = results.get("behavior", {}).get("summary")
+            esreport["network"] = results.get("network")
+            esreport["malfamily"] = results.get("malfamily", "")
+            esreport["malscore"] = results.get("malscore", 0)
+            esreport["cape"] = results.get("cape", "")
             cape_result = results.get("CAPE", "")
             if cape_result:
                 for cape in cape_result:
                     if "cape_config" in cape:
-                        report["CAPE"] = cape
-            report["signatures"] = self.replace_dots(results.get("signatures"))
-            report["strings"] = results.get("strings")
-            report["mmbot"] = results.get("mmbot", {})
+                        esreport["CAPE"] = cape
+            esreport["signatures"] = self.replace_dots(results.get("signatures"))
+            esreport["strings"] = results.get("strings")
+            esreport["mmbot"] = results.get("mmbot", {})
 
             # Store unique list of API calls
-            if "behavior" in results and "processes" in results["behavior"]:
-                report["apicalls"] = []
+            if results.get("behavior", False).get("processes", False):
+                esreport["apicalls"] = []
                 for process in results["behavior"]["processes"]:
                     # Loop on each process call.
                     for index, call in enumerate(process["calls"]):
-                        if call["api"] not in report["apicalls"]:
-                            report["apicalls"].append(call["api"])
+                        if call["api"] not in esreport["apicalls"]:
+                            esreport["apicalls"].append(call["api"])
 
         # Create index and set maximum fields limit to 5000
-        settings = {}
+        settings = dict()
         settings["settings"] = {"index": {"mapping": {"total_fields": {"limit": "5000"}}}}
         if self.es.indices.exists(index=self.index_name):
             self.es.indices.put_settings(index=self.index_name, body=settings)
@@ -185,7 +185,7 @@ class ElasticsearchDB(Report):
 
         # Store the report and retrieve its object id.
         try:
-            self.es.index(index=self.index_name, doc_type="analysis", id=report["info"]["id"], body=report)
+            self.es.index(index=self.index_name, doc_type="analysis", id=esreport["info"]["id"], body=esreport)
         except ElasticsearchException as cept:
             log.warning(cept)
             error_saved = True
@@ -202,14 +202,13 @@ class ElasticsearchDB(Report):
                         continue
 
                     if "yara" in keys and "date" in keys:
-                        for rule in report['target']['file']['yara']:
+                        for rule in esreport['target']['file']['yara']:
                             if "date" in rule['meta']:
                                 del rule['meta']['date']
                     else:
                         delcmd = "del report"
                         for k in keys:
                             delcmd += "['{}']".format(k)
-
                         try:
                             exec(compile(delcmd, '', 'exec')) in locals()
 
@@ -218,12 +217,14 @@ class ElasticsearchDB(Report):
                             error_saved = False
 
                     try:
-                        self.es.index(index=self.index_name, doc_type="analysis", id=report["info"]["id"], body=report)
+                        self.es.index(index=self.index_name,
+                                      doc_type="analysis",
+                                      id=esreport["info"]["id"],
+                                      body=esreport)
                         error_saved = False
                     except ElasticsearchException as cept:
                         dropdead += 1
                         log.error(cept)
-
                 else:
                     log.error("Failed to save results to elasticsearch db.")
                     error_saved = False
