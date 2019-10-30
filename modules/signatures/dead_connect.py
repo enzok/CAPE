@@ -19,7 +19,7 @@ class DeadConnect(Signature):
     name = "dead_connect"
     description = "Attempts to connect to a dead IP:Port ({0} unique times)"
     severity = 1
-    weight = 0
+    weight = 1
     categories = ["network"]
     authors = ["KillerInstinct"]
     minimum = "1.0"

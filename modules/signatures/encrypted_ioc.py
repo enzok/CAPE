@@ -13,7 +13,7 @@ class EncryptedIOC(Signature):
     name = "encrypted_ioc"
     description = "At least one IP Address, Domain, or File Name was found in a crypto call"
     severity = 2
-    weight = 0
+    weight = 2
     categories = ["crypto"]
     authors = ["KillerInstinct"]
     minimum = "1.2"
