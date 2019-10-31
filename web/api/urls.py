@@ -51,5 +51,6 @@ urlpatterns = [
     url(r"^cuckoo/status/$", views.cuckoo_status),
     url(r"^tasks/get/rollingsuri/(?P<window>\d+)/$", views.tasks_rollingsuri),
     url(r"^tasks/get/rollingshrike/(?P<window>\d+)/$", views.tasks_rollingshrike),
-    url(r"^tasks/get/rollingshrike/(?P<window>\d+)/(?P<msgfilter>[\w$-/:-?{-~!^_`\[\]\s\x5c]+)/$", views.tasks_rollingshrike)
+    url(r"^tasks/get/rollingshrike/(?P<window>\d+)/(?P<msgfilter>[\w$-/:-?{-~!^_`\[\]\s\x5c]+)/$", views.tasks_rollingshrike),
+    url(r"^tasks/get/malreport/(?P<start_date>\w+)/(?P<end_date>\w+)/$", views.malreport)
 ]
