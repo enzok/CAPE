@@ -2406,7 +2406,7 @@ if apiconf.malreport.get("enabled"):
     rateblock = limiter
 @ratelimit(key="ip", rate=raterps, block=rateblock)
 @ratelimit(key="ip", rate=raterpm, block=rateblock)
-def malreport(request, start_date, end_date):
+def malreport(request, numdays=30, startfrom=0):
     if request.method != "GET":
         resp = {"error": True, "error_value": "Method not allowed"}
         return jsonize(resp, response=True)
@@ -2418,9 +2418,11 @@ def malreport(request, start_date, end_date):
 
     if repconf.mongodb.enabled:
 
+        #numdays must be greater than or equal to o and greater than or equal to startfrom
+
         try:
-            start = datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S")
-            end = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S")
+            start = datetime.now()
+            end = datetime.now()
         except ValueError as e:
             resp = {"error": True, "error_value": e}
             return jsonize(resp, response=True)
