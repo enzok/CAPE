@@ -52,5 +52,5 @@ xmltodict
 pyyaml
 pyelftools
 git+https://github.com/enzok/sflock.git
-git+https://github.com/doomedraven/pyattck
+git+https://github.com/swimlane/pyattck
 lxml
