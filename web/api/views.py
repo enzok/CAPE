@@ -2440,7 +2440,7 @@ def malreport(request, numdays=30, startfrom=0):
              "malscore": 1,
              "_id": 0},
             sort=[("_id", pymongo.DESCENDING)])
-        resp = {"records": records}
+        resp = {"records": list(records)}
         return jsonize(resp, response=True)
     else:
         resp = {"error": True, "error_value": "Mongodb not enabled"}
