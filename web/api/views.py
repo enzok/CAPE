@@ -2421,8 +2421,8 @@ def malreport(request, numdays=30, startfrom=0):
         #numdays must be greater than or equal to o and greater than or equal to startfrom
 
         try:
-            start = datetime.now()
-            end = datetime.now()
+            start = datetime.now() - timedelta(days=numdays)
+            end = datetime.now() - timedelta(days=startfrom)
         except ValueError as e:
             resp = {"error": True, "error_value": e}
             return jsonize(resp, response=True)
