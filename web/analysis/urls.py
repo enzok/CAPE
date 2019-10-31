@@ -24,6 +24,7 @@ urlpatterns = [
     url(r"^search/$", views.search, name='search'),
     url(r"^pending/$", views.pending, name='pending'),
     url(r"^procdump/(?P<task_id>\d+)/(?P<process_id>\d+)/(?P<start>\w+)/(?P<end>\w+)/$", views.procdump, name='procdump'),
+    url(r"^malreport/(?P<start_date>\w+)/(?P<end_date>\w+)/$", views.malreport, name='malreport'),
     url(r"^(?P<task_id>\d+)/pcapstream/(?P<conntuple>[.,\w]+)/$", views.pcapstream, name='pcapstream'),
     url(r"^(?P<task_id>\d+)/comments/$", views.comments, name='comments'),
 ]
