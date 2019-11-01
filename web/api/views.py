@@ -2465,7 +2465,7 @@ def malreport(request, numdays=30, startfrom=0):
         resp = HttpResponse(output.getvalue(), content_type=content)
         resp["Content-Length"] = str(len(output.getvalue()))
         resp["Content-Disposition"] = "attachment; filename=malware_report.csv"
-        return jsonize(resp, response=True)
+        return resp
     else:
         resp = {"error": True, "error_value": "Mongodb not enabled"}
         return jsonize(resp, response=True)
