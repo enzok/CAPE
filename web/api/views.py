@@ -10,7 +10,7 @@ import tempfile
 import requests
 from zlib import decompress
 import subprocess
-import io
+from io import BytesIO as StringIO
 import csv
 
 from django.conf import settings
@@ -2445,7 +2445,7 @@ def malreport(request, numdays=30, startfrom=0):
 
         results = dict()
         records = list(records)
-        output = io.StringIO()
+        output = StringIO()
         fieldnames = ["md5", "name", "cape", "malfamily", "clamav", "virustotal_summary", "type", "malscore", "date"]
         writer = csv.DictWriter(output, fieldnames=fieldnames)
         for rec in records:
