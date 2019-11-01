@@ -10,7 +10,8 @@ import tempfile
 import requests
 from zlib import decompress
 import subprocess
-import pandas
+import io
+import csv
 
 from django.conf import settings
 from wsgiref.util import FileWrapper
@@ -2443,14 +2444,21 @@ def malreport(request, numdays=30, startfrom=0):
             sort=[("_id", pymongo.DESCENDING)])
 
         results = dict()
-        records = list(records)[0]
-        results = records['target']['file']
-        del records['target']
-        results['ended'] = records['info']['ended']
-        del records['info']
-        results.update(records)
-        csv_results = pandas.DataFrame(results).to_csv()
-        resp = {"records": results}
+        records = list(records)
+        output = io.StringIO()
+        writer = csv.DictWriter(output)
+        for rec in records:
+            results = rec['target']['file']
+            del rec['target']
+            results['ended'] = rec['info']['ended']
+            del rec['info']
+            results.update(rec)
+            writer.writerow(results)
+
+        content = "application/text; charset=UTF-8"
+        resp = HttpResponse(output.getvalue(), content_type=content)
+        resp["Content-Length"] = str(len(output.getvalue()))
+        resp["Content-Disposition"] = "attachment; filename=malware_report.csv"
         return jsonize(resp, response=True)
     else:
         resp = {"error": True, "error_value": "Mongodb not enabled"}
