@@ -2420,11 +2420,14 @@ def malreport(request, numdays=30, startfrom=0):
 
     if repconf.mongodb.enabled:
 
-        #numdays must be greater than or equal to o and greater than or equal to startfrom
+        if numdays < 0:
+            numdays = 0
+        if startfrom < 0:
+            startfrom = 0
 
         try:
-            start = datetime.now() - timedelta(days=int(numdays))
-            end = datetime.now() - timedelta(days=int(startfrom))
+            start = datetime.now() - timedelta(days=int(numdays)) - timedelta(days=int(startfrom))
+            end = start + timedelta(days=int(numdays))
         except ValueError as e:
             resp = {"error": True, "error_value": e}
             return jsonize(resp, response=True)
