@@ -2450,7 +2450,7 @@ def malreport(request, numdays=30, startfrom=0):
         del records['info']
         results.update(records)
         csv_results = pandas.DataFrame(results).to_csv()
-        resp = {"records": csv_results}
+        resp = {"records": results}
         return jsonize(resp, response=True)
     else:
         resp = {"error": True, "error_value": "Mongodb not enabled"}
