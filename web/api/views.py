@@ -2446,11 +2446,12 @@ def malreport(request, numdays=30, startfrom=0):
         results = dict()
         records = list(records)
         output = io.StringIO()
-        writer = csv.DictWriter(output)
+        fieldnames = ["md5", "name", "cape", "malfamily", "clamav", "virustotal_summary", "type", "malscore", "date"]
+        writer = csv.DictWriter(output, fieldnames=fieldnames)
         for rec in records:
             results = rec['target']['file']
             del rec['target']
-            results['ended'] = rec['info']['ended']
+            results['date'] = rec['info']['ended']
             del rec['info']
             results.update(rec)
             writer.writerow(results)
