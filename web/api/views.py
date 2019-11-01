@@ -2422,11 +2422,11 @@ def malreport(request, numdays=30, startfrom=0):
 
         if numdays < 0:
             numdays = 0
-        if startfrom < 0:
-            startfrom = 0
+        if startfrom <= 0:
+            startfrom = numdays
 
         try:
-            start = datetime.now() - timedelta(days=int(numdays)) - timedelta(days=int(startfrom))
+            start = datetime.now() - timedelta(days=int(startfrom))
             end = start + timedelta(days=int(numdays))
         except ValueError as e:
             resp = {"error": True, "error_value": e}
@@ -2470,7 +2470,7 @@ def malreport(request, numdays=30, startfrom=0):
         resp = HttpResponse(output.getvalue(), content_type=content)
         resp["Content-Length"] = str(len(output.getvalue()))
         resp["Content-Disposition"] = "attachment; filename=malware_report_{}.csv".format(
-            datetime.now().strftime("%Y-%m-%d_%H-%M"))
+            datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
         return resp
     else:
         resp = {"error": True, "error_value": "Mongodb not enabled"}
