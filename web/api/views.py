@@ -2460,6 +2460,7 @@ def malreport(request, numdays=30, startfrom=0):
                 results['name'] = convert_to_printable(results['name'])
             if results:
                 writer.writerow(results)
+                results.clear()
 
         content = "application/text; charset=UTF-8"
         resp = HttpResponse(output.getvalue(), content_type=content)
