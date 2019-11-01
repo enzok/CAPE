@@ -2455,7 +2455,9 @@ def malreport(request, numdays=30, startfrom=0):
 
         for rec in records:
             results = rec.get('target', False).get('file', {})
-            if results:
+            if not results:
+                continue
+            else:
                 del rec['target']
             results['date'] = rec.get('info', False).get('ended', "")
             if results['date']:
