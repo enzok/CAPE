@@ -2449,7 +2449,7 @@ def malreport(request, numdays=30, startfrom=0):
         fieldnames = ["md5", "name", "cape", "malfamily", "clamav", "virustotal_summary", "type", "malscore", "date"]
         writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
         for rec in records:
-            results = rec.get('target', False).get('file', "")
+            results = rec.get('target', False).get('file', {})
             if results:
                 del rec['target']
             results['date'] = rec.get('info', False).get('ended', "")
@@ -2460,7 +2460,6 @@ def malreport(request, numdays=30, startfrom=0):
                 results['name'] = convert_to_printable(results['name'])
             if results:
                 writer.writerow(results)
-                results.clear()
 
         content = "application/text; charset=UTF-8"
         resp = HttpResponse(output.getvalue(), content_type=content)
