@@ -470,9 +470,9 @@ curl {{ config.api.url }}/api/files/get/sha256/[sha256 hash]/</pre></td>
                 <td><a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#capemalreport">Example</a></td>
             </tr>
             <tr class="collapse" id="capemalreport">
-                <td colspan="5"><pre>curl {{ config.api.url }}/api/tasks/get/malreport/</pre></td>
-                <td colspan="5"><pre>curl {{ config.api.url }}/api/tasks/get/malreport/[numdays]/</pre></td>
-                <td colspan="5"><pre>curl {{ config.api.url }}/api/tasks/get/malreport/[numdays]/[startfromdaysback]/</pre></td>
+                <td colspan="5"><pre>curl {{ config.api.url }}/api/tasks/get/malreport/
+curl {{ config.api.url }}/api/tasks/get/malreport/[numdays]/
+curl {{ config.api.url }}/api/tasks/get/malreport/[numdays]/[startfromdaysback]/</pre></td>
             </tr>
         </tbody>
     </table>
