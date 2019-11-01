@@ -2447,14 +2447,15 @@ def malreport(request, numdays=30, startfrom=0):
         records = list(records)
         output = StringIO()
         fieldnames = ["md5", "name", "cape", "malfamily", "clamav", "virustotal_summary", "type", "malscore", "date"]
-        writer = csv.DictWriter(output, fieldnames=fieldnames)
+        writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
         for rec in records:
             results = rec.get('target', False).get('file', "")
             if results:
                 del rec['target']
             results['date'] = rec.get('info', False).get('ended', "")
             if results['date']:
-                results.update(rec)
+                del rec['info']
+            results.update(rec)
             if results.get('name', False):
                 results['name'] = convert_to_printable(results['name'])
             if results:
