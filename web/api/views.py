@@ -2466,7 +2466,8 @@ def malreport(request, numdays=30, startfrom=0):
         content = "application/text; charset=UTF-8"
         resp = HttpResponse(output.getvalue(), content_type=content)
         resp["Content-Length"] = str(len(output.getvalue()))
-        resp["Content-Disposition"] = "attachment; filename=malware_report_{}.csv".format(datetime.now())
+        resp["Content-Disposition"] = "attachment; filename=malware_report_{}.csv".format(
+            datetime.now().strftime("%Y-%m-%d_%H-%M"))
         return resp
     else:
         resp = {"error": True, "error_value": "Mongodb not enabled"}
