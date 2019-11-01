@@ -457,6 +457,23 @@ curl {{ config.api.url }}/api/files/get/sha256/[sha256 hash]/</pre></td>
             <tr class="collapse" id="capeprocdumpfiles">
               <td colspan="5"><pre>curl {{ config.api.url }}/api/tasks/get/procdumpfiles/[task_id]/</pre></td>
             </tr>
+            <tr>
+                <td>CAPE Malware Report</td>
+                {% if config.malreport.enabled %}
+                <td><span class="label label-success">Yes</span></td>
+                {% else %}
+                <td><span class="label label-danger">No</span></td>
+                {% endif %}
+                <td><ul><li>RPS: {{ config.malreport.rps }}</li>
+                        <li>RPM: {{ config.malreport.rpm }}</li></ul></td>
+                <td>Download csv file of CAPE reports.</td>
+                <td><a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#capemalreport">Example</a></td>
+            </tr>
+            <tr class="collapse" id="capemalreport">
+                <td colspan="5"><pre>curl {{ config.api.url }}/api/tasks/get/malreport/</pre></td>
+                <td colspan="5"><pre>curl {{ config.api.url }}/api/tasks/get/malreport/[numdays]/</pre></td>
+                <td colspan="5"><pre>curl {{ config.api.url }}/api/tasks/get/malreport/[numdays]/[startfromdaysback]/</pre></td>
+            </tr>
         </tbody>
     </table>
     {% else %}
