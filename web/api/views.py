@@ -10,6 +10,7 @@ import tempfile
 import requests
 from zlib import decompress
 import subprocess
+import pandas
 
 from django.conf import settings
 from wsgiref.util import FileWrapper
@@ -2440,7 +2441,16 @@ def malreport(request, numdays=30, startfrom=0):
              "malscore": 1,
              "_id": 0},
             sort=[("_id", pymongo.DESCENDING)])
-        resp = {"records": list(records)}
+
+        results = dict()
+        records = list(records)
+        results = records['target']['file']
+        del records['target']
+        results['ended'] = records['info']['ended']
+        del records['info']
+        results.update(records)
+        csv_results = pandas.DataFrame.to_csv(results)
+        resp = {"records": csv_results}
         return jsonize(resp, response=True)
     else:
         resp = {"error": True, "error_value": "Mongodb not enabled"}
