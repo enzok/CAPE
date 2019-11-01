@@ -2443,6 +2443,7 @@ def malreport(request, numdays=30, startfrom=0):
             sort=[("_id", pymongo.DESCENDING)])
 
         results = dict()
+        records = list(records)[0]
         results = records['target']['file']
         del records['target']
         results['ended'] = records['info']['ended']
