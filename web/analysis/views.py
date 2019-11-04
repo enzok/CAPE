@@ -826,34 +826,20 @@ def report(request, task_id):
     if not report:
         return render(request, "error.html", {"error": "The specified analysis does not exist"})
 
-    children = 0
-    # If compressed, decompress CAPE data
-    if "CAPE" in report and report["CAPE"]:
-        try:
-            report["CAPE"] = json.loads(zlib.decompress(report["CAPE"]))
-        except:
-            # In case compress results processing module is not enabled
-            pass
-        session = db.Session()
-        children = [c for c in session.query(Task.id,Task.package).filter(Task.parent_id == task_id)]
-
-    # If compressed, decompress procdump, behaviour analysis (enhanced & summary)
-    if "procdump" in report:
-        try:
-            report["procdump"] = json.loads(zlib.decompress(report["procdump"]))
-        except:
-            pass
-
-    if "enhanced" in report["behavior"]:
-        try:
-            report["behavior"]["enhanced"] = json.loads(zlib.decompress(report["behavior"]["enhanced"]))
-        except:
-            pass
-    if "summary" in report["behavior"]:
-        try:
-            report["behavior"]["summary"] = json.loads(zlib.decompress(report["behavior"]["summary"]))
-        except:
-            pass
+    # If compressed, decompress data
+    if enabledconf["compressresults"]:
+        for keyword in ("CAPE", "procdump"):
+            if report.get(keyword, False):
+                try:
+                    report[keyword] = json.loads(zlib.decompress(report[keyword]))
+                except Exception:
+                    pass
+        for keyword in ("enhanced", "summary"):
+            if report.get("behavior", False).get(keyword, False):
+                try:
+                    report["behavior"][keyword] = json.loads(zlib.decompress(report["behavior"][keyword]))
+                except Exception:
+                    pass
 
     children = 0
     if "CAPE_children" in report:
