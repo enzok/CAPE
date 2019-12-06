@@ -20,7 +20,7 @@ class Exe(Package):
         if not wwwroot:
             wwwroot = os.path.join("inetpub", "wwwroot")
         basepath = os.getenv('SystemDrive')
-        newpath = os.path.join(basepath, wwwroot, os.path.basename(path))
+        newpath = os.path.join(basepath, "\\", wwwroot, os.path.basename(path))
         log.info("newpath =  {}".format(newpath))
         shutil.copy(path, newpath)
         path = ""
