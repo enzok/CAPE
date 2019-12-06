@@ -25,5 +25,5 @@ class Exe(Package):
         shutil.copy(path, newpath)
         path = ""
         cmd_path = self.get_path("cmd.exe")
-        cmd_args = "/c start /wait dir \"\" \"{0}\"".format(newpath)
+        cmd_args = "/c start /wait dir \"{0}\"".format(newpath)
         return self.execute(cmd_path, cmd_args, path)
