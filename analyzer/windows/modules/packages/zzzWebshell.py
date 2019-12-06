@@ -1,7 +1,9 @@
 import os
 import shutil
-from subprocess import call
+import logging
 from lib.common.abstracts import Package
+
+log = logging.getLogger(__name__)
 
 class Exe(Package):
     """EXE analysis package."""
@@ -19,8 +21,9 @@ class Exe(Package):
             wwwroot = os.path.join("inetpub", "wwwroot")
         basepath = os.getenv('SystemDrive')
         newpath = os.path.join(basepath, wwwroot, os.path.basename(path))
+        log.info("newpath =  {}".format(newpath))
         shutil.copy(path, newpath)
         path = ""
         cmd_path = self.get_path("cmd.exe")
-        cmd_args = "/c start /wait dir \"\" \"{0}\"".format(newpath)
+        cmd_args = "/c start /wait dir \"\" \"{0}\"".format(path)
         return self.execute(cmd_path, cmd_args, path)
