@@ -94,7 +94,7 @@ class WWWService(Package):
             if servicestatus.dwCurrentState == SERVICE_STOPPED:
             '''
 
-            servproc = Process(options=self.options, config=self.config, pid=464, suspended=False)
+            servproc = Process(options=self.options, config=self.config, pid=self.config.services_pid, suspended=False)
 
             if service_handle:
                 service_launched = ADVAPI32.StartServiceA(service_handle, 0, None)
