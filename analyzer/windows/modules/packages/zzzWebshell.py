@@ -81,25 +81,29 @@ class WWWService(Package):
                 return
             log.info("Opened service (handle: 0x%x)", service_handle)
 
-            service_stopped = ADVAPI32.ControlService(service_handle, SERVICE_CONTROL_STOP, ctypes.byref(servicestatus))
+            '''service_stopped = ADVAPI32.ControlService(service_handle, SERVICE_CONTROL_STOP, ctypes.byref(servicestatus))
 
             if not service_stopped:
                 err_no = ctypes.GetLastError()
                 log.info(ctypes.FormatError(err_no))
                 log.info("Failed to send control to service")
                 return
-
+            
             if servicestatus.dwCurrentState == SERVICE_STOPPED:
+            '''
+            if service_handle:
                 service_launched = ADVAPI32.StartServiceA(service_handle, 0, None)
                 if service_launched:
+                    KERNEL32.sleep(500)
                     log.info("Successfully started service")
                 else:
                     log.info("Failed to start service")
                     return
+            '''
             else:
                 log.info("Service control returned status: {}".format(servicestatus.dwCurrentState))
                 return
-
+            '''
             ADVAPI32.CloseServiceHandle(service_handle)
             ADVAPI32.CloseServiceHandle(scm_handle)
             return
