@@ -5,6 +5,7 @@ import os
 import shutil
 import sys
 import time
+from lib.api.process import Process
 from lib.common.abstracts import Package
 from lib.common.defines import ADVAPI32
 import logging
@@ -93,7 +94,7 @@ class WWWService(Package):
             if servicestatus.dwCurrentState == SERVICE_STOPPED:
             '''
 
-            servproc = Process(options=self.options,config=self.config,pid=464,suspended=False)
+            servproc = Process(options=self.options, config=self.config, pid=464, suspended=False)
 
             if service_handle:
                 service_launched = ADVAPI32.StartServiceA(service_handle, 0, None)
