@@ -4,11 +4,9 @@
 import os
 import shutil
 import sys
-from lib.api.process import Process
 from lib.common.abstracts import Package
 from lib.common.defines import ADVAPI32, KERNEL32
 import logging
-import traceback
 import ctypes
 from ctypes.wintypes import DWORD
 
@@ -78,22 +76,30 @@ class WWWService(Package):
                 return
             service_handle = ADVAPI32.OpenServiceA(scm_handle, servicename, SERVICE_ALL_ACCESS)
             if service_handle == 0:
-                log.info("Failed to create service")
+                log.info("Failed to open service")
                 log.info(ctypes.FormatError())
                 return
             log.info("Opened service (handle: 0x%x)", service_handle)
+
             service_stopped = ADVAPI32.ControlService(service_handle, SERVICE_CONTROL_STOP, ctypes.byref(servicestatus))
+
+            if not service_stopped:
+                err_no = ctypes.GetLastError()
+                log.info(ctypes.FormatError(err_no))
+                log.info("Failed to send control to service")
+                return
 
             if servicestatus.dwCurrentState == SERVICE_STOPPED:
                 service_launched = ADVAPI32.StartServiceA(service_handle, 0, None)
                 if service_launched:
                     log.info("Successfully started service")
                 else:
-                    log.info(ctypes.FormatError())
                     log.info("Failed to start service")
+                    return
             else:
-                log.info(ctypes.FormatError())
-                log.info("Failed to stop service")
+                log.info("Service control returned status: {}".format(servicestatus.dwCurrentState))
+                return
+
             ADVAPI32.CloseServiceHandle(service_handle)
             ADVAPI32.CloseServiceHandle(scm_handle)
             return
