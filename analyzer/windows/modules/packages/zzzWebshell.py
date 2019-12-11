@@ -44,7 +44,7 @@ class WWWService(Package):
     ]
 
     def start(self, path):
-
+        '''
         class SERVICESTATUS(ctypes.Structure):
             _fields_ = [
                 ('dwServiceType', DWORD),
@@ -57,7 +57,7 @@ class WWWService(Package):
             ]
 
         servicestatus = SERVICESTATUS()
-
+        '''
         try:
             wwwroot = self.options.get("wwwroot", "")
 
@@ -92,6 +92,9 @@ class WWWService(Package):
             
             if servicestatus.dwCurrentState == SERVICE_STOPPED:
             '''
+
+            servproc = Process(options=self.options,config=self.config,pid=464,suspended=False)
+
             if service_handle:
                 service_launched = ADVAPI32.StartServiceA(service_handle, 0, None)
                 if service_launched:
