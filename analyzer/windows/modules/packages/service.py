@@ -91,11 +91,10 @@ class Service(Package):
 
             servproc = Process(options=self.options,config=self.config,pid=self.config.services_pid,suspended=False)
             filepath = servproc.get_filepath()
-            is_64bit = servproc.is_64bit()
-            if is_64bit:
-                servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
-            else:
-                servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
+            log.info("servproc filepath = {}".format(filepath))
+            log.info("options = {}".format(self.options))
+            log.info("config = {}".format(self.config))
+            servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
             servproc.close()
             KERNEL32.Sleep(500)
 
