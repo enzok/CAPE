@@ -56,13 +56,14 @@ class IISSERVICE(Package):
             shutil.copy(path, newpath)
 
             servicename = "W3svc"
+
             scm_handle = ADVAPI32.OpenSCManagerA(None, None, SC_MANAGER_ALL_ACCESS)
             if scm_handle == 0:
                 log.info("Failed to open SCManager")
                 log.info(ctypes.FormatError())
                 return
 
-            servproc = Process(options=self.options,config=self.config,pid=self.config.services_pid,suspended=False)
+            servproc = Process(options=self.options, config=self.config, pid=self.config.services_pid, suspended=False)
             filepath = servproc.get_filepath()
             servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
             servproc.close()
@@ -85,7 +86,7 @@ class IISSERVICE(Package):
 
             ADVAPI32.CloseServiceHandle(service_handle)
             ADVAPI32.CloseServiceHandle(scm_handle)
-            return
+            return [self.config.services_pid]
         except Exception as e:
             log.info(sys.exc_info()[0])
             log.info(e)
