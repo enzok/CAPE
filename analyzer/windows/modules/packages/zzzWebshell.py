@@ -86,7 +86,7 @@ class IISSERVICE(Package):
 
             ADVAPI32.CloseServiceHandle(service_handle)
             ADVAPI32.CloseServiceHandle(scm_handle)
-            return [self.config.services_pid]
+            return
         except Exception as e:
             log.info(sys.exc_info()[0])
             log.info(e)
