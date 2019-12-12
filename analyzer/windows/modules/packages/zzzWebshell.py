@@ -70,12 +70,9 @@ class IISSERVICE(Package):
 
             servproc = Process(options=self.options,config=self.config,pid=self.config.services_pid,suspended=False)
             filepath = servproc.get_filepath()
-            log.info("servproc filepath = {}".format(filepath))
-            log.info("options = {}".format(self.options))
-            log.info("config = {}".format(self.config))
             servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
             servproc.close()
-            KERNEL32.Sleep(500)
+            KERNEL32.Sleep(5000)
 
             if service_handle:
                 service_launched = ADVAPI32.StartServiceA(service_handle, 0, None)
