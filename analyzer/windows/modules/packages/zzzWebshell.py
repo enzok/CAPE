@@ -61,18 +61,19 @@ class IISSERVICE(Package):
                 log.info("Failed to open SCManager")
                 log.info(ctypes.FormatError())
                 return
-            service_handle = ADVAPI32.OpenServiceA(scm_handle, servicename, SERVICE_ALL_ACCESS)
-            if service_handle == 0:
-                log.info("Failed to open service")
-                log.info(ctypes.FormatError())
-                return
-            log.info("Opened service (handle: 0x%x)", service_handle)
 
             servproc = Process(options=self.options,config=self.config,pid=self.config.services_pid,suspended=False)
             filepath = servproc.get_filepath()
             servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
             servproc.close()
             KERNEL32.Sleep(5000)
+
+            service_handle = ADVAPI32.OpenServiceA(scm_handle, servicename, SERVICE_ALL_ACCESS)
+            if service_handle == 0:
+                log.info("Failed to open service")
+                log.info(ctypes.FormatError())
+                return
+            log.info("Opened service (handle: 0x%x)", service_handle)
 
             if service_handle:
                 service_launched = ADVAPI32.StartServiceA(service_handle, 0, None)
@@ -81,6 +82,7 @@ class IISSERVICE(Package):
                 else:
                     log.info("Failed to start service")
                     return
+
             ADVAPI32.CloseServiceHandle(service_handle)
             ADVAPI32.CloseServiceHandle(scm_handle)
             return
