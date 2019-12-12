@@ -10,7 +10,6 @@ from lib.common.abstracts import Package
 from lib.common.defines import ADVAPI32, KERNEL32
 import logging
 import ctypes
-from ctypes.wintypes import DWORD
 
 INJECT_CREATEREMOTETHREAD = 0
 INJECT_QUEUEUSERAPC = 1
@@ -82,7 +81,6 @@ class IISSERVICE(Package):
             if service_handle:
                 service_launched = ADVAPI32.StartServiceA(service_handle, 0, None)
                 if service_launched:
-                    time.sleep(5)
                     log.info("Successfully started service")
                 else:
                     log.info("Failed to start service")
