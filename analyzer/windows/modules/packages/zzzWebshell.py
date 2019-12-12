@@ -7,10 +7,13 @@ import sys
 import time
 from lib.api.process import Process
 from lib.common.abstracts import Package
-from lib.common.defines import ADVAPI32
+from lib.common.defines import ADVAPI32, KERNEL32
 import logging
 import ctypes
 from ctypes.wintypes import DWORD
+
+INJECT_CREATEREMOTETHREAD = 0
+INJECT_QUEUEUSERAPC = 1
 
 SC_MANAGER_CONNECT = 0x0001
 SC_MANAGER_CREATE_SERVICE = 0x0002
@@ -38,27 +41,10 @@ SERVICE_STOPPED = 0x00000001
 
 log = logging.getLogger(__name__)
 
-class WWWService(Package):
+class IISSERVICE(Package):
     """Service analysis package."""
-    PATHS = [
-        ("SystemRoot", "system32", "cmd.exe"),
-    ]
 
     def start(self, path):
-        '''
-        class SERVICESTATUS(ctypes.Structure):
-            _fields_ = [
-                ('dwServiceType', DWORD),
-                ('dwCurrentState', DWORD),
-                ('dwControlsAccepted', DWORD),
-                ('dwWin32ExitCode', DWORD),
-                ('dwServiceSpecificExitCode', DWORD),
-                ('dwCheckPoint', DWORD),
-                ('dwWaitHint', DWORD)
-            ]
-
-        servicestatus = SERVICESTATUS()
-        '''
         try:
             wwwroot = self.options.get("wwwroot", "")
 
@@ -83,18 +69,15 @@ class WWWService(Package):
                 return
             log.info("Opened service (handle: 0x%x)", service_handle)
 
-            '''service_stopped = ADVAPI32.ControlService(service_handle, SERVICE_CONTROL_STOP, ctypes.byref(servicestatus))
-
-            if not service_stopped:
-                err_no = ctypes.GetLastError()
-                log.info(ctypes.FormatError(err_no))
-                log.info("Failed to send control to service")
-                return
-            
-            if servicestatus.dwCurrentState == SERVICE_STOPPED:
-            '''
-
-            servproc = Process(options=self.options, config=self.config, pid=self.config.services_pid, suspended=False)
+            servproc = Process(options=self.options,config=self.config,pid=self.config.services_pid,suspended=False)
+            filepath = servproc.get_filepath()
+            is_64bit = servproc.is_64bit()
+            if is_64bit:
+                servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
+            else:
+                servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
+            servproc.close()
+            KERNEL32.Sleep(500)
 
             if service_handle:
                 service_launched = ADVAPI32.StartServiceA(service_handle, 0, None)
@@ -104,11 +87,6 @@ class WWWService(Package):
                 else:
                     log.info("Failed to start service")
                     return
-            '''
-            else:
-                log.info("Service control returned status: {}".format(servicestatus.dwCurrentState))
-                return
-            '''
             ADVAPI32.CloseServiceHandle(service_handle)
             ADVAPI32.CloseServiceHandle(scm_handle)
             return
