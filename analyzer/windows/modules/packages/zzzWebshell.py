@@ -55,7 +55,11 @@ class IISSERVICE(Package):
             log.info("newpath =  {}".format(newpath))
             shutil.copy(path, newpath)
 
-            servicename = "W3svc"
+            servproc = Process(options=self.options, config=self.config, pid=self.config.services_pid, suspended=False)
+            filepath = servproc.get_filepath()
+            servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
+            servproc.close()
+            KERNEL32.Sleep(2000)
 
             scm_handle = ADVAPI32.OpenSCManagerA(None, None, SC_MANAGER_ALL_ACCESS)
             if scm_handle == 0:
@@ -63,18 +67,13 @@ class IISSERVICE(Package):
                 log.info(ctypes.FormatError())
                 return
 
+            servicename = "W3svc"
             service_handle = ADVAPI32.OpenServiceA(scm_handle, servicename, SERVICE_ALL_ACCESS)
             if service_handle == 0:
                 log.info("Failed to open service")
                 log.info(ctypes.FormatError())
                 return
             log.info("Opened service (handle: 0x%x)", service_handle)
-
-            servproc = Process(options=self.options, config=self.config, pid=self.config.services_pid, suspended=False)
-            filepath = servproc.get_filepath()
-            servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
-            servproc.close()
-            KERNEL32.Sleep(2000)
 
             if service_handle:
                 service_launched = ADVAPI32.StartServiceA(service_handle, 0, None)
