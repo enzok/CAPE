@@ -56,14 +56,17 @@ class IISSERVICE(Package):
 
             # get PID for w3wp.exe for monitoring services
             workerpid = self.pids_from_process_name_list(["w3wp.exe"])
+            if workerpid:
+                log.info("Got IIS worker PID: {}".format(workerpid[0]))
+                servproc = Process(options=self.options, config=self.config, pid=workerpid[0], suspended=False)
+                filepath = servproc.get_filepath()
+                servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
+                servproc.close()
+                KERNEL32.Sleep(1000)
 
-            servproc = Process(options=self.options, config=self.config, pid=workerpid, suspended=False)
-            filepath = servproc.get_filepath()
-            servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
-            servproc.close()
-            KERNEL32.Sleep(1000)
-
-            log.info("Injected into IIS worker service")
+                log.info("Injected into IIS worker service")
+            else:
+                log.info("Did not get IIS worker PID. No Injection.")
             return
         except Exception as e:
             log.info(sys.exc_info()[0])
