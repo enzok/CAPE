@@ -1583,7 +1583,7 @@ class Signature(object):
         if isinstance(self.data, set):
             self.data = list(self.data)
 
-        return dict()
+        return dict(
             name=self.name,
             description=self.description,
             severity=self.severity,
