@@ -929,7 +929,7 @@ class Signature(object):
                     else:
                         return subject
             if all and len(retset) > 0:
-                return retset
+                return list(retset)
         elif ignorecase:
             lowerpattern = pattern.lower()
             if isinstance(subject, list):
@@ -1177,7 +1177,7 @@ class Signature(object):
                         return call["api"]
 
         if all and len(retset) > 0:
-            return retset
+            return list(retset)
 
         return None
 
@@ -1238,7 +1238,7 @@ class Signature(object):
                     return argument["value"]
 
         if all and len(retset) > 0:
-            return retset
+            return list(retset)
 
         return False
 
@@ -1287,7 +1287,7 @@ class Signature(object):
                         return r
 
         if all and len(retset) > 0:
-            return retset
+            return list(retset)
 
         return None
 
@@ -1325,7 +1325,7 @@ class Signature(object):
                     return item["ip"]
 
         if all and len(retset) > 0:
-            return retset
+            return list(retset)
 
         return None
 
@@ -1362,7 +1362,7 @@ class Signature(object):
                     return item["domain"]
 
         if all and len(retset) > 0:
-            return retset
+            return list(retset)
 
         return None
 
@@ -1399,7 +1399,7 @@ class Signature(object):
                     return item["uri"]
 
         if all and len(retset) > 0:
-            return retset
+            return list(retset)
 
         return None
 
