@@ -42,13 +42,13 @@ class PersistenceShimDatabase(Signature):
             match = self.check_write_key(pattern=indicator, regex=True)
             if match:
                 ret = True
-                self.data.append({"regkey": match })
+                self.data.append({"regkey": list(match) })
 
         for indicator in file_indicators:
             match = self.check_write_file(pattern=indicator, regex=True, all=True)
             if match:
                 ret = True
-                self.data.append({"file": match })
+                self.data.append({"file": list(match) })
 
         cmdlines = self.results["behavior"]["summary"]["executed_commands"]
         for cmdline in cmdlines:
