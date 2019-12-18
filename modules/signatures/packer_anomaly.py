@@ -51,6 +51,8 @@ class PackerUnknownPESectionName(Signature):
             ".upx",
             ".vmp",
             ".xdata",
+            ".gfids",
+            "CPADinfo"
         ]
 
         for section in self.results.get("static", {}).get("pe", {}).get("sections", []):
