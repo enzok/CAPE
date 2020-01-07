@@ -9,9 +9,6 @@ import logging
 from lib.cuckoo.common.config import Config
 from lib.cuckoo.common.objects import File
 from lib.cuckoo.common.exceptions import CuckooDemuxError
-from lib.cuckoo.common.utils import is_printable, convert_to_printable
-
-from guestfs import GuestFS
 
 try:
     from sflock import unpack
@@ -86,45 +83,6 @@ def demux_office(filename, password):
     return retlist
 
 
-def demux_vhd(filename):
-    retlist = []
-    try:
-        target_path = os.path.join(TMP_PATH, "cuckoo-vhd")
-        if not os.path.exists(target_path):
-            os.mkdir(target_path)
-        tmp_dir = tempfile.mkdtemp(dir=target_path)
-        g = GuestFS(python_return_dict=True)
-        g.add_drive_opts(filename, readonly=1)
-        g.launch()
-        try:
-            g.mount_ro("/dev/sda1", "/")
-        except RuntimeError as msg:
-            log.error("Error mounting Microsoft Disk Image: {} - {}".format((filename, msg)))
-            g.close()
-            return [filename]
-        files = g.ls("/")
-        if files:
-            g.copy_out("/", tmp_dir)
-            for f in files:
-                base, ext = os.path.splitext(f)
-                ext = ext.lower()
-                filepath = os.path.join(tmp_dir, f)
-                magic = File(filepath).get_type()
-                if ext in demux_extensions_list or is_valid_type(magic):
-                    if is_printable(f):
-                        retlist.append(filepath)
-                    else:
-                        newpath = os.path.join(tmp_dir, convert_to_printable(f))
-                        os.rename(filepath, newpath)
-                        retlist.append(newpath)
-        g.umount_all()
-        g.close()
-    except Exception as err:
-        log.error("Error extracting from Microsoft Disk Image: {} - {}".format(filename, err))
-
-    return retlist
-
-
 def is_valid_type(magic):
     # check for valid file types and don't rely just on file extentsion
     for ftype in VALID_TYPES:
@@ -144,7 +102,7 @@ def get_filenames(retlist, tmp_dir, children):
                 base, ext = os.path.splitext(at['filename'])
                 ext = ext.lower()
                 if ext in demux_extensions_list or is_valid_type(magic):
-                    retlist.append(os.path.join(tmp_dir, at['filename']))
+                    retlist.append(os.path.join(tmp_dir, at['filename'].encode('utf8', 'replace')))
             elif 'container' in at['type'] and child.package not in office_pkgs:
                 get_filenames(retlist, tmp_dir, child.children)
     except Exception as err:
@@ -207,8 +165,6 @@ def demux_sample(filename, package, options):
             else:
                 log.debug("Submitting Office document - {}".format(filename))
                 return [filename]
-        elif "Disk Image" in magic:
-            return demux_vhd(filename)
         else:
             return [filename]
 
