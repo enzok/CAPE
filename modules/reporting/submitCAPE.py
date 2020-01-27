@@ -101,6 +101,10 @@ class SubmitCAPE(Report):
             for option in yara_options:
                 name, value = option.split('=')
                 if value.startswith('$'):
+                    if '+' in value:
+                        value = value.split('+')[0]
+                    if '-' in value:
+                        value = value.split('-')[0]
                     address = cape_yara["addresses"].get(value.strip('$'))
                     if address:
                         self.task_options = self.task_options.replace(value, str(address), 1)
@@ -441,6 +445,8 @@ class SubmitCAPE(Report):
                 package = 'Hancitor_doc'
             elif parent_package in ('exe', 'Injection', 'Compression'):
                 package = 'Hancitor'
+            elif parent_package in ('dll', 'Injection_dll', 'Compression_dll'):
+                package = 'Hancitor_dll'
 
         # if 'RegBinary' in detections or 'CreatesLargeKey' in detections:
         elif 'RegBinary' in detections:
