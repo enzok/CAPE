@@ -7,6 +7,8 @@ from lib.cuckoo.common.exceptions import CuckooReportError
 class MinitextSummary(Report):
     """Saves a subset of analysis results in text format."""
 
+    order = 99991
+
     def run(self, results):
         """Writes report.
         @param results: Cuckoo results dict.

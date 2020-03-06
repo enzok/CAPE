@@ -10,6 +10,8 @@ from lib.cuckoo.core.database import Database, Task
 class RefinedJson(Report):
     """Saves a subset of analysis results in JSON format."""
 
+    order = 99993
+
     def run(self, results):
         """Writes report.
         @param results: Cuckoo results dict.
@@ -32,23 +34,25 @@ class RefinedJson(Report):
 
         try:
             db = Database()
+            report = dict(results)
+
             miniresults = dict()
-            if 'file' in results['target']:
-                miniresults['file'] = results['target']['file']
+            if 'file' in report['target']:
+                miniresults['file'] = report['target']['file']
                 del miniresults['file']['yara']
                 del miniresults['file']['path']
                 del miniresults['file']['guest_paths']
                 miniresults['file']['yara'] = []
-                for rule in results['target']['file']['yara']:
+                for rule in report['target']['file']['yara']:
                     miniresults['file']['yara'].append({'name': rule['name']})
-            if 'malfamily' in results:
-                miniresults['malfamily'] = results['malfamily']
-            if 'signatures' in results:
+            if 'malfamily' in report:
+                miniresults['malfamily'] = report['malfamily']
+            if 'signatures' in report:
                 miniresults['signatures'] = []
-                for sig in results['signatures']:
+                for sig in report['signatures']:
                     miniresults['signatures'].append({'description': sig['description']})
-            if 'network' in results:
-                net = results['network']
+            if 'network' in report:
+                net = report['network']
                 mininet = dict()
                 mininet['hosts'] = []
                 for host in net['hosts']:
@@ -67,19 +71,19 @@ class RefinedJson(Report):
                 mininet['irc'] = net['irc']
 
                 '''
-                if "suricata" in results and results["suricata"]:
-                    if "alerts" in results["suricata"] and len(results["suricata"]["alerts"]) > 0:
-                        mininet["alerts"] = results["suricata"]["alerts"]
-                    if "http" in results["suricata"] and len(results["suricata"]["http"]) > 0:
-                        mininet["suri_http"] = results["suricata"]["http"]
+                if "suricata" in report and report["suricata"]:
+                    if "alerts" in report["suricata"] and len(report["suricata"]["alerts"]) > 0:
+                        mininet["alerts"] = report["suricata"]["alerts"]
+                    if "http" in report["suricata"] and len(report["suricata"]["http"]) > 0:
+                        mininet["suri_http"] = report["suricata"]["http"]
                 '''
 
                 miniresults['network'] = mininet
-            if 'executed_commands' in results['behavior']['summary']:
-                miniresults['executed_commands'] = results['behavior']['summary']['executed_commands']
+            if 'executed_commands' in report['behavior']['summary']:
+                miniresults['executed_commands'] = report['behavior']['summary']['executed_commands']
 
             session = db.Session()
-            task_id = results['info']['id']
+            task_id = report['info']['id']
             children = [c for c in session.query(Task.id, Task.package).filter(Task.parent_id == task_id)]
 
             if children:
